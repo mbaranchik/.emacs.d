@@ -1,0 +1,8 @@
+# -*- mode: snippet -*-
+# name: write_callback_declare
+# key: wcbd
+# group: sc
+# --
+RegisterWriteCallbackInstance< ${1:CLASSNAME}, U32T > ${2:REGNAME}_wcb_inst;
+void $2_wcb_imp(Register< U32T > *reg, writeAccessType writeType, U32T data, U32T dataMask);
+$0

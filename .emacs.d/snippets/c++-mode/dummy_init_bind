@@ -1,0 +1,11 @@
+# -*- mode: snippet -*-
+# name: Dummy Initiator Bind
+# key: dummy_init
+# group: sc
+# --
+if (${1:PORT}.bind_count() == 0) {
+   tlm_utils::simple_target_socket< class ${2:CLASS}, ${3:WIDTH} > *dummy =
+       new tlm_utils::simple_target_socket< class $2, $3 >("dummy_$1");
+   $1.bind(*dummy);
+}
+$0

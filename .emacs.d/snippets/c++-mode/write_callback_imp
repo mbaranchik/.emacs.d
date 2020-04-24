@@ -1,0 +1,8 @@
+# -*- mode: snippet -*-
+# name: write_callback_imp
+# key: wcbi
+# group: sc
+# --
+${1:REGNAME}_wcb_inst.setCallback(this, & ${2:CLASSNAME}::$1_wcb_imp);
+${3:PATH_TO_REGISTER}->getRegister()->setWriteCallback(& $1_wcb_inst, false);
+$0

@@ -1,0 +1,8 @@
+# -*- mode: snippet -*-
+# name: read_callback_imp
+# key: rcbi
+# group: sc
+# --
+${1:REGNAME}_rcb_inst.setCallback(this, & ${2:CLASSNAME}::$1_rcb_imp);
+${3:PATH_TO_REGISTER}->getRegister()->setReadCallback(& $1_rcb_inst, false);
+$0

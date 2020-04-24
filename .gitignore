@@ -9,3 +9,7 @@
 
 # Undo-tree save-files
 *.~undo-tree
+.emacs.d/projectile-bookmarks.eld
+.emacs.d/local_customized.el
+.emacs.d/elpa/
+.emacs.d/smex-items
