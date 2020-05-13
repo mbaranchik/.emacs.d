@@ -39,6 +39,9 @@
 
 (scroll-bar-mode -1)
 
+;; Set Title Bar
+(setq frame-title-format "%b")
+
 ;; Customs - Faces
 (face-spec-set 'default '((t (:inherit nil :stipple nil :background "#2e3436" :foreground "#eeeeec" :inverse-video nil :box nil :strike-through nil :overline nil :underline nil :slant normal :weight normal :height 113 :width normal :foundry "PfEd" :family "DejaVu Sans Mono"))) 'face-defface-spec)
 (face-spec-set 'rainbow-delimiters-depth-2-face '((t (:foreground "green"))) 'face-defface-spec)
