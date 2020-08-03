@@ -13,3 +13,5 @@
 .emacs.d/local_customized.el
 .emacs.d/elpa/
 .emacs.d/smex-items
+.emacs.d/.lsp-session-v1
+.emacs.d/.python-environments
