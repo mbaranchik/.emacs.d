@@ -3,7 +3,7 @@
 # key: dummy_trgt
 # group: sc
 # --
-if (${1:PORT}.size() == 0) {
+if (${1:PORT}.get_base_port().bind_count() == 0) {
    tlm_utils::simple_initiator_socket< class ${2:CLASS}, ${3:WIDTH} > *dummy =
        new tlm_utils::simple_initiator_socket< class $2, $3 >("dummy_$1");
 dummy->bind($1);
