@@ -81,6 +81,7 @@
              zoom-window
              back-button
              expand-region
+             exec-path-from-shell
              use-package))
 
 ; list the repositories containing them

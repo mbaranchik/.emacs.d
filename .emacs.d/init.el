@@ -13,7 +13,6 @@
   (load-user-file "emacs_vanilla")
   )
 
-(package-install 'exec-path-from-shell)
 (exec-path-from-shell-initialize)
 
 (add-hook 'emacs-startup-hook
