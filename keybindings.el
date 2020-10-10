@@ -183,3 +183,6 @@
 
 ;; Zoom-Window
 (global-set-key (kbd "M-z") 'zoom-window-zoom)
+
+;; Expand-Region
+(global-set-key (kbd "C-=") 'er/expand-region)

@@ -88,3 +88,7 @@
 (use-package zoom-window)
 (custom-set-variables
  '(zoom-window-mode-line-color "DarkGreen"))
+
+;; Expand-Region
+(use-package expand-region)
+

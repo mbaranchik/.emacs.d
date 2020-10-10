@@ -79,6 +79,8 @@
              spaceline
              spacemacs-theme
              zoom-window
+             back-button
+             expand-region
              use-package))
 
 ; list the repositories containing them
@@ -126,10 +128,11 @@
   (package-menu-execute)
   )
 
+;; This is only needed once, near the top of the file
+(require 'use-package)
+
 ;; Auto compile lisp
 (use-package auto-compile)
 (auto-compile-on-load-mode)
 (auto-compile-on-save-mode)
 
-;; This is only needed once, near the top of the file
-(require 'use-package)

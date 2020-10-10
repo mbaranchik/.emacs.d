@@ -14,3 +14,7 @@
 
 (use-package highlight-symbol)
 
+(use-package back-button
+  :config
+  (back-button-mode 1))
+
