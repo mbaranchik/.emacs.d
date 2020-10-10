@@ -88,6 +88,7 @@
   )
 )
 
+(setq exec-path-from-shell-arguments nil)
 (exec-path-from-shell-initialize)
 
 (add-hook 'emacs-startup-hook
