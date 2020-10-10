@@ -82,6 +82,7 @@
              back-button
              expand-region
              exec-path-from-shell
+             benchmark-init
              use-package))
 
 ; list the repositories containing them
