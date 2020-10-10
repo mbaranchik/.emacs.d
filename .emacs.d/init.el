@@ -10,12 +10,12 @@
 (setq gc-cons-threshold 1073741824
       gc-cons-percentage 0.6)
 
-(load-user-file "filelock.el")
-(use-package filelock)
-
 (load-user-file "packages.el")
 
 (load-user-file "config")
+
+(load-user-file "filelock.el")
+(use-package filelock)
 
 (load-user-file "general")
 
