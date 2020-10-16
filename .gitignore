@@ -15,3 +15,5 @@
 .emacs.d/smex-items
 .emacs.d/.lsp-session-v1
 .emacs.d/.python-environments
+.emacs.d/tramp
+.emacs.d/var
