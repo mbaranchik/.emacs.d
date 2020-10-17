@@ -119,7 +119,8 @@
  )
 
 ;; Avoid locks on recentf
-(setq recentf-save-file (format "/tmp/recentf.%s" server-name))
+(when (boundp 'server-name)
+  (setq recentf-save-file (format "/tmp/recentf.%s" server-name)))
 
 (byte-recompile-directory user-init-dir 0)
 
