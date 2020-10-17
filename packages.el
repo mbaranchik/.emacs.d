@@ -84,6 +84,10 @@
              expand-region
              exec-path-from-shell
              benchmark-init
+             which-key
+             lsp-ivy
+             helm-lsp
+             lsp-treemacs
              use-package))
 
 ; list the repositories containing them
