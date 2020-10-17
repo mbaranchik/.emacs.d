@@ -22,6 +22,7 @@
 (when use-lsp
   (use-package lsp-mode)
   (add-hook 'c-mode-hook #'lsp)
+  (add-hook 'c++-mode-hook #'lsp)
   (add-hook 'python-mode-hook #'lsp))
 
 (when (and use-lsp (equal my-lsp-c++-backend "cquery"))
