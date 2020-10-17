@@ -41,6 +41,7 @@
              git-blamed
              mo-git-blame
              monokai-theme
+             horizon-theme
              hl-todo
              ;;sr-speedbar
              auto-compile

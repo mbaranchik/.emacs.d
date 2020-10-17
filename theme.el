@@ -30,8 +30,6 @@
 (add-hook 'dired-mode-hook 'all-the-icons-dired-mode)
 (all-the-icons-ivy-setup)
 
-;;(load-theme 'naquadah t)
-;;(load-theme 'solarized-dark t)
 (load-theme use-theme t)
 
 (use-package spaceline-config)
