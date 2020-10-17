@@ -7,6 +7,16 @@
         )
   )
 
+(defun set-config-quote-var (varname default env)
+  (cond ((getenv env) (set varname (intern (getenv env))))
+	 (t (set varname default))
+        )
+  )
+
+;;(setq ASymbol 10)  => 10
+;;(intern "ASymbol")  => 'ASymbol (e.g. the unevaluated symbol with name "ASymbol")
+;;(symbol-value (intern "ASymbol")) => 10
+
 ;; Example
 ;; (set-config-var 'my-new-shiny-var 3277 "EMACS_NEW_SHINY_VAR")
 
@@ -41,8 +51,8 @@
 (set-config-var 'gitsync-basefrom "/Volumes/ANPA" "EMACS_GITSYNC_BASEFROM")
 (set-config-var 'gitsync-basefrom2 "sync/" "EMACS_GITSYNC_BASEFROM2")
 (set-config-var 'gitsync-script "/Volumes/ANPA/sync/rsync_script.py" "EMACS_GITSYNC_SCRIPT")
-(set-config-var 'use-theme 'horizon "EMACS_USE_THEME")
-(set-config-var 'aw-scope 'frame "EMACS_AW_SCOPE")
+(set-config-quote-var 'use-theme 'horizon "EMACS_USE_THEME")
+(set-config-quote-var 'aw-scope 'frame "EMACS_AW_SCOPE")
 (set-config-var 'cquery-executable "cquery" "EMACS_CQUERY_PATH")
 (set-config-var 'my-lsp-c++-backend "ccls" "EMACS_LSP_BACKEND")
 (set-config-var 'lsp-clients-clangd-executable "clangd" "EMACS_CLANGD_PATH")

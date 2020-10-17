@@ -48,9 +48,10 @@
 (face-spec-set 'rainbow-delimiters-depth-5-face '((t (:foreground "magenta"))) 'face-defface-spec)
 (face-spec-set 'rainbow-delimiters-depth-6-face '((t (:foreground "cyan"))) 'face-defface-spec)
 (face-spec-set 'rainbow-delimiters-unmatched-face '((((class color) (min-colors 89)) (:foreground "#ffffff" :background "#a40000" :bold t))) 'face-defface-spec)
-(face-spec-set 'region '((t (:background "light cyan" :foreground "black"))) 'face-defface-spec)
 (face-spec-set 'tabbar-button '((t (:inherit tabbar-default :box (:line-width 3 :color "white" :style released-button)))) 'face-defface-spec)
 (face-spec-set 'tabbar-default '((t (:inherit variable-pitch :background "gray80" :foreground "black" :height 140))) 'face-defface-spec)
+
+;; (face-spec-set 'region '((t (:background "light cyan" :foreground "black"))) 'face-defface-spec)
 
 ;; Centaur-Tabs
 ;;(load-file "~/.emacs.d/centaur-tabs-master/centaur-tabs.el")
