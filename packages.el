@@ -26,6 +26,7 @@
              ivy-xref
              helm-xref
              cquery
+             ccls
              company-lsp
              magit
              ace-window
