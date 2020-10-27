@@ -166,9 +166,6 @@
 ;; Ace-Window
 (global-set-key (kbd "M-o") 'ace-window)
 
-;; Dirtree
-(global-set-key [f8] 'dirtree)
-
 ;; Header/Source toggle
 (global-set-key (kbd "C-x t") 'ff-find-other-file)
 

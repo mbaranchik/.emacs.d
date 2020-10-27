@@ -23,7 +23,9 @@
   (use-package lsp-mode)
   (add-hook 'c-mode-hook #'lsp)
   (add-hook 'c++-mode-hook #'lsp)
-  (add-hook 'python-mode-hook #'lsp))
+  (add-hook 'python-mode-hook #'lsp)
+  (setq lsp-enable-file-watchers t)
+  (setq lsp-file-watch-threshold 65536))
 
 (when (and use-lsp (equal my-lsp-c++-backend "cquery"))
   (use-package cquery))
