@@ -54,7 +54,7 @@
 (set-config-quote-var 'use-theme 'horizon "EMACS_USE_THEME")
 (set-config-quote-var 'aw-scope 'frame "EMACS_AW_SCOPE")
 (set-config-var 'cquery-executable "cquery" "EMACS_CQUERY_PATH")
-(set-config-var 'my-lsp-c++-backend "ccls" "EMACS_LSP_BACKEND")
+(set-config-var 'my-lsp-c++-backend "cquery" "EMACS_LSP_BACKEND")
 (set-config-var 'lsp-clients-clangd-executable "clangd" "EMACS_CLANGD_PATH")
 (set-config-var 'lsp-ui-flycheck-enable t "EMACS_LSP_UI_FLYCHECK_ENABLE")
 (set-config-var 'lsp-prefer-flymake nil "EMACS_LSP_PREFER_FLYMAKE")
@@ -62,6 +62,23 @@
 (set-config-var 'lsp-ui-sideline-enable nil "EMACS_LSP_UI_SIDELINE_ENABLE")
 (set-config-var 'auto-insert-copyright "REPLACE_WITH_COPYRIGHT" "EMACS_COPYRIGHT_COMPANY")
 (set-config-var 'auto-insert-name "REPLACE_WITH_NAME" "EMACS_COPYRIGHT_NAME")
+
+(set-config-var 'read-process-output-max (* 1024 1024) "EMACS_READ_PROCESS_MAX")
+(set-config-var 'lsp-headerline-breadcrumb-enable t "EMACS_LSP_BREADCRUMB")
+(set-config-var 'lsp-idle-delay 0.1 "EMACS_LSP_IDLE_DELAY")
+(set-config-var 'company-idle-delay 0.1 "EMACS_COMPANY_IDLE_DELAY")
+
+;; (setq gc-cons-threshold (* 100 1024 1024)
+;;       read-process-output-max (* 1024 1024)
+;;       treemacs-space-between-root-nodes nil
+;;       company-idle-delay 0.0
+;;       company-minimum-prefix-length 1
+;;       lsp-idle-delay 0.1 ;; clangd is fast
+;;       ;; be more ide-ish
+;;       lsp-headerline-breadcrumb-enable t)
+
+(with-eval-after-load 'lsp-mode
+  (add-hook 'lsp-mode-hook #'lsp-enable-which-key-integration))
 
 ;; Customs - Vars
 (setq-default c-basic-offset 4)

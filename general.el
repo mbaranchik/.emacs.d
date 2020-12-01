@@ -28,9 +28,14 @@
   (add-hook 'after-init-hook 'global-company-mode)
   (setq company-backends (delete 'company-semantic company-backends))
   (add-to-list 'company-backends 'company-c-headers)
+  (use-package company-box
+      :hook (company-mode . company-box-mode))
   (advice-add 'company-clang--handle-error :after
               (lambda (&rest _args) (message nil))
               '((name . "Silence errors"))))
+
+(when (and use-company use-lsp)
+  (add-hook 'lsp-managed-mode-hook (lambda () (setq-local company-backends '(company-capf)))))
 
 (when (and use-company use-python-jedi)
   (defun my/python-mode-hook ()

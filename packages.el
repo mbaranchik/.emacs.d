@@ -9,6 +9,7 @@
              ;;auto-complete-config
              company
              company-c-headers
+             company-box
              company-shell
              company-jedi
              desktop+

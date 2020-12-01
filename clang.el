@@ -24,6 +24,8 @@
   (add-hook 'c-mode-hook #'lsp)
   (add-hook 'c++-mode-hook #'lsp)
   (add-hook 'python-mode-hook #'lsp)
+  (add-hook 'js-mode-hook #'lsp)
+  (add-hook 'sh-mode-hook #'lsp)
   (setq lsp-enable-file-watchers t)
   (setq lsp-file-watch-threshold 65536))
 
