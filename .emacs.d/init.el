@@ -142,6 +142,7 @@
 (byte-recompile-directory user-init-dir 0)
 
 ;; Server Start
+(message "Sockets Dir: %s" server-socket-dir)
 (when start-server
   (server-start))
 

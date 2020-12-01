@@ -80,6 +80,8 @@
 (with-eval-after-load 'lsp-mode
   (add-hook 'lsp-mode-hook #'lsp-enable-which-key-integration))
 
+(setq-default server-socket-dir "~/.emacs.d/server-sock")
+
 ;; Customs - Vars
 (setq-default c-basic-offset 4)
 (setq-default default-frame-alist
