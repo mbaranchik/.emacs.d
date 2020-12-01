@@ -1,8 +1,8 @@
 ;;; -*- lexical-binding: t -*-
 
 ;; Tabs
-(global-set-key [M-left] 'tabbar-backward-tab)
-(global-set-key [M-right] 'tabbar-forward-tab)
+(global-set-key [M-left] 'tab-line-switch-to-prev-tab)
+(global-set-key [M-right] 'tab-line-switch-to-prev-tab)
 
 ;; Highlight Symbol
 (global-set-key [(control f3)] 'highlight-symbol)
