@@ -26,6 +26,9 @@
 (auto-compile-on-load-mode)
 (auto-compile-on-save-mode)
 
+;; Load GCMH
+(use-package gcmh)
+
 (defconst user-init-dir "~/emacs.init/")
 
 (defun load-user-file (file)

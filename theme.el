@@ -32,8 +32,9 @@
 
 (load-theme use-theme t)
 
-(use-package spaceline-config)
+(use-package spaceline)
 (spaceline-emacs-theme)
+(use-package spaceline-all-the-icons)
 
 (scroll-bar-mode -1)
 
