@@ -2,21 +2,10 @@
 
 ;;(load "/usr/local/Cellar/clang-format/2018-01-11/share/clang/clang-format.el")
 
-(use-package clang-format)
+;;(straight-use-package `(clang-format-on-save
+;;  :local-repo ,(concat user-emacs-directory "lisp")))
 
-(defun clang-format-buffer-smart ()
-  "Reformat buffer if .clang-format exists in the project root."
-  (when (and (locate-dominating-file default-directory ".clang-format") (or (eq major-mode 'c++-mode) (eq major-mode 'c-mode)))
-    (clang-format-buffer)))
-
-(define-minor-mode clang-format-on-save-mode
-  "automatically execute git-sync when editing file's path contains .sync"
-  :lighter " ClangFormatHook"
-  :global t
-  (cond (clang-format-on-save-mode
-         (add-hook 'before-save-hook 'clang-format-buffer-smart))
-        (t
-         (remove-hook 'before-save-hook 'clang-format-buffer-smart))))
+(use-package clang-format+)
 
 ;; Enable LSP
 (when use-lsp
@@ -34,8 +23,6 @@
 
 (when (and use-lsp (equal my-lsp-c++-backend "ccls"))
   (use-package ccls))
-
-(provide 'clang-format-on-save)
 
 ;;;;;;;;;;;;;;;;;;;;;;;;
 

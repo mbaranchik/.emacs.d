@@ -1,5 +1,31 @@
 ;;; -*- lexical-binding: t -*-
 
+(defvar bootstrap-version)
+(let ((bootstrap-file
+       (expand-file-name "straight/repos/straight.el/bootstrap.el" user-emacs-directory))
+      (bootstrap-version 5))
+  (unless (file-exists-p bootstrap-file)
+    (with-current-buffer
+        (url-retrieve-synchronously
+         "https://raw.githubusercontent.com/raxod502/straight.el/develop/install.el"
+         'silent 'inhibit-cookies)
+      (goto-char (point-max))
+      (eval-print-last-sexp)))
+  (load bootstrap-file nil 'nomessage))
+
+;;;;  Effectively replace use-package with straight-use-package
+;;; https://github.com/raxod502/straight.el/blob/develop/README.md#integration-with-use-package
+(straight-use-package 'use-package)
+(setq straight-use-package-by-default t)
+
+;; Avoid loading older byte-compiled
+(setq load-prefer-newer t)
+
+;; Auto compile lisp
+(use-package auto-compile)
+(auto-compile-on-load-mode)
+(auto-compile-on-save-mode)
+
 (defconst user-init-dir "~/emacs.init/")
 
 (defun load-user-file (file)
@@ -7,15 +33,15 @@
   "Load a file in current user's configuration directory"
   (load (expand-file-name file user-init-dir)))
 
-(load-user-file "packages.el")
+;;(load-user-file "packages.el")
 
-(require 'benchmark-init)
+(use-package benchmark-init)
 ;; To disable collection of benchmark data after init is done.
 (add-hook 'after-init-hook 'benchmark-init/deactivate)
 
 (load-user-file "config")
 
-(load-user-file "filelock.el")
+;;(load-user-file "filelock.el")
 (use-package filelock)
 
 (load-user-file "general")
@@ -59,11 +85,10 @@
 
 (load-user-file "custom")
 
-(load-user-file "clang")
 (when use-clang
-  (use-package clang-format-on-save)
-  (add-hook 'c-mode-hook 'clang-format-on-save-mode)
-  (add-hook 'c++-mode-hook 'clang-format-on-save-mode)
+  (load-user-file "clang")
+  (add-hook 'c-mode-hook 'clang-format+-mode)
+  (add-hook 'c++-mode-hook 'clang-format+-mode)
   )
 
 (load-user-file "git_sync")

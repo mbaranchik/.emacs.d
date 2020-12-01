@@ -11,6 +11,7 @@
   (when use-spacemacs
     (setq user-emacs-directory "~/.spacemacs.d/"))   ; defaults to ~/.emacs.d/
 
+  (add-to-list 'load-path (concat user-emacs-directory "lisp/"))
   (load (expand-file-name "init" user-emacs-directory))
   ;;(sleep-for 4)
   )

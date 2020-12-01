@@ -49,8 +49,8 @@ directory."
   (when use-whitespace
     (set (make-local-variable 'whitespace-space) nil)
     (set (make-local-variable 'whitespace-tab) nil)
-    (global-whitespace-mode 0)
-    (global-whitespace-mode 1))
+    (whitespace-mode 0)
+    (whitespace-mode 1))
   ;;(set (make-local-variable 'whitespace-style) (quote (face trailing)))
   )
 
@@ -59,8 +59,8 @@ directory."
   (when use-whitespace
     (set (make-local-variable 'whitespace-space) (quote (t (:background "Green"))))
     (set (make-local-variable 'whitespace-tab) (quote (t (:background "Magenta"))))
-    (global-whitespace-mode 0)
-    (global-whitespace-mode 1))
+    (whitespace-mode 0)
+    (whitespace-mode 1))
   ;;(set (make-local-variable 'whitespace-style) (quote (face trailing spaces tabs)))
   )
 
