@@ -17,3 +17,7 @@
 .emacs.d/.python-environments
 .emacs.d/tramp
 .emacs.d/var
+.emacs.d/recentf
+.emacs.d/transient/
+.emacs.d/.cache/
+\#*

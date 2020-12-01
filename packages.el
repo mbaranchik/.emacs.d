@@ -17,6 +17,7 @@
              ido-vertical-mode
              ivy
              counsel
+             gcmh
              counsel-gtags
              counsel-projectile
              counsel-tramp

@@ -7,9 +7,6 @@
   "Load a file in current user's configuration directory"
   (load (expand-file-name file user-init-dir)))
 
-(setq gc-cons-threshold 1073741824
-      gc-cons-percentage 0.6)
-
 (load-user-file "packages.el")
 
 (require 'benchmark-init)
@@ -95,11 +92,6 @@
 (setq exec-path-from-shell-arguments nil)
 (exec-path-from-shell-initialize)
 
-(add-hook 'emacs-startup-hook
-          (lambda ()
-            (setq gc-cons-threshold 16777216
-                  gc-cons-percentage 0.1)))
-
 
 (put 'upcase-region 'disabled nil)
 
@@ -127,4 +119,6 @@
 ;; Server Start
 (when start-server
   (server-start))
+
+(gcmh-mode 1)
 
