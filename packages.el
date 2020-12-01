@@ -12,6 +12,9 @@
              company-box
              company-shell
              company-jedi
+             vterm
+             vterm-toggle
+             multi-vterm
              desktop+
              smex
              ido
