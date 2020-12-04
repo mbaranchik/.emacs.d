@@ -4,5 +4,5 @@
 # group: sc
 # --
 RegisterReadCallbackInstance< ${1:CLASSNAME}, U32T > ${2:REGNAME}_rcb_inst;
-U32T ${2:REGNAME}_rcb_imp(Register< U32T > *reg, readAccessType readType);
+U32T $2_rcb_imp(Register< U32T > *reg, readAccessType readType);
 $0
