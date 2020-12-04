@@ -5,10 +5,6 @@
 
 ;; Defer garbage collection further back in the startup process
 (setq gc-cons-threshold most-positive-fixnum)
-;; This is now done with GCMH
-;;(add-hook 'after-start-hook (lambda ()
-;;            (setq gc-cons-threshold (* 100 1024 1024)
-;;                  gc-cons-percentage 0.1)))
 
 ;; In Emacs 27+, package initialization occurs before `user-init-file' is
 ;; loaded, but after `early-init-file'. Doom handles package initialization, so

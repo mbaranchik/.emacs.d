@@ -18,6 +18,11 @@
 (straight-use-package 'use-package)
 (setq straight-use-package-by-default t)
 
+;; This is now done with GCMH - Testing
+(add-hook 'after-init-hook (lambda ()
+            (setq gc-cons-threshold (* 100 1024 1024)
+                  gc-cons-percentage 0.1)))
+
 ;; Avoid loading older byte-compiled
 (setq load-prefer-newer t)
 
@@ -149,5 +154,5 @@
 (when start-server
   (server-start))
 
-(gcmh-mode 1)
+;;(gcmh-mode 1)
 
