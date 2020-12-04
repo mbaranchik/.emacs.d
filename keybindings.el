@@ -146,19 +146,13 @@
 
 ;; Company Mode
 (global-set-key (kbd "<backtab>") 'company-complete)
+;; Company - Yasnippet
+(global-set-key (kbd "C-<tab>") 'company-yasnippet)
 
 ;; Auto Insert
 (global-set-key (kbd "<f12>") 'auto-insert)
 
 (global-set-key (kbd "C-<f12>") 'insert-sc-module)
-
-;; TAB and Clean
-(global-set-key [C-tab]
-                '(lambda ()
-                   "Insert TAB"
-                   (interactive)
-                   (insert-char #x09)
-                   (untabify (point-min) (point) nil) ))
 
 ;; Compile
 (global-set-key (kbd "C-x m") 'compile)

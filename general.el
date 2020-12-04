@@ -35,7 +35,12 @@
               '((name . "Silence errors"))))
 
 (when (and use-company use-lsp)
-  (add-hook 'lsp-managed-mode-hook (lambda () (setq-local company-backends '(company-capf)))))
+  (add-hook 'lsp-managed-mode-hook (lambda () (setq-local company-backends '(company-capf))))
+  ;;(add-hook 'lsp-managed-mode-hook (lambda () (setq-local company-backends '((company-capf ;; I think this must come first?
+  ;;          :with
+  ;;          company-yasnippet)))))
+  ;;(setq lsp-completion-provider :none)
+  )
 
 (when (and use-company use-python-jedi)
   (defun my/python-mode-hook ()
