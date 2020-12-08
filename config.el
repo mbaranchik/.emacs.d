@@ -9,7 +9,7 @@
 
 (defun set-config-quote-var (varname default env)
   (cond ((getenv env) (set varname (intern (getenv env))))
-	 (t (set varname default))
+	    (t (set varname default))
         )
   )
 
@@ -100,11 +100,11 @@
 (setq-default ggtags-sort-by-nearness t)
 (setq-default inhibit-startup-screen t)
 (setq-default ns-antialias-text t)
-(setq-default package-archives
- (quote
-  (("melpa" . "http://melpa.org/packages/")
-   ("gnu" . "http://elpa.gnu.org/packages/")
-   )))
+;;(setq-default package-archives
+;; (quote
+;;  (("melpa" . "http://melpa.org/packages/")
+;;   ("gnu" . "http://elpa.gnu.org/packages/")
+;;   )))
 (setq-default semantic-mode nil)
 (setq-default send-mail-function nil)
 (setq-default show-paren-mode t)

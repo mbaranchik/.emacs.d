@@ -12,20 +12,11 @@
 ;; GTAGS - BEGIN
 
 ;;; GTAGS - GLOBAL
-(use-package ggtags)
-;; (eval-after-load "c-mode"
-;;   '(progn
-;;      (add-hook 'c-mode-hook 'ggtags-mode)))
-;; (eval-after-load "verilog-mode"
-;;   '(progn
-;;      (add-hook 'verilog-mode-hook 'ggtags-mode)))
-;; (eval-after-load "c++-mode"
-;;   '(progn
-;;      (add-hook 'c++-mode-hook 'ggtags-mode)))
-
-(add-hook 'c-mode-hook 'ggtags-mode)
-(add-hook 'verilog-mode-hook 'ggtags-mode)
-(add-hook 'c++-mode-hook 'ggtags-mode)
+(use-package ggtags
+  :hook ((c-mode-hook . ggtags-mode)
+         (cpp-mode-hook . ggtags-mode)
+         (verilog-mode-hook . ggtags-mode)
+         (asm-mode-hook . ggtags-mode)))
 
 (defun gtags-root-dir ()
   "Returns GTAGS root directory or nil if doesn't exist."
@@ -45,26 +36,24 @@
   (message "Gtags updated for %s" filename))
 (defun gtags-update-hook()
   "Update GTAGS file incrementally upon saving a file"
-  (when ggtags-mode
+  (when 'ggtags-mode
     (when (gtags-root-dir)
       (gtags-update-current-file))))
 (add-hook 'after-save-hook 'gtags-update-hook)
 
-;;GTAGS - HELM
 (when use-helm
-  (use-package helm-gtags)
-  ;; Enable helm-gtags-mode
-  (add-hook 'c-mode-hook 'helm-gtags-mode)
-  (add-hook 'verilog-mode-hook 'helm-gtags-mode)
-  (add-hook 'c++-mode-hook 'helm-gtags-mode)
-  (add-hook 'asm-mode-hook 'helm-gtags-mode))
+  (use-package helm-gtags
+    :hook ((verilog-mode-hook . helm-gtags-mode)
+           (c-mode-hook . helm-gtags-mode)
+           (c++-mode-hook . helm-gtags-mode)
+           (asm-mode-hook . helm-gtags-mode))))
 
 (when use-ivy
-  (use-package counsel-gtags)
-  (add-hook 'verilog-mode-hook 'counsel-gtags-mode)
-  (add-hook 'c-mode-hook 'counsel-gtags-mode)
-  (add-hook 'c++-mode-hook 'counsel-gtags-mode)
-  (add-hook 'asm-mode-hook 'counsel-gtags-mode))
+  (use-package counsel-gtags
+    :hook ((verilog-mode-hook . counsel-gtags-mode)
+           (c-mode-hook . counsel-gtags-mode)
+           (c++-mode-hook . counsel-gtags-mode)
+           (asm-mode-hook . counsel-gtags-mode))))
 
 ;; GTAGS - END
 

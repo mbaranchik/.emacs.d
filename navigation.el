@@ -14,9 +14,14 @@
 ;; Enable Tab-Line Mode (Emacs >= 27)
 (global-tab-line-mode t)
 
-(use-package multiple-cursors)
+(use-package multiple-cursors
+  :commands multiple-cursors-mode)
 
-(use-package highlight-symbol)
+(use-package highlight-symbol
+  :bind (("<C-f3>" . highlight-symbol)
+         ("<f3>" . highlight-symbol-next)
+         ("<S-f3>" . highlight-symbol-prev)
+         ("<M-f3>" . highlight-symbol-query-replace)))
 
 (use-package back-button
   :config

@@ -1,6 +1,14 @@
 ;;; -*- lexical-binding: t -*-
 
-(use-package powerline)
+(bench "Load extra themes"
+(use-package zenburn-theme)
+(use-package atom-dark-theme))
+
+(bench "Load main theme"
+       (load-theme use-theme t))
+
+(bench "Load powerline"
+       (use-package powerline))
 
 ;; ;;(load-theme 'zenburn t)
 ;;(use-package moe-theme)
@@ -27,30 +35,39 @@
 
 ;;(powerline-default-theme)
 
-(add-hook 'dired-mode-hook 'all-the-icons-dired-mode)
-(all-the-icons-ivy-setup)
+(bench "Load all-the-icons"
+       (use-package all-the-icons)
+       (use-package all-the-icons-ivy
+         :after all-the-icons
+         :config
+         (all-the-icons-ivy-setup))
+       (use-package treemacs-all-the-icons
+         :after treemacs))
 
-(load-theme use-theme t)
+(bench "Spaceline"
+       (use-package spaceline
+         :config
+         (spaceline-emacs-theme)))
 
-(use-package spaceline)
-(spaceline-emacs-theme)
-(use-package spaceline-all-the-icons)
+(bench "Spaceline-all-the-icons"
+       (setq inhibit-compacting-font-caches t)
+       (use-package spaceline-all-the-icons
+         :after (spaceline all-the-icons)
+         :config
+         (spaceline-all-the-icons-theme)))
 
-(scroll-bar-mode -1)
+(bench "Scroll-bar-mode"
+       (scroll-bar-mode -1))
+
 
 ;; Set Title Bar
 (setq frame-title-format "%b")
 
-;; Customs - Faces
-(face-spec-set 'default '((t (:inherit nil :stipple nil :background "#2e3436" :foreground "#eeeeec" :inverse-video nil :box nil :strike-through nil :overline nil :underline nil :slant normal :weight normal :height 113 :width normal :foundry "PfEd" :family "DejaVu Sans Mono"))) 'face-defface-spec)
-(face-spec-set 'rainbow-delimiters-depth-2-face '((t (:foreground "green"))) 'face-defface-spec)
-(face-spec-set 'rainbow-delimiters-depth-3-face '((t (:foreground "dark orange"))) 'face-defface-spec)
-(face-spec-set 'rainbow-delimiters-depth-4-face '((t (:foreground "light blue"))) 'face-defface-spec)
-(face-spec-set 'rainbow-delimiters-depth-5-face '((t (:foreground "magenta"))) 'face-defface-spec)
-(face-spec-set 'rainbow-delimiters-depth-6-face '((t (:foreground "cyan"))) 'face-defface-spec)
-(face-spec-set 'rainbow-delimiters-unmatched-face '((((class color) (min-colors 89)) (:foreground "#ffffff" :background "#a40000" :bold t))) 'face-defface-spec)
-(face-spec-set 'tabbar-button '((t (:inherit tabbar-default :box (:line-width 3 :color "white" :style released-button)))) 'face-defface-spec)
-(face-spec-set 'tabbar-default '((t (:inherit variable-pitch :background "gray80" :foreground "black" :height 140))) 'face-defface-spec)
+;; Customs - Faces TODO
+;; (face-spec-set 'default '((t (:inherit nil :stipple nil :background "#2e3436" :foreground "#eeeeec" :inverse-video nil :box nil :strike-through nil :overline nil :underline nil :slant normal :weight normal :height 113 :width normal :foundry "PfEd" :family "DejaVu Sans Mono"))) 'face-defface-spec)
+
+;;(face-spec-set 'tabbar-button '((t (:inherit tabbar-default :box (:line-width 3 :color "white" :style released-button)))) 'face-defface-spec)
+;;(face-spec-set 'tabbar-default '((t (:inherit variable-pitch :background "gray80" :foreground "black" :height 140))) 'face-defface-spec)
 
 ;; (face-spec-set 'region '((t (:background "light cyan" :foreground "black"))) 'face-defface-spec)
 

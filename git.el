@@ -1,8 +1,8 @@
 ;;; -*- lexical-binding: t -*-
 
-(use-package git-gutter-fringe)
-(global-git-gutter-mode t)
+(use-package git-gutter-fringe
+  :hook (prog-mode . git-gutter-mode))
 
-(use-package git-blame)
+;;(use-package git-blame)
 
 
