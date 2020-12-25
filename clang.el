@@ -15,7 +15,7 @@
     ((c-mode c++-mode python-mode js-mode sh-mode) . (lambda () (hack-local-variables) (lsp)))
     :config
     (setq lsp-enable-file-watchers t)
-    (push "[/\\\\]\\.cquery_cached_index\\" lsp-file-watch-ignored)
+    (push "[/\\\\]\\.cquery_cached_index\\'" lsp-file-watch-ignored-directories)
     (when (and use-lsp (equal my-lsp-c++-backend "cquery"))
       (use-package cquery))
     (when (and use-lsp (equal my-lsp-c++-backend "ccls"))
