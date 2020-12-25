@@ -9,20 +9,19 @@
 
 ;; Enable LSP
 (when use-lsp
-  (use-package lsp-mode)
-  (add-hook 'c-mode-hook #'lsp)
-  (add-hook 'c++-mode-hook #'lsp)
-  (add-hook 'python-mode-hook #'lsp)
-  (add-hook 'js-mode-hook #'lsp)
-  (add-hook 'sh-mode-hook #'lsp)
-  (setq lsp-enable-file-watchers t)
-  (setq lsp-file-watch-threshold 65536))
-
-(when (and use-lsp (equal my-lsp-c++-backend "cquery"))
-  (use-package cquery))
-
-(when (and use-lsp (equal my-lsp-c++-backend "ccls"))
-  (use-package ccls))
+  (use-package lsp-mode
+    :commands lsp
+    :hook
+    ((c-mode c++-mode python-mode js-mode sh-mode) . (lambda () (hack-local-variables) (lsp)))
+    :config
+    (setq lsp-enable-file-watchers t)
+    (push "[/\\\\]\\.cquery_cached_index\\" lsp-file-watch-ignored)
+    (when (and use-lsp (equal my-lsp-c++-backend "cquery"))
+      (use-package cquery))
+    (when (and use-lsp (equal my-lsp-c++-backend "ccls"))
+      (use-package ccls))
+    )
+  )
 
 ;;;;;;;;;;;;;;;;;;;;;;;;
 
