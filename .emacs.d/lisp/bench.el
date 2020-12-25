@@ -3,7 +3,7 @@
 (defmacro bench (name &rest code)
   `(cond ((string= "y" (getenv "EMACS_BENCHMARK"))
           (progn
-             (message "Benchmark for `%s':" ,name)
+             (message "Benchmark for '%s':" ,name)
              (benchmark-progn
                ,@code
                )
