@@ -54,6 +54,7 @@
 (set-config-quote-var 'use-theme 'horizon "EMACS_USE_THEME")
 (set-config-quote-var 'aw-scope 'frame "EMACS_AW_SCOPE")
 (set-config-var 'cquery-executable "cquery" "EMACS_CQUERY_PATH")
+(set-config-var 'ccls-executable "ccls" "EMACS_CCLS_PATH")
 (set-config-var 'my-lsp-c++-backend "cquery" "EMACS_LSP_BACKEND")
 (set-config-var 'lsp-clients-clangd-executable "clangd" "EMACS_CLANGD_PATH")
 (set-config-var 'lsp-ui-flycheck-enable t "EMACS_LSP_UI_FLYCHECK_ENABLE")
