@@ -24,5 +24,18 @@
     )
   )
 
+(when use-eglot
+  (use-package eglot
+    :commands eglot-ensure
+    :hook
+    ((c-mode c++-mode python-mode sh-mode) . (lambda () (hack-local-variables) (eglot-ensure))) ;; (which-function-mode)
+    :config
+    (when (and use-eglot (equal my-lsp-c++-backend "cquery"))
+      (use-package cquery))
+    (when (and use-eglot (equal my-lsp-c++-backend "ccls"))
+      (use-package ccls))
+    )
+  )
+
 ;;;;;;;;;;;;;;;;;;;;;;;;
 
