@@ -53,12 +53,12 @@
          :config
          (spaceline-emacs-theme)))
 
-(bench "Spaceline-all-the-icons"
-       (setq inhibit-compacting-font-caches t)
-       (use-package spaceline-all-the-icons
-         :after (spaceline all-the-icons)
-         :config
-         (spaceline-all-the-icons-theme)))
+;;(bench "Spaceline-all-the-icons"
+;;       (setq inhibit-compacting-font-caches t)
+;;       (use-package spaceline-all-the-icons
+;;         :after (spaceline all-the-icons)
+;;         :config
+;;         (spaceline-all-the-icons-theme)))
 
 (bench "Scroll-bar-mode"
        (scroll-bar-mode -1))
