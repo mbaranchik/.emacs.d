@@ -136,7 +136,9 @@ directory."
 (setq-default flycheck-disabled-checkers '(verilog-verilator))
 
 ;; Vimish-Fold
-(vimish-fold-global-mode 1)
+(use-package vimish-fold
+  :hook
+  (prog-mode . vimish-fold-mode))
 
 ;; autoinsert C/C++ header
 (define-auto-insert

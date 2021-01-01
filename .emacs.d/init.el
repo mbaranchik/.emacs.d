@@ -147,8 +147,10 @@
        (use-package compile))
 
 (bench "Exec-Path"
-       (setq exec-path-from-shell-arguments nil)
-       (exec-path-from-shell-initialize))
+       (use-package exec-path-from-shell
+         :config
+         (setq exec-path-from-shell-arguments nil)
+         (exec-path-from-shell-initialize)))
 
 (put 'upcase-region 'disabled nil)
 

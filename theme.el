@@ -1,8 +1,12 @@
 ;;; -*- lexical-binding: t -*-
 
 (bench "Load extra themes"
-(use-package zenburn-theme)
-(use-package atom-dark-theme))
+       (use-package zenburn-theme)
+       (use-package atom-dark-theme)
+       (use-package spacemacs-common
+         :defer t
+         :straight spacemacs-theme)
+       )
 
 (bench "Load main theme"
        (load-theme use-theme t))
