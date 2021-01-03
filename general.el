@@ -131,6 +131,9 @@
   :config
   (yas-reload-all))
 
+;;;; Common Snippets
+;;(use-package yasnippet-snippets)
+
 ;; Browse-Kill-Ring
 (use-package browse-kill-ring
   :bind ("M-y" . browse-kill-ring))
