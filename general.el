@@ -26,6 +26,14 @@
     (ac-config-default))
   )
 
+(use-package smex)
+
+(use-package ace-window)
+
+(use-package vterm-toggle
+  :bind (([f2] . vterm-toggle)
+         ([C-f2] . vterm-toggle-cd)))
+
 (when use-company
   (use-package company
     :hook (prog-mode . company-mode)

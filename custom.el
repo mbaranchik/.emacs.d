@@ -123,17 +123,20 @@ directory."
 ;;                              (or (getenv "CFLAGS") "-ansi -pedantic -Wall -g")
 ;;                              file))))))
 
-(when use-flycheck
-  (add-hook 'after-init-hook #'global-flycheck-mode)
-  (eval-after-load "flycheck"
-    '(progn
-       (use-package flycheck-cstyle)
-       (flycheck-cstyle-setup)
-       ;; chain after cppcheck since this is the last checker in the upstream
-       ;; configuration
-       (flycheck-add-next-checker 'c/c++-cppcheck '(warning . cstyle)))))
+;;(when use-flycheck
+;;  (add-hook 'after-init-hook #'global-flycheck-mode)
+;;  (eval-after-load "flycheck"
+;;    '(progn
+;;       (use-package flycheck-cstyle)
+;;       (flycheck-cstyle-setup)
+;;       ;; chain after cppcheck since this is the last checker in the upstream
+;;       ;; configuration
+;;       (flycheck-add-next-checker 'c/c++-cppcheck '(warning . cstyle)))))
 
-(setq-default flycheck-disabled-checkers '(verilog-verilator))
+(when use-flycheck
+  (setq-default flycheck-disabled-checkers '(verilog-verilator)))
+
+(use-package scratch-pop)
 
 ;; Vimish-Fold
 (use-package vimish-fold

@@ -66,7 +66,6 @@
 (set-config-var 'auto-insert-name "REPLACE_WITH_NAME" "EMACS_COPYRIGHT_NAME")
 
 (set-config-var 'read-process-output-max (* 1024 1024) "EMACS_READ_PROCESS_MAX")
-(set-config-var 'lsp-headerline-breadcrumb-enable t "EMACS_LSP_BREADCRUMB")
 (set-config-var 'lsp-idle-delay 0.1 "EMACS_LSP_IDLE_DELAY")
 (set-config-var 'company-idle-delay 0.1 "EMACS_COMPANY_IDLE_DELAY")
 
@@ -79,8 +78,8 @@
 ;;       ;; be more ide-ish
 ;;       lsp-headerline-breadcrumb-enable t)
 
-(with-eval-after-load 'lsp-mode
-  (add-hook 'lsp-mode-hook #'lsp-enable-which-key-integration))
+;;(with-eval-after-load 'lsp-mode
+;;  (add-hook 'lsp-mode-hook #'lsp-enable-which-key-integration))
 
 (setq-default server-socket-dir "~/.emacs.d/server-sock")
 

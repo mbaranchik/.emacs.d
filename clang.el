@@ -15,8 +15,8 @@
     ((c-mode c++-mode python-mode sh-mode) . (lambda () (hack-local-variables) (lsp))) ;; (which-function-mode)
     (lsp-mode . lsp-enable-which-key-integration)
     :config
-    (setq lsp-headerline-breadcrumb-segments '(symbols))
-    (set-config-var 'lsp-headerline-breadcrumb-enable t "EMACS_LSP_BREADCRUMB")
+    ;;(setq lsp-headerline-breadcrumb-segments '(symbols))
+    ;;(set-config-var 'lsp-headerline-breadcrumb-enable t "EMACS_LSP_BREADCRUMB")
     (setq lsp-enable-semantic-tokens nil)
     (setq lsp-enable-file-watchers nil)
     (push "[/\\\\]\\.cquery_cached_index\\'" lsp-file-watch-ignored-directories)
