@@ -13,6 +13,7 @@
     :commands lsp
     :hook
     ((c-mode c++-mode python-mode sh-mode) . (lambda () (hack-local-variables) (lsp))) ;; (which-function-mode)
+    (lsp-mode . lsp-enable-which-key-integration)
     :config
     (setq lsp-headerline-breadcrumb-segments '(symbols))
     (set-config-var 'lsp-headerline-breadcrumb-enable t "EMACS_LSP_BREADCRUMB")
@@ -24,6 +25,10 @@
       (use-package cquery))
     (when (and use-lsp (equal my-lsp-c++-backend "ccls"))
       (use-package ccls))
+    (when use-ivy
+      (use-package lsp-ivy))
+    (when use-helm
+      (use-package helm-lsp))
     )
   )
 
