@@ -1,8 +1,10 @@
 ;;; -*- lexical-binding: t -*-
 
-;; Tabs
-(global-set-key [M-left] 'tab-line-switch-to-prev-tab)
-(global-set-key [M-right] 'tab-line-switch-to-prev-tab)
+(use-package which-key)
+
+;;;; Tabs
+;;(global-set-key [M-left] 'tab-line-switch-to-prev-tab)
+;;(global-set-key [M-right] 'tab-line-switch-to-prev-tab)
 
 ;; Highlight Symbol
 (global-set-key [(control f3)] 'highlight-symbol)
@@ -53,8 +55,8 @@
   (global-set-key (kbd "<f1> f") 'counsel-describe-function)
   (global-set-key (kbd "<f1> v") 'counsel-describe-variable)
   (global-set-key (kbd "<f1> l") 'counsel-find-library)
-  (global-set-key (kbd "<f2> i") 'counsel-info-lookup-symbol)
-  (global-set-key (kbd "<f2> u") 'counsel-unicode-char)
+;;  (global-set-key (kbd "<f2> i") 'counsel-info-lookup-symbol)
+;;  (global-set-key (kbd "<f2> u") 'counsel-unicode-char)
   (global-set-key (kbd "C-c g") 'counsel-git)
   (global-set-key (kbd "C-c C-g") 'counsel-git-grep)
   (global-set-key (kbd "C-c k") 'counsel-ag)
