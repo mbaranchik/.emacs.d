@@ -47,6 +47,34 @@
          )
   )
 
+;; Macro for graphics dependant code
+(defmacro daemon-wrap (name &rest code)
+  `(if (daemonp)
+       (cl-labels ((,name (frame)
+                          (with-selected-frame frame
+                            ,@code)
+                          (remove-hook 'after-make-frame-functions #',name)))
+         (add-hook 'after-make-frame-functions #',name))
+     ,@code
+     )
+  )
+
+;; Based on:
+;; 1.
+;;(if (daemonp)
+;;    (cl-labels ((load-nord (frame)
+;;                           (with-selected-frame frame
+;;                             (load-theme 'nord t))
+;;                           (remove-hook 'after-make-frame-functions #'load-nord)))
+;;      (add-hook 'after-make-frame-functions #'load-nord))
+;;  (load-theme 'nord t))
+;; 2.
+;;(if (daemonp)
+;;        (add-hook 'after-make-frame-functions 
+;;    	      (lambda (frame) 
+;;    		(with-selected-frame frame (load-theme 'nord t)))) 
+;;      (load-theme 'nord t))
+
 (use-package bind-key)
 
 ;; Avoid loading older byte-compiled
