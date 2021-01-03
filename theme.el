@@ -8,11 +8,15 @@
          :straight spacemacs-theme)
        )
 
-(bench "Load main theme"
-       (load-theme use-theme t))
+(daemon-wrap my/load-theme
+ (bench "Load main theme"
+        (load-theme use-theme t))
+ )
 
-(bench "Load powerline"
-       (use-package powerline))
+(daemon-wrap my/load-powerline
+ (bench "Load powerline"
+        (use-package powerline))
+)
 
 ;; ;;(load-theme 'zenburn t)
 ;;(use-package moe-theme)
@@ -39,19 +43,23 @@
 
 ;;(powerline-default-theme)
 
-(bench "Load all-the-icons"
-       (use-package all-the-icons)
-       (use-package all-the-icons-ivy
-         :after all-the-icons
-         :config
-         (all-the-icons-ivy-setup))
-       (use-package treemacs-all-the-icons
-         :after treemacs))
+(daemon-wrap my/load-all-the-icons
+ (bench "Load all-the-icons"
+        (use-package all-the-icons)
+        (use-package all-the-icons-ivy
+          :after all-the-icons
+          :config
+          (all-the-icons-ivy-setup))
+        (use-package treemacs-all-the-icons
+          :after treemacs))
+ )
 
-(bench "Spaceline"
-       (use-package spaceline
-         :config
-         (spaceline-emacs-theme)))
+(daemon-wrap my/load-spaceline
+ (bench "Spaceline"
+        (use-package spaceline
+          :config
+          (spaceline-emacs-theme)))
+ )
 
 ;;(bench "Spaceline-all-the-icons"
 ;;       (setq inhibit-compacting-font-caches t)
