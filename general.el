@@ -87,9 +87,8 @@
 
 ;; Undo-Tree mode
 (use-package undo-tree
-  :bind ("C-x u" . undo-tree-visualize)
-  :config
-  (global-undo-tree-mode))
+  :hook (prog-mode . undo-tree-mode)
+  :bind ("C-x u" . undo-tree-visualize))
 
 ;; ;; SLN mode
 ;; (load "~/.emacs.d/sln-mode")
