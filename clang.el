@@ -22,7 +22,7 @@
   (use-package lsp-mode
     :commands lsp
     :hook
-    ((c-mode c++-mode python-mode sh-mode) . (lambda () (hack-local-variables) (lsp))) ;; (which-function-mode)
+    ((c-mode c++-mode python-mode sh-mode) . (lambda () (hack-local-variables) (lsp) (which-function-mode)))
     (lsp-mode . lsp-enable-which-key-integration)
     :config
     ;;(setq lsp-headerline-breadcrumb-segments '(symbols))
@@ -43,10 +43,23 @@
   )
 
 (when use-eglot
+  ;;(use-package project
+  ;;  :straight (:type built-in)
+  ;;  )
+  (use-package markdown-mode)
+  (unless (fboundp 'project-root)
+    (defun project-root (project)
+      (car (project-roots project)))
+    )
   (use-package eglot
+;;    :straight (eglot
+;;               :type git
+;;               :flavor melpa
+;;               :host github
+;;               :repo "joaotavora/eglot")
     :commands eglot-ensure
     :hook
-    ((c-mode c++-mode python-mode sh-mode) . (lambda () (hack-local-variables) (eglot-ensure))) ;; (which-function-mode)
+    ((c-mode c++-mode python-mode sh-mode) . (lambda () (hack-local-variables) (eglot-ensure) (which-function-mode)))
     :config
     (when (and use-eglot (equal my-lsp-c++-backend "cquery"))
       (use-package cquery))
