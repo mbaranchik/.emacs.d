@@ -117,7 +117,7 @@
 (when (and use-ivy use-projectile)
   (eval-after-load "counsel-projectile"
     '(progn
-       (global-set-key (kbd "C-x p f")     'counsel-projectile)
+       (global-set-key (kbd "C-x p f")     'counsel-projectile-find-file)
        (global-set-key (kbd "C-x p p")     'counsel-projectile-switch-project))))
 
 ;; Treemacs
