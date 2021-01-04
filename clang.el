@@ -7,6 +7,16 @@
 
 (use-package clang-format+)
 
+(if use-flycheck
+  (use-package flycheck
+    :demand
+    :hook (prog-mode . flycheck-mode)))
+
+(if use-flymake
+  (use-package flymake
+    :demand
+    :hook (prog-mode . flymake-mode)))
+
 ;; Enable LSP
 (when use-lsp
   (use-package lsp-mode

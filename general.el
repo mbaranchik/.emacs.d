@@ -65,9 +65,6 @@
 
   )
 
-(use-package flycheck-posframe
-  :hook (flycheck-mode . flycheck-posframe-mode))
-
 ;;(use-package ivy-posframe
 ;;  :hook (ivy-mode . ivy-posframe-mode))
 
