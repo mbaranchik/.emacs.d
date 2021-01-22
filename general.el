@@ -54,28 +54,12 @@
     ;;          company-yasnippet)))))
     ;;(setq lsp-completion-provider :none)
     )
-
-  ;;(use-package company-posframe
-  ;;  :after company
-  ;;  :hook (company-mode . company-posframe-mode))
-
-  ;;(advice-add 'company-clang--handle-error :after
-  ;;            (lambda (&rest _args) (message nil))
-  ;;            '((name . "Silence errors")))
-
   )
-
-;;(use-package ivy-posframe
-;;  :hook (ivy-mode . ivy-posframe-mode))
 
 ;;(when (and use-company use-python-jedi)
 ;;  (defun my/python-mode-hook ()
 ;;  (add-to-list 'company-backends 'company-jedi))
 ;;  (add-hook 'python-mode-hook 'my/python-mode-hook))
-
-;; (use-package desktop+)
-
-;; (use-package figlet)
 
 (use-package rainbow-delimiters
   :hook (prog-mode . rainbow-delimiters-mode)

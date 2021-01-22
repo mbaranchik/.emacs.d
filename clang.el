@@ -25,15 +25,15 @@
     ((c-mode c++-mode python-mode sh-mode) . (lambda () (hack-local-variables) (lsp) (which-function-mode)))
     (lsp-mode . lsp-enable-which-key-integration)
     :config
-    ;;(setq lsp-headerline-breadcrumb-segments '(symbols))
+    (setq lsp-headerline-breadcrumb-segments '(symbols))
     (set-config-var 'lsp-headerline-breadcrumb-enable nil "EMACS_LSP_BREADCRUMB")
     (setq lsp-enable-semantic-tokens nil)
     (setq lsp-enable-file-watchers nil)
     (push "[/\\\\]\\.cquery_cached_index\\'" lsp-file-watch-ignored-directories)
     (push "[/\\\\][^/\\\\]*\\.\\(so\\|d\\|o\\)$" lsp-file-watch-ignored-files)
-    (when (and use-lsp (equal my-lsp-c++-backend "cquery"))
+    (when (equal my-lsp-c++-backend "cquery")
       (use-package cquery))
-    (when (and use-lsp (equal my-lsp-c++-backend "ccls"))
+    (when (equal my-lsp-c++-backend "ccls")
       (use-package ccls))
     (when use-ivy
       (use-package lsp-ivy))
@@ -61,9 +61,9 @@
     :hook
     ((c-mode c++-mode python-mode sh-mode) . (lambda () (hack-local-variables) (eglot-ensure) (which-function-mode)))
     :config
-    (when (and use-eglot (equal my-lsp-c++-backend "cquery"))
+    (when (equal my-lsp-c++-backend "cquery")
       (use-package cquery))
-    (when (and use-eglot (equal my-lsp-c++-backend "ccls"))
+    (when (equal my-lsp-c++-backend "ccls")
       (use-package ccls))
     )
   )
