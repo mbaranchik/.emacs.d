@@ -10,7 +10,11 @@
   (ivy-mode 1))
 
 (use-package counsel
-  :after ivy)
+  :after ivy
+  :demand
+  :bind (("C-c c" . counsel-projectile-org-capture)
+         ("C-c a" . counsel-projectile-org-agenda))
+  )
 
 (use-package ivy-xref
   :after ivy
