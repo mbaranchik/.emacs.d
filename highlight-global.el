@@ -56,7 +56,7 @@
 ;;     (global-set-key (kbd "M-C") 'clear-highlight-frame)
 
 
-(use-package hi-lock)
+(require 'hi-lock)
 (setq hi-lock-file-patterns-policy 'never)
 
 (defvar highlight-faces
