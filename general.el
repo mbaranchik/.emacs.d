@@ -40,6 +40,7 @@
          ([C-f2] . vterm-toggle-cd)))
 
 (when use-company
+  (use-package company-c-headers)
   (use-package company
     :hook (prog-mode . company-mode)
     :config

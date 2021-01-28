@@ -305,8 +305,8 @@ CURRENT-NAME, if it does not already have them:
   (setq recentf-save-file (format "/tmp/recentf.%s" server-name)))
 
 (byte-recompile-directory user-init-dir 0)
-(when (boundp 'native-compile-async)
-  (native-compile-async user-init-dir))
+;;(when (fboundp 'native-compile-async)
+;;  (native-compile-async user-init-dir))
 
 ;; Server Start
 (message "Sockets Dir: %s" server-socket-dir)

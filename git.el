@@ -1,11 +1,6 @@
 ;;; -*- lexical-binding: t -*-
 
-(use-package git-gutter-fringe+
-  :demand
-  :hook (prog-mode . git-gutter+-mode)
-  :config
-  (setq git-gutter-fr+-side 'right-fringe)
-  )
+;; TODO - revisit git gutter when stable
 
 (use-package magit
   :commands (magit magit-status))
