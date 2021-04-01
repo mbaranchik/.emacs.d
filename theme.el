@@ -6,10 +6,13 @@
        (use-package spacemacs-common
          :defer t
          :straight spacemacs-theme)
+       (use-package vscode-dark-plus-theme)
        )
 
 (daemon-wrap my/load-theme
  (bench "Load main theme"
+        (when (fboundp 'powerline-reset)
+          (powerline-reset))
         (load-theme use-theme t))
  )
 

@@ -31,6 +31,8 @@
   :interpreter ("org" . org-mode)
   )
 
+(use-package jenkinsfile-mode)
+
 (use-package smex)
 
 (use-package ace-window)
