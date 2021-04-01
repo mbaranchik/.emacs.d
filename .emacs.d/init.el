@@ -277,10 +277,11 @@ CURRENT-NAME, if it does not already have them:
        (use-package compile))
 
 (bench "Exec-Path"
-       (use-package exec-path-from-shell
-         :config
-         (setq exec-path-from-shell-arguments nil)
-         (exec-path-from-shell-initialize)))
+       (when use-exec-path
+         (use-package exec-path-from-shell
+           :config
+           (setq exec-path-from-shell-arguments nil)
+           (exec-path-from-shell-initialize))))
 
 (put 'upcase-region 'disabled nil)
 
