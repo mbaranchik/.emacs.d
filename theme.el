@@ -4,22 +4,26 @@
        (use-package zenburn-theme)
        (use-package atom-dark-theme)
        (use-package spacemacs-common
-         :defer t
+         ;;:defer t
          :straight spacemacs-theme)
        (use-package vscode-dark-plus-theme)
        )
 
+(bench "Load main theme"
+       (load-theme use-theme t t)
+       )
 (daemon-wrap my/load-theme
- (bench "Load main theme"
-        (when (fboundp 'powerline-reset)
-          (powerline-reset))
-        (load-theme use-theme t))
- )
+             (bench "Enable main theme"
+                    (enable-theme use-theme)
+                    (when (fboundp 'powerline-reset)
+                      (powerline-reset)))
+             )
 
-(daemon-wrap my/load-powerline
- (bench "Load powerline"
-        (use-package powerline))
-)
+;;(daemon-wrap my/load-powerline
+(bench "Load powerline"
+       (use-package powerline)
+       )
+;;)
 
 ;; ;;(load-theme 'zenburn t)
 ;;(use-package moe-theme)
@@ -46,130 +50,133 @@
 
 ;;(powerline-default-theme)
 
-(daemon-wrap my/load-all-the-icons
- (bench "Load all-the-icons"
-        (use-package all-the-icons)
-        (use-package all-the-icons-ivy
-          :after all-the-icons
-          :config
-          (all-the-icons-ivy-setup))
-        (use-package treemacs-all-the-icons
-          :after treemacs))
- )
+;;(daemon-wrap my/load-all-the-icons
+(bench "Load all-the-icons"
+       (use-package all-the-icons)
+       (use-package all-the-icons-ivy
+         :after all-the-icons
+         :config
+         (all-the-icons-ivy-setup))
+       (use-package treemacs-all-the-icons
+         :after treemacs))
+;; )
 
-(daemon-wrap my/load-spaceline
- (bench "Spaceline"
-        (use-package spaceline
-          :config
-          (spaceline-emacs-theme)
-          (defvar my/spaceline-flycheck-flymake ())
-          (when use-flymake
-            ;; HACK - Allow flymake + click
-            (defmacro my/spaceline-flymake-lighter (severity)
-              `(let ((count
-                      (length
-                       (seq-filter
-                        (lambda (diag)
-                          (= ,severity
-                             (flymake--severity (flymake-diagnostic-type diag))))
-                        (flymake-diagnostics)))))
-                 (if (not (zerop count)) (format spaceline-flycheck-bullet count))))
-            (dolist (state '(error warning note))
-              (let ((segment-name (intern (format "flymake-%S" state)))
-                    (face (intern (if (eq state "note")
-                                      (format "spaceline-flycheck-info")
-                                    (format "spaceline-flycheck-%S" state) )))
-                    (severity (flymake--severity (intern (format ":%S" state)))))
-                (eval
-                 `(spaceline-define-segment ,segment-name
-                    (when (bound-and-true-p flymake-mode)
-                      (let ((lighter (my/spaceline-flymake-lighter ,severity)))
-                        (when lighter
-                          (propertize
-                           (powerline-raw (s-trim lighter) ',face)
-                           'local-map (make-mode-line-mouse-map
-                                       'mouse-1 (lambda()
-                                                  (interactive)
-                                                  (call-interactively 'flymake-show-diagnostics-buffer))))
-                          )))))))
-            )
-          (when use-flycheck
-            ;; HACK - Allow flycheck click
-            (dolist (state '(error warning info))
-              (let ((segment-name (intern (format "flycheckclick-%S" state)))
-                    (face (intern (format "spaceline-flycheck-%S" state)) ))
-                (eval
-                 `(spaceline-define-segment ,segment-name
-                    ,(format "Information about flycheck %Ss. Requires `flycheck-mode' to be enabled" state)
-                    (when (and (bound-and-true-p flycheck-mode)
-                               (or flycheck-current-errors
-                                   (eq 'running flycheck-last-status-change)))
-                      (let ((lighter (spaceline--flycheck-lighter ,state)))
-                        (when lighter
-                          (propertize
-                           (powerline-raw (s-trim lighter) ',face)
+(bench "Spaceline-Load"
+       (use-package spaceline
+         :demand
+         :config
+         (spaceline-emacs-theme)
+         (defvar my/spaceline-flycheck-flymake ())
+         (when use-flymake
+           ;; HACK - Allow flymake + click
+           (defmacro my/spaceline-flymake-lighter (severity)
+             `(let ((count
+                     (length
+                      (seq-filter
+                       (lambda (diag)
+                         (= ,severity
+                            (flymake--severity (flymake-diagnostic-type diag))))
+                       (flymake-diagnostics)))))
+                (if (not (zerop count)) (format spaceline-flycheck-bullet count))))
+           (dolist (state '(error warning note))
+             (let ((segment-name (intern (format "flymake-%S" state)))
+                   (face (intern (if (eq state "note")
+                                     (format "spaceline-flycheck-info")
+                                   (format "spaceline-flycheck-%S" state) )))
+                   (severity (flymake--severity (intern (format ":%S" state)))))
+               (eval
+                `(spaceline-define-segment ,segment-name
+                   (when (bound-and-true-p flymake-mode)
+                     (let ((lighter (my/spaceline-flymake-lighter ,severity)))
+                       (when lighter
+                         (propertize
+                          (powerline-raw (s-trim lighter) ',face)
+                          'local-map (make-mode-line-mouse-map
+                                      'mouse-1 (lambda()
+                                                 (interactive)
+                                                 (call-interactively 'flymake-show-diagnostics-buffer))))
+                         )))))))
+           )
+         (when use-flycheck
+           ;; HACK - Allow flycheck click
+           (dolist (state '(error warning info))
+             (let ((segment-name (intern (format "flycheckclick-%S" state)))
+                   (face (intern (format "spaceline-flycheck-%S" state)) ))
+               (eval
+                `(spaceline-define-segment ,segment-name
+                   ,(format "Information about flycheck %Ss. Requires `flycheck-mode' to be enabled" state)
+                   (when (and (bound-and-true-p flycheck-mode)
+                              (or flycheck-current-errors
+                                  (eq 'running flycheck-last-status-change)))
+                     (let ((lighter (spaceline--flycheck-lighter ,state)))
+                       (when lighter
+                         (propertize
+                          (powerline-raw (s-trim lighter) ',face)
                           'local-map (make-mode-line-mouse-map
                                       'mouse-1 (lambda()
                                                  (interactive)
                                                  (call-interactively 'flycheck-list-errors))))
-                        )))))))
-            )
-          (defun my/spaceline-theme (flycheck-flymake &rest additional-segments)
-            "Convenience function for the spacemacs and emacs themes."
-            (spaceline-compile
-            ; left side
-            `(((persp-name
-                workspace-number
-                window-number)
-               :fallback evil-state
-               :face highlight-face
-               :priority 100)
-              (anzu :priority 95)
-              auto-compile
-              ((buffer-modified buffer-size buffer-id remote-host)
-               :priority 98)
-              (major-mode :priority 79)
-              (process :when active)
-              (,flycheck-flymake
-               :when active
-               :priority 89)
-              (minor-modes :when active
-                           :priority 9)
-              (mu4e-alert-segment :when active)
-              (erc-track :when active)
-              (version-control :when active
-                               :priority 78)
-              (org-pomodoro :when active)
-              (org-clock :when active)
-              nyan-cat)
-            ; right side
-            `((which-function
-               :priority 99
-               :face highlight-face)
-              (python-pyvenv :fallback python-pyenv)
-              (purpose :priority 94)
-              (battery :when active)
-              (selection-info :priority 95)
-              input-method
-              ((buffer-encoding-abbrev
-                point-position
-                line-column)
-               :separator " | "
-               :priority 96)
-              (global :when active)
-              ,@additional-segments
-              (buffer-position :priority 99)
-              (hud :priority 99)))
-            )
-          (if use-flymake
-              ;; flymake
-              (my/spaceline-theme '(flymake-error flymake-warning flymake-info flymake-note))
-            ;; flycheck
-            (my/spaceline-theme '(flycheckclick-error flycheckclick-warning flycheckclick-info))
-            )
-          )
-        )
- )
+                         )))))))
+           )
+         (defun my/spaceline-theme (flycheck-flymake &rest additional-segments)
+           "Convenience function for the spacemacs and emacs themes."
+           (spaceline-compile
+                                        ; left side
+             `(((persp-name
+                 workspace-number
+                 window-number)
+                :fallback evil-state
+                :face highlight-face
+                :priority 100)
+               (anzu :priority 95)
+               auto-compile
+               ((buffer-modified buffer-size buffer-id remote-host)
+                :priority 98)
+               (major-mode :priority 79)
+               (process :when active)
+               (,flycheck-flymake
+                :when active
+                :priority 89)
+               (minor-modes :when active
+                            :priority 9)
+               (mu4e-alert-segment :when active)
+               (erc-track :when active)
+               (version-control :when active
+                                :priority 78)
+               (org-pomodoro :when active)
+               (org-clock :when active)
+               nyan-cat)
+                                        ; right side
+             `((which-function
+                :priority 99
+                :face highlight-face)
+               (python-pyvenv :fallback python-pyenv)
+               (purpose :priority 94)
+               (battery :when active)
+               (selection-info :priority 95)
+               input-method
+               ((buffer-encoding-abbrev
+                 point-position
+                 line-column)
+                :separator " | "
+                :priority 96)
+               (global :when active)
+               ,@additional-segments
+               (buffer-position :priority 99)
+               (hud :priority 99)))
+           )
+         (if use-flymake
+             ;; flymake
+             (my/spaceline-theme '(flymake-error flymake-warning flymake-info flymake-note))
+           ;; flycheck
+           (my/spaceline-theme '(flycheckclick-error flycheckclick-warning flycheckclick-info))
+           )
+         )
+       )
+;;(daemon-wrap my/load-spaceline
+;;             (bench "Spaceline-Enable"
+;;             )
+;;             )
 
 ;;(bench "Spaceline-all-the-icons"
 ;;       (setq inhibit-compacting-font-caches t)
