@@ -26,6 +26,10 @@
                   gc-cons-percentage 0.1)))
 
 ;;;;; TODO ;;;;;
+
+;; Suppress cl warning
+(setq byte-compile-warnings '(cl-functions))
+
 ;; Only for EMACS 28, which changed definitions, until packages comply ;;
 (when (>= emacs-major-version 28)
 
