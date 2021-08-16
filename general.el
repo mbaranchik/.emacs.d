@@ -145,3 +145,5 @@
 (use-package expand-region
   :bind ("C-=" . expand-region))
 
+(setq echo-keystrokes 0.01)
+
