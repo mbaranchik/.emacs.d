@@ -309,7 +309,7 @@ CURRENT-NAME, if it does not already have them:
 (when (boundp 'server-name)
   (setq recentf-save-file (format "/tmp/recentf.%s" server-name)))
 
-(byte-recompile-directory user-init-dir 0)
+;;(byte-recompile-directory user-init-dir 0)
 ;;(when (fboundp 'native-compile-async)
 ;;  (native-compile-async user-init-dir))
 
