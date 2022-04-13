@@ -361,6 +361,14 @@ CURRENT-NAME, if it does not already have them:
               vc-ignore-dir-regexp
               tramp-file-name-regexp))
 
+;; Touch hook after save - Trigger unison better
+(defun touch-buffer-file ()
+  "updates mtime on the file for the current buffer"
+  (interactive)
+  (shell-command (concat "touch " (shell-quote-argument (buffer-file-name))))
+  (clear-visited-file-modtime))
+(add-hook 'after-save-hook 'touch-buffer-file)
+
 ;; Server Start
 (message "Sockets Dir: %s" server-socket-dir)
 (when start-server
