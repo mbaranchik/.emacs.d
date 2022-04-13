@@ -26,11 +26,6 @@
     (ac-config-default))
   )
 
-(use-package org
-  :mode ("\\.org\\'" . org-mode)
-  :interpreter ("org" . org-mode)
-  )
-
 (use-package jenkinsfile-mode)
 
 (use-package smex)
