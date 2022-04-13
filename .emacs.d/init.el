@@ -353,6 +353,14 @@ CURRENT-NAME, if it does not already have them:
 ;;(when (fboundp 'native-compile-async)
 ;;  (native-compile-async user-init-dir))
 
+;; Disable TRAMP ssh options
+(customize-set-variable 'tramp-use-ssh-controlmaster-options nil)
+;; Disable VC when in TRAMP buffer
+(setq vc-ignore-dir-regexp
+      (format "\\(%s\\)\\|\\(%s\\)"
+              vc-ignore-dir-regexp
+              tramp-file-name-regexp))
+
 ;; Server Start
 (message "Sockets Dir: %s" server-socket-dir)
 (when start-server
