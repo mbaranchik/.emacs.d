@@ -26,6 +26,10 @@
     (ac-config-default))
   )
 
+(use-package desktop+
+  :commands (desktop+-load desktop+-create)
+  )
+
 (use-package jenkinsfile-mode)
 
 (use-package smex)

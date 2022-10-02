@@ -48,6 +48,8 @@
 (set-config-var 'use-visual-line-mode t "EMACS_USE_VISUAL_LINE_MODE")
 (set-config-var 'use-indent-guide t "EMACS_USE_INDENT_GUIDE")
 (set-config-var 'use-exec-path t "EMACS_USE_EXEC_PATH")
+(set-config-var 'use-spaceline nil "EMACS_USE_SPACELINE")
+(set-config-var 'use-doom-modeline t "EMACS_USE_DOOM_MODELINE")
 
 ;; Specifics
 (set-config-var 'flycheck-gcc-language-standard "c++11" "EMACS_FLYCHECK_GCC_LANGUAGE_STANDARD")

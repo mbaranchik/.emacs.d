@@ -7,6 +7,7 @@
          ;;:defer t
          :straight spacemacs-theme)
        (use-package vscode-dark-plus-theme)
+       (use-package doom-themes)
        )
 
 (bench "Load main theme"
@@ -61,6 +62,21 @@
          :after treemacs))
 ;; )
 
+(when use-doom-modeline
+  (bench "Doom-Modeline"
+         (use-package doom-modeline
+           :demand
+           :config
+           ;; Fix for symlink expanding
+           (setq doom-modeline-project-detection 'project)
+           ;; Don’t compact font caches during GC.
+           (setq inhibit-compacting-font-caches t)
+           (doom-modeline-mode)
+           )
+         )
+  )
+
+(when use-spaceline
 (bench "Spaceline-Load"
        (use-package spaceline
          :demand
@@ -173,6 +189,7 @@
            )
          )
        )
+)
 ;;(daemon-wrap my/load-spaceline
 ;;             (bench "Spaceline-Enable"
 ;;             )
