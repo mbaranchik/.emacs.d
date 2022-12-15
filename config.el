@@ -44,6 +44,7 @@
 (set-config-var 'use-python-jedi t "EMACS_USE_PYTHON_JEDI")
 (set-config-var 'use-autocomplete nil "EMACS_USE_AUTOCOMPLETE")
 (set-config-var 'use-lsp t "EMACS_USE_LSP")
+(set-config-var 'use-lsp-bridge nil "EMACS_USE_LSP_BRIDGE")
 (set-config-var 'use-eglot nil "EMACS_USE_EGLOT")
 (set-config-var 'use-visual-line-mode t "EMACS_USE_VISUAL_LINE_MODE")
 (set-config-var 'use-indent-guide t "EMACS_USE_INDENT_GUIDE")

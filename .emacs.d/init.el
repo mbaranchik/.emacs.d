@@ -268,6 +268,9 @@ CURRENT-NAME, if it does not already have them:
          (add-hook 'c++-mode-hook 'clang-format+-mode)
          ))
 
+(bench "LSP"
+       (load-user-file "lsp"))
+
 (bench "Git-Sync"
        (load-user-file "git_sync")
        (when use-gitsync
