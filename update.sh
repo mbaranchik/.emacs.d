@@ -1,6 +1,6 @@
 #!/bin/bash
 
-EMACS=emacs
+EMACS=$(which emacs)
 BASE_DIR=$PWD
 
 usage() {
@@ -51,5 +51,7 @@ if [[ ! -d ${BASE_DIR} ]]; then
     echo "ERROR: Directory ${BASE_DIR} doesn't exist"
     exit 1
 fi
+
+rm -rf ${BASE_DIR}/.emacs.d/straight ${BASE_DIR}/.emacs.d/eln-cache
 
 exec ${EMACS} --batch --eval "(load-file \"${BASE_DIR}/update.el\")"

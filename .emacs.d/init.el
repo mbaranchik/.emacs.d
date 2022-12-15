@@ -1,24 +1,16 @@
 ;;; -*- lexical-binding: t -*-
 
-(defvar bootstrap-version)
-(let ((bootstrap-file
-       (expand-file-name "straight/repos/straight.el/bootstrap.el" user-emacs-directory))
-      (bootstrap-version 5))
-  (unless (file-exists-p bootstrap-file)
-    (with-current-buffer
-        (url-retrieve-synchronously
-         "https://raw.githubusercontent.com/raxod502/straight.el/develop/install.el"
-         'silent 'inhibit-cookies)
-      (goto-char (point-max))
-      (eval-print-last-sexp)))
-  (load bootstrap-file nil 'nomessage))
+(defconst user-init-dir "~/emacs.init/")
+
+(defun load-user-file (file)
+  (interactive "f")
+  "Load a file in current user's configuration directory"
+  (load (expand-file-name file user-init-dir)))
+
+;; Bootstrap Straight
+(load-user-file "straight-bootstrap.el")
 
 (add-to-list 'load-path (concat user-emacs-directory "lisp/"))
-
-;;;;  Effectively replace use-package with straight-use-package
-;;; https://github.com/raxod502/straight.el/blob/develop/README.md#integration-with-use-package
-(straight-use-package 'use-package)
-(setq straight-use-package-by-default t)
 
 ;; This is now done with GCMH - Testing
 (add-hook 'after-init-hook (lambda ()
@@ -193,13 +185,6 @@ CURRENT-NAME, if it does not already have them:
 ;; Load GCMH
 (use-package gcmh
   :commands gcmh-mode)
-
-(defconst user-init-dir "~/emacs.init/")
-
-(defun load-user-file (file)
-  (interactive "f")
-  "Load a file in current user's configuration directory"
-  (load (expand-file-name file user-init-dir)))
 
 ;;(load-user-file "packages.el")
 
