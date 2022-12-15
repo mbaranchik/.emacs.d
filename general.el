@@ -7,7 +7,7 @@
 (setq mouse-wheel-follow-mouse 't) ;; scroll window under mouse
 (setq mouse-wheel-scroll-amount '(2 ((shift) . 2))) ;; one line at a time
 
-(global-linum-mode 1)
+(global-display-line-numbers-mode t)
 (put 'downcase-region 'disabled nil)
 (display-time-mode t)
 (if use-visual-line-mode
