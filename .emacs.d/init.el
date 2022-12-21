@@ -269,11 +269,11 @@ CURRENT-NAME, if it does not already have them:
        (use-package compile))
 
 (bench "Exec-Path"
-       (when use-exec-path
          (use-package exec-path-from-shell
+           :if (memq window-system '(mac ns))
            :config
            (setq exec-path-from-shell-arguments nil)
-           (exec-path-from-shell-initialize))))
+           (exec-path-from-shell-initialize)))
 
 (put 'upcase-region 'disabled nil)
 
