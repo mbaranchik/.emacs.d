@@ -36,6 +36,13 @@
 
 (use-package ace-window)
 
+(use-package tree-sitter
+  :hook
+  ((c-mode python-mode c++-mode sh-mode json-mode js-mode html-mode verilog-mode yaml-mode) . tree-sitter-mode)
+  ((c-mode python-mode c++-mode sh-mode json-mode js-mode html-mode verilog-mode yaml-mode) . tree-sitter-hl-mode)
+  )
+(use-package tree-sitter-langs)
+
 (use-package vterm-toggle
   :bind (([f2] . vterm-toggle)
          ([C-f2] . vterm-toggle-cd)))
