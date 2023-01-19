@@ -1,4 +1,12 @@
 ;;; -*- lexical-binding: t -*-
+
+;;(setq ASymbol 10)  => 10
+;;(intern "ASymbol")  => 'ASymbol (e.g. the unevaluated symbol with name "ASymbol")
+;;(symbol-value (intern "ASymbol")) => 10
+
+;; Example
+;; (set-config-var 'my-new-shiny-var 3277 "EMACS_NEW_SHINY_VAR")
+
 (defun set-config-var (varname default env)
   (cond ((string= "y" (getenv env)) (set varname t))
 	    ((string= "n" (getenv env)) (set varname nil))
@@ -13,41 +21,50 @@
         )
   )
 
-;;(setq ASymbol 10)  => 10
-;;(intern "ASymbol")  => 'ASymbol (e.g. the unevaluated symbol with name "ASymbol")
-;;(symbol-value (intern "ASymbol")) => 10
-
-;; Example
-;; (set-config-var 'my-new-shiny-var 3277 "EMACS_NEW_SHINY_VAR")
-
-;; Enables
-(setq START_ME (getenv "EMACS_START_SERVER"))
-(message "Start Server? %s" START_ME)
+;; Server Enable
 (set-config-var 'start-server t "EMACS_START_SERVER")
+
+;; Project Management
 (set-config-var 'use-projectile t "EMACS_USE_PROJECTILE")
 (set-config-var 'use-git t "EMACS_USE_GIT")
-(set-config-var 'use-git-gutter nil "EMACS_USE_GIT_GUTTER")
 (set-config-var 'use-gitsync nil "EMACS_USE_GITSYNC")
-(set-config-var 'use-gitblame nil "EMACS_USE_GITBLAME")
-(set-config-var 'use-clang t "EMACS_USE_CLANG")
+(set-config-var 'use-tags nil "EMACS_USE_TAGS")
+
+;; LSP
+;; ["lsp", "eglot", "lsp-bridge"]
+(set 'use-lsp nil)
+(set 'use-eglot nil)
+(set 'use-lsp-bridge nil)
+(set-config-var 'my/lsp "lsp-bridge" "EMACS_LSP")
+(cond ((string= "lsp" my/lsp) (set 'use-lsp t))
+      ((string= "eglot" my/lsp) (set 'use-eglot t))
+      ((string= "lsp-bridge" my/lsp) (set 'use-lsp-bridge t))
+      (t (warn "EMACS_LSP env var can receive one of lsp|eglot|lsp-bridge, received %s instead" my/lsp)))
+
+;; Completion - Code
+;; ["company", "ac"]
+(set 'use-company nil)
+(set 'use-autocomplete nil)
+(set-config-var 'my/autocomplete "" "EMACS_AUTOCOMPLETE")
+(cond ((string= "company" my/autocomplete) (set 'use-company t))
+      ((string= "ac" my/autocomplete) (set 'use-autocomplete t))
+      ;;(t (warn "EMACS_AUTOCOMPLETE env var can receive one of company|ac, received %s instead" my/autocomplete))
+      )
+
+;; UI
 (set-config-var 'use-cua t "EMACS_USE_CUA")
-(set-config-var 'use-tags t "EMACS_USE_TAGS")
-(set-config-var 'use-flycheck nil "EMACS_USE_FLYCHECK")
-(set-config-var 'use-flymake t "EMACS_USE_FLYMAKE")
 (set-config-var 'use-whitespace t "EMACS_USE_WHITESPACE")
 (set-config-var 'use-navigation t "EMACS_USE_NAVIGATION")
 (set-config-var 'use-idlehightlist nil "EMACS_USE_IDLEHIGHTLIST")
-(set-config-var 'use-company t "EMACS_USE_COMPANY")
-(set-config-var 'use-python-jedi t "EMACS_USE_PYTHON_JEDI")
-(set-config-var 'use-autocomplete nil "EMACS_USE_AUTOCOMPLETE")
-(set-config-var 'use-lsp t "EMACS_USE_LSP")
-(set-config-var 'use-lsp-bridge nil "EMACS_USE_LSP_BRIDGE")
-(set-config-var 'use-eglot nil "EMACS_USE_EGLOT")
 (set-config-var 'use-visual-line-mode t "EMACS_USE_VISUAL_LINE_MODE")
 (set-config-var 'use-indent-guide t "EMACS_USE_INDENT_GUIDE")
-(set-config-var 'use-exec-path t "EMACS_USE_EXEC_PATH")
 (set-config-var 'use-spaceline nil "EMACS_USE_SPACELINE")
 (set-config-var 'use-doom-modeline t "EMACS_USE_DOOM_MODELINE")
+
+;; Code - Misc
+(set-config-var 'use-clang t "EMACS_USE_CLANG")
+(set-config-var 'use-flycheck nil "EMACS_USE_FLYCHECK")
+(set-config-var 'use-flymake t "EMACS_USE_FLYMAKE")
 
 ;; Specifics
 (set-config-var 'flycheck-gcc-language-standard "c++11" "EMACS_FLYCHECK_GCC_LANGUAGE_STANDARD")
@@ -56,10 +73,8 @@
 (set-config-var 'gitsync-basefrom2 "sync/" "EMACS_GITSYNC_BASEFROM2")
 (set-config-var 'gitsync-script "/Volumes/ANPA/sync/rsync_script.py" "EMACS_GITSYNC_SCRIPT")
 (set-config-quote-var 'use-theme 'horizon "EMACS_USE_THEME")
-(set-config-quote-var 'aw-scope 'frame "EMACS_AW_SCOPE")
-(set-config-var 'cquery-executable "cquery" "EMACS_CQUERY_PATH")
 (set-config-var 'ccls-executable "ccls" "EMACS_CCLS_PATH")
-(set-config-var 'my-lsp-c++-backend "cquery" "EMACS_LSP_BACKEND")
+(set-config-var 'my-lsp-c++-backend "ccls" "EMACS_LSP_BACKEND")
 (set-config-var 'lsp-clients-clangd-executable "clangd" "EMACS_CLANGD_PATH")
 (set-config-var 'lsp-ui-flycheck-enable use-flycheck "EMACS_LSP_UI_FLYCHECK_ENABLE")
 (set-config-var 'lsp-prefer-flymake use-flymake "EMACS_LSP_PREFER_FLYMAKE")
@@ -99,16 +114,10 @@
     (tool-bar-lines . 1)
     (fontsize . 0)
     (font-backend mac-ct ns))))
-;;(setq-default fringe-mode (quote (nil . 0)) nil (fringe))
 (setq-default ggtags-highlight-tag 0.1)
 (setq-default ggtags-sort-by-nearness t)
 (setq-default inhibit-startup-screen t)
 (setq-default ns-antialias-text t)
-;;(setq-default package-archives
-;; (quote
-;;  (("melpa" . "http://melpa.org/packages/")
-;;   ("gnu" . "http://elpa.gnu.org/packages/")
-;;   )))
 (setq-default semantic-mode nil)
 (setq-default send-mail-function nil)
 (setq-default show-paren-mode t)

@@ -36,20 +36,12 @@
   )
 
 (when use-eglot
-  ;;(use-package project
-  ;;  :straight (:type built-in)
-  ;;  )
   (use-package markdown-mode)
   (unless (fboundp 'project-root)
     (defun project-root (project)
       (car (project-roots project)))
     )
   (use-package eglot
-;;    :straight (eglot
-;;               :type git
-;;               :flavor melpa
-;;               :host github
-;;               :repo "joaotavora/eglot")
     :commands eglot-ensure
     :hook
     ((c-mode c++-mode python-mode sh-mode) . (lambda () (hack-local-variables) (eglot-ensure) (which-function-mode)))

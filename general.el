@@ -75,11 +75,6 @@
     )
   )
 
-;;(when (and use-company use-python-jedi)
-;;  (defun my/python-mode-hook ()
-;;  (add-to-list 'company-backends 'company-jedi))
-;;  (add-hook 'python-mode-hook 'my/python-mode-hook))
-
 (use-package rainbow-delimiters
   :hook (prog-mode . rainbow-delimiters-mode)
   :config
