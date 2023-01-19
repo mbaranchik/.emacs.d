@@ -16,9 +16,7 @@
     (setq lsp-lens-auto-enable nil)
     (push "[/\\\\]\\.cquery_cached_index\\'" lsp-file-watch-ignored-directories)
     (push "[/\\\\][^/\\\\]*\\.\\(so\\|d\\|o\\)$" lsp-file-watch-ignored-files)
-    (when (equal my-lsp-c++-backend "cquery")
-      (use-package cquery))
-    (when (equal my-lsp-c++-backend "ccls")
+    (when (string= my-lsp-c++-backend "ccls")
       (use-package ccls))
     ;; TODO: pyright hangs
     ;;(use-package lsp-pyright
@@ -56,9 +54,7 @@
     :hook
     ((c-mode c++-mode python-mode sh-mode) . (lambda () (hack-local-variables) (eglot-ensure) (which-function-mode)))
     :config
-    (when (equal my-lsp-c++-backend "cquery")
-      (use-package cquery))
-    (when (equal my-lsp-c++-backend "ccls")
+    (when (string= my-lsp-c++-backend "ccls")
       (use-package ccls))
     )
   )
@@ -70,14 +66,35 @@
     :straight (:host github
                      :repo "manateelazycat/lsp-bridge"
                      :files ("*"))
+    :hook
+    ;;((c-mode c++-mode python-mode sh-mode lisp-mode) . (lambda () (hack-local-variables) (lsp-bridge-mode) (which-function-mode)))
+    ((prog-mode) . (lambda () (hack-local-variables) (lsp-bridge-mode) (which-function-mode)))
     :init
     (straight-use-package '(acm
                             :local-repo "lsp-bridge/acm" :type nil
-			    :files ("*")))
-    :config
-    (setq lsp-bridge-c-lsp-server "clangd")
-    (global-lsp-bridge-mode))
+			                :files ("*")))
+    (setq acm-frame-background-dark-color t)
+    (setq acm-frame-background-light-color nil)
 
+    (setq tab-always-indent t)
+    (defun lsp-bridge-indent-for-tab-command (&optional arg)
+      (interactive "P")
+      (lsp-bridge-popup-complete-menu)
+      (indent-for-tab-command arg))
+    :custom
+    (lsp-bridge-c-lsp-server my-lsp-c++-backend)
+    (acm-enable-yas t)
+    (acm-enable-tabnine nil)
+    :bind (
+           ("M-i"   . 'lsp-bridge-find-impl)
+           ("M-I"   . 'lsp-bridge-find-impl-other-window)
+           ("M-t"   . 'lsp-bridge-find-def)
+           ("M-,"   . 'lsp-bridge-find-def-return)
+           ("M-T"   . 'lsp-bridge-find-def-other-window)
+           ("M-r"   . 'lsp-bridge-find-references)
+           ("<tab>" . 'lsp-bridge-indent-for-tab-command)
+           )
+    )
   )
 
 ;;;;;;;;;;;;;;;;;;;;;;;;

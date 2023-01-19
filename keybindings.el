@@ -80,10 +80,12 @@
 ;; Clang Format
 (global-set-key (kbd "C-s-<tab>") 'clang-format-region)
 
-;; Company Mode
-(global-set-key (kbd "<backtab>") 'company-complete)
-;; Company - Yasnippet
-(global-set-key (kbd "C-<tab>") 'company-yasnippet)
+(when use-company
+  ;; Company Mode
+  (global-set-key (kbd "<backtab>") 'company-complete)
+  ;; Company - Yasnippet
+  (global-set-key (kbd "C-<tab>") 'company-yasnippet)
+  )
 
 ;; Auto Insert
 (global-set-key (kbd "<f12>") 'auto-insert)

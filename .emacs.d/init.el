@@ -22,6 +22,8 @@
 ;; Suppress cl warning
 (setq byte-compile-warnings '(cl-functions))
 
+(modify-all-frames-parameters '((background-mode . "dark")))
+
 ;; Only for EMACS 28, which changed definitions, until packages comply ;;
 (when (>= emacs-major-version 28)
 

@@ -130,9 +130,12 @@
 
 ;; Yasnippet
 (use-package yasnippet
-  :hook (prog-mode . yas-minor-mode)
+  :hook (prog-mode . yas-minor-mode-on)
   :config
   (yas-reload-all))
+
+;; TODO: Not supported with acm/lsp-bridge
+;; (setq tab-always-indent 'complete)
 
 ;;;; Common Snippets
 ;;(use-package yasnippet-snippets)
