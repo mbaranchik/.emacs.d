@@ -47,6 +47,9 @@
   :bind (([f2] . vterm-toggle)
          ([C-f2] . vterm-toggle-cd)))
 
+(add-to-list 'auto-mode-alist '("\\.cshrc\\'" . sh-mode))
+(add-to-list 'auto-mode-alist '("\\.csh\\'" . sh-mode))
+
 (when use-company
   (use-package company-c-headers)
   (use-package company
