@@ -34,7 +34,9 @@
 
 (use-package smex)
 
-(use-package ace-window)
+(use-package ace-window
+  :config
+  (setq aw-scope 'frame))
 
 (use-package tree-sitter
   :hook
@@ -156,6 +158,9 @@
 ;; Expand-Region
 (use-package expand-region
   :bind ("C-=" . expand-region))
+
+;; Enable mouse in Xterm
+(xterm-mouse-mode 1)
 
 (setq echo-keystrokes 0.01)
 
