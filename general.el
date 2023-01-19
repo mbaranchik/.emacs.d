@@ -110,14 +110,23 @@
 (use-package verilog-mode
   :mode ("\\.v\\'" "\\.sv\\'" "\\.svh\\'")
   :hook (verilog-mode-hook . (lambda ()
-                               (set (make-local-variable 'compile-command)
-                                    (let ((verif_path (car (split-string (cadr (split-string (cadr (split-string (file-truename (expand-file-name (file-name-directory buffer-file-name))) "/Volumes/ANPA/")) "sync/")) "/"))))
-                                      (format "ssh dub-gw015 \"echo 'rm /project/users/michaelba/toprock/%s/err.log \\n touch /project/users/michaelba/toprock/%s/.check \\n while (! -f /project/users/michaelba/toprock/%s/err.log) \\n end \\n sleep 2 && tail -n +1 /project/users/michaelba/toprock/%s/err.log' | csh -f\"" verif_path verif_path verif_path verif_path)))
                                (set (make-local-variable 'verilog-linter) (symbol-value 'compile-command))
                                ))
   :config
-  (setq compilation-read-command t)
-  (setq verilog-tool 'verilog-linter))
+  (setq verilog-tool 'verilog-linter)
+  (setq verilog-auto-delete-trailing-whitespace t)
+  (setq verilog-auto-newline nil)
+  (setq verilog-case-indent 4)
+  (setq verilog-cexp-indent 4)
+  (setq verilog-compiler "make all")
+  (setq verilog-highlight-modules t)
+  (setq verilog-indent-begin-after-if nil)
+  (setq verilog-indent-level 4)
+  (setq verilog-indent-level-behavioral 4)
+  (setq verilog-indent-level-declaration 4)
+  (setq verilog-indent-level-directive 0)
+  (setq verilog-indent-level-module 0)
+  (setq verilog-simulator "make run"))
 
 ;; Idle-Highlight-Mode
 (when use-idlehightlist
