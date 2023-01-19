@@ -31,24 +31,6 @@
     ;;  (setq lsp-pyright-diagnostic-mode "openFilesOnly")
     ;;  (setq lsp-pyright-python-executable-cmd "/usr/local/bin/python3.9")
     ;;  )
-    ;;(use-package lsp-python-ms
-    ;;  :init
-    ;;  (set-config-var 'lsp-python-ms-executable "Microsoft.Python.LanguageServer" "EMACS_PYTHON_MS_LSP_EXECUTABLE")
-    ;;  :config
-    ;;  (add-to-list 'lsp-disabled-clients 'pyls)
-    ;;  (add-to-list 'lsp-disabled-clients 'jedi)
-    ;;  (add-to-list 'lsp-disabled-clients 'pyright)
-    ;;  (add-to-list 'lsp-enabled-clients 'mspyls)
-    ;;  (set-config-var 'lsp-python-ms-executable "Microsoft.Python.LanguageServer" "EMACS_PYTHON_MS_LSP_EXECUTABLE")
-    ;;  )
-    (when use-ivy
-      (use-package lsp-ivy))
-    (when use-helm
-      (use-package helm-lsp))
-    ;;(use-package lsp-jedi
-    ;;  :config
-    ;;  (add-to-list 'lsp-disabled-clients 'pyls)
-    ;;  (add-to-list 'lsp-enabled-clients 'jedi))
     (add-to-list 'lsp-enabled-clients 'bash-ls)
     (add-to-list 'lsp-enabled-clients 'ccls)
     (add-to-list 'lsp-enabled-clients 'pyls)

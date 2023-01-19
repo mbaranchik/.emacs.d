@@ -216,28 +216,15 @@ CURRENT-NAME, if it does not already have them:
        (when use-git
          (load-user-file "git")))
 
-(bench "Helm"
-       (when use-helm
-         (load-user-file "helm")))
-
-(bench "Ido"
-       (when use-ido
-         (load-user-file "ido")))
-
-(bench "Ivy"
-       (when use-ivy
-         (load-user-file "ivy")))
+(bench "Completion-Next-Gen"
+       (load-user-file "completion-next-gen"))
 
 (bench "Projectile"
        (when use-projectile
          (use-package projectile
            :config
            (setq projectile-indexing-method 'alien))
-         (projectile-mode t))
-       (when (and use-helm use-projectile)
-         (use-package helm-projectile))
-       (when (and use-ivy use-projectile)
-         (use-package counsel-projectile)))
+         (projectile-mode t)))
 
 (bench "Tags"
        (when use-tags

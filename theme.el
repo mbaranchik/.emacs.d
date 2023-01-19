@@ -54,10 +54,7 @@
 ;;(daemon-wrap my/load-all-the-icons
 (bench "Load all-the-icons"
        (use-package all-the-icons)
-       (use-package all-the-icons-ivy
-         :after all-the-icons
-         :config
-         (all-the-icons-ivy-setup))
+       (use-package all-the-icons-completion)
        (use-package treemacs-all-the-icons
          :after treemacs))
 ;; )

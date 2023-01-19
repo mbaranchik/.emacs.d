@@ -37,23 +37,8 @@
 (defun gtags-update-hook()
   "Update GTAGS file incrementally upon saving a file"
   (when 'ggtags-mode
-    (when (gtags-root-dir)
-      (gtags-update-current-file))))
-(add-hook 'after-save-hook 'gtags-update-hook)
-
-(when use-helm
-  (use-package helm-gtags
-    :hook ((verilog-mode-hook . helm-gtags-mode)
-           (c-mode-hook . helm-gtags-mode)
-           (c++-mode-hook . helm-gtags-mode)
-           (asm-mode-hook . helm-gtags-mode))))
-
-(when use-ivy
-  (use-package counsel-gtags
-    :hook ((verilog-mode-hook . counsel-gtags-mode)
-           (c-mode-hook . counsel-gtags-mode)
-           (c++-mode-hook . counsel-gtags-mode)
-           (asm-mode-hook . counsel-gtags-mode))))
+    (when (my/gtags-root-dir)
+      (my/gtags-update-current-file))))
 
 ;; GTAGS - END
 
