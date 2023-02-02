@@ -73,8 +73,12 @@
       (interactive "P")
       (lsp-bridge-popup-complete-menu)
       (indent-for-tab-command arg))
+    :config
+    (push "find-file" lsp-bridge-completion-stop-commands)
+    (push "projectile-find-file" lsp-bridge-completion-stop-commands)
     :custom
     (lsp-bridge-c-lsp-server my-lsp-c++-backend)
+    (lsp-bridge-enable-hover-diagnostic t)
     (acm-enable-yas t)
     (acm-enable-tabnine nil)
     :bind (
