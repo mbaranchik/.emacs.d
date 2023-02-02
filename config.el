@@ -66,8 +66,8 @@
 
 ;; Code - Misc
 (set-config-var 'use-clang t "EMACS_USE_CLANG")
-(set-config-var 'use-flycheck nil "EMACS_USE_FLYCHECK")
-(set-config-var 'use-flymake t "EMACS_USE_FLYMAKE")
+(set-config-var 'use-flycheck t "EMACS_USE_FLYCHECK")
+(set-config-var 'use-flymake nil "EMACS_USE_FLYMAKE")
 
 ;; Specifics
 (set-config-var 'flycheck-gcc-language-standard "c++11" "EMACS_FLYCHECK_GCC_LANGUAGE_STANDARD")
