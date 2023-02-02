@@ -26,6 +26,10 @@
 
   ;; Optionally enable cycling for `vertico-next' and `vertico-previous'.
   (setq vertico-cycle t)
+  :bind (:map vertico-map
+              ("<next>" . vertico-scroll-up)
+              ("<prior>" . vertico-scroll-down)
+              ("<tab>" . vertico-insert))
   )
 
 (use-package vertico-repeat
