@@ -14,6 +14,8 @@
 ;; Enable Tab-Line Mode (Emacs >= 27)
 ;;(global-tab-line-mode t)
 
+(xterm-mouse-mode 1)
+
 (use-package multiple-cursors
   :commands multiple-cursors-mode)
 

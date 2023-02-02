@@ -199,8 +199,10 @@
 ;;         :config
 ;;         (spaceline-all-the-icons-theme)))
 
+(when (fboundp 'scroll-bar-mode)
 (bench "Scroll-bar-mode"
        (scroll-bar-mode -1))
+  )
 
 
 ;; Set Title Bar

@@ -115,3 +115,9 @@
 
 ;; Expand-Region
 (global-set-key (kbd "C-=") 'er/expand-region)
+
+(unless (display-graphic-p)
+  (global-set-key (kbd "M-[ P") (kbd "<f1>"))
+  (global-set-key (kbd "M-[ Q") (kbd "<f2>"))
+  (global-set-key (kbd "M-[ R") (kbd "<f3>"))
+  (global-set-key (kbd "M-[ S") (kbd "<f4>")))
