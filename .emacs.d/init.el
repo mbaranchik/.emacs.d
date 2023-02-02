@@ -236,8 +236,8 @@ CURRENT-NAME, if it does not already have them:
        (load-user-file "custom"))
 
 (bench "Clang"
+       (load-user-file "clang")
        (when use-clang
-         (load-user-file "clang")
          (add-hook 'c-mode-hook 'clang-format+-mode)
          (add-hook 'c++-mode-hook 'clang-format+-mode)
          ))
