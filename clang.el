@@ -9,12 +9,19 @@
 
 (if use-flycheck
   (use-package flycheck
-    :demand
-    :hook (prog-mode . flycheck-mode)))
+    :hook (prog-mode . flycheck-mode)
+    :config
+    (use-package flycheck-clang-tidy
+    	:hook
+    	(flycheck-mode . flycheck-clang-tidy-setup)
+    	:config
+    	(setq flycheck-clang-tidy-executable my/flycheck-clang-tidy-executable)
+    	(setq flycheck-clang-tidy-build-path "."))
+    )
+  )
 
 (if use-flymake
   (use-package flymake
-    :demand
     :hook (prog-mode . flymake-mode)))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;

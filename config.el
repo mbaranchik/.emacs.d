@@ -67,6 +67,7 @@
 ;; Code - Misc
 (set-config-var 'use-clang t "EMACS_USE_CLANG")
 (set-config-var 'use-flycheck t "EMACS_USE_FLYCHECK")
+(set-config-var 'my/flycheck-clang-tidy-executable "clang-tidy" "EMACS_FLYCHECK_TIDY_EXEC")
 (set-config-var 'use-flymake nil "EMACS_USE_FLYMAKE")
 
 ;; Specifics
