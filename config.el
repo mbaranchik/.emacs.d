@@ -53,6 +53,9 @@
 
 ;; UI
 (set-config-var 'use-cua t "EMACS_USE_CUA")
+(set-config-var 'use-tags nil "EMACS_USE_TAGS")
+(set-config-var 'use-flycheck nil "EMACS_USE_FLYCHECK")
+(set-config-var 'use-flymake t "EMACS_USE_FLYMAKE")
 (set-config-var 'use-whitespace t "EMACS_USE_WHITESPACE")
 (set-config-var 'use-navigation t "EMACS_USE_NAVIGATION")
 (set-config-var 'use-idlehightlist nil "EMACS_USE_IDLEHIGHTLIST")
