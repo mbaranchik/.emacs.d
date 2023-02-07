@@ -19,7 +19,7 @@
 (use-package git-gutter
   :hook (prog-mode . my/load-git-gutter)
   :config
-  (setq git-gutter:update-interval 0))
+  (setq git-gutter:update-interval 2))
 
 (use-package git-gutter-fringe
   :config

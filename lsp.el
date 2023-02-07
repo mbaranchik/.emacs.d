@@ -65,8 +65,6 @@
     (straight-use-package '(acm
                             :local-repo "lsp-bridge/acm" :type nil
 			                :files ("*")))
-    (setq acm-frame-background-dark-color t)
-    (setq acm-frame-background-light-color nil)
 
     (setq tab-always-indent t)
     (defun lsp-bridge-indent-for-tab-command (&optional arg)
