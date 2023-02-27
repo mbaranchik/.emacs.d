@@ -29,3 +29,5 @@
 ;; compiled ahead-of-time when they are installed and site files are compiled
 ;; when gccemacs is installed.
 (setq native-comp-deferred-compilation nil)
+
+(modify-all-frames-parameters '((background-mode . "dark")))
