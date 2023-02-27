@@ -42,11 +42,13 @@
       (t (warn "EMACS_LSP env var can receive one of lsp|eglot|lsp-bridge, received %s instead" my/lsp)))
 
 ;; Completion - Code
-;; ["company", "ac"]
+;; ["company", "corfu", "ac"]
 (set 'use-company nil)
+(set 'use-corfu nil)
 (set 'use-autocomplete nil)
 (set-config-var 'my/autocomplete "" "EMACS_AUTOCOMPLETE")
 (cond ((string= "company" my/autocomplete) (set 'use-company t))
+      ((string= "corfu" my/autocomplete) (set 'use-corfu t))
       ((string= "ac" my/autocomplete) (set 'use-autocomplete t))
       ;;(t (warn "EMACS_AUTOCOMPLETE env var can receive one of company|ac, received %s instead" my/autocomplete))
       )
