@@ -58,13 +58,22 @@
     :straight (:host github
                      :repo "manateelazycat/lsp-bridge"
                      :files ("*"))
+    :after yasnippet
     :hook
     ;;((c-mode c++-mode python-mode sh-mode lisp-mode) . (lambda () (hack-local-variables) (lsp-bridge-mode) (which-function-mode)))
-    ((prog-mode) . (lambda () (hack-local-variables) (lsp-bridge-mode) (which-function-mode)))
+    ((prog-mode) . (lambda () (hack-local-variables) (yas-minor-mode-on) (lsp-bridge-mode) (which-function-mode)))
     :init
-    (straight-use-package '(acm
-                            :local-repo "lsp-bridge/acm" :type nil
-			                :files ("*")))
+    (use-package acm
+      :straight (:local-repo "lsp-bridge/acm" :type nil
+			                 :files ("*")))
+    (use-package popon
+      :straight (:host nil :repo "https://codeberg.org/akib/emacs-popon.git"))
+    (daemon-wrap my/load-acm-terminal
+                 (unless (display-graphic-p)
+                   (use-package acm-terminal
+                     :straight (:host github :repo "twlz0ne/acm-terminal")
+                     :after acm)
+                   ))
 
     (setq tab-always-indent t)
     (defun lsp-bridge-indent-for-tab-command (&optional arg)
