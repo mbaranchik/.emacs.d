@@ -35,7 +35,6 @@
 (use-package vertico-repeat
   :straight nil
   :after vertico
-  :ensure nil
   :init
   (add-hook 'minibuffer-setup-hook #'vertico-repeat-save)
   :bind (
@@ -45,8 +44,7 @@
 
 (use-package vertico-mouse
   :straight nil
-  :after vertico
-  :ensure nil)
+  :after vertico)
 
 ;; Persist history over Emacs restarts. Vertico sorts by history position.
 (use-package savehist
@@ -207,7 +205,6 @@
          ("C-c g" . consult-ls-git)))
 
 (use-package orderless
-  :ensure t
   :custom
   (completion-styles '(orderless))
   (completion-category-overrides '((file (styles partial-completion)))))
@@ -227,8 +224,6 @@
   (marginalia-mode))
 
 (use-package embark
-  :ensure t
-
   :bind
   (("C-." . embark-act)         ;; pick some comfortable binding
    ("C-;" . embark-dwim)        ;; good alternative: M-.
@@ -249,6 +244,5 @@
 
 ;; Consult users will also want the embark-consult package.
 (use-package embark-consult
-  :ensure t ; only need to install it, embark loads it after consult if found
   :hook
   (embark-collect-mode . consult-preview-at-point-mode))
