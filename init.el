@@ -1,19 +1,22 @@
 ;;; -*- lexical-binding: t -*-
 
 (defconst user-init-dir (concat user-emacs-directory "lisp.d/"))
+(message "User init dir: %s" user-init-dir)
+
+;; (throw 'my-tag "non-local exit value")
 
 (defun load-user-file (file)
   (interactive "f")
   "Load a file in current user's configuration directory"
   (load (expand-file-name file user-init-dir)))
 
-;; Bootstrap Straight
-(load-user-file "straight-bootstrap.el")
+;; Bootstrap Elpaca
+(load-user-file "elpaca-bootstrap.el")
 
 ;;(add-to-list 'load-path (concat user-emacs-directory "lisp.d/"))
 
 ;; This is now done with GCMH - Testing
-(add-hook 'after-init-hook (lambda ()
+(add-hook 'elpaca-after-init-hook (lambda ()
             (setq gc-cons-threshold (* 100 1024 1024)
                   gc-cons-percentage 0.1)))
 
@@ -22,7 +25,7 @@
 
 (use-package benchmark-init)
 ;; To disable collection of benchmark data after init is done.
-(add-hook 'after-init-hook 'benchmark-init/deactivate)
+(add-hook 'elpaca-after-init-hook 'benchmark-init/deactivate)
 
 ;;(straight-use-package `(bench
 ;;                        :local-repo ,(concat user-emacs-directory "lisp")))
@@ -75,6 +78,10 @@
 ;; Avoid loading older byte-compiled
 (setq load-prefer-newer t)
 
+;; (bench "Compile"
+;;        (use-package compile
+;;          :elpaca nil))
+
 ;; Auto compile lisp
 (use-package auto-compile
   :config
@@ -121,9 +128,11 @@
 (bench "Projectile"
        (when use-projectile
          (use-package projectile
+           :init
+           (add-hook 'elpaca-after-init-hook (lambda () (projectile-mode t)))
            :config
            (setq projectile-indexing-method 'alien))
-         (projectile-mode t)))
+         ))
 
 (bench "Tags"
        (when use-tags
@@ -151,9 +160,6 @@
 (bench "Keybindings"
        (load-user-file "keybindings"))
 
-(bench "Compile"
-       (use-package compile))
-
 (bench "Exec-Path"
          (use-package exec-path-from-shell
            :if (memq window-system '(mac ns))
@@ -177,7 +183,7 @@
 
 ;; Load Ligatures ;;
 (use-package ligature
-  :straight (:host github :repo "mickeynp/ligature.el")
+  :elpaca (:host github :repo "mickeynp/ligature.el")
   :config
    ;; Enable traditional ligature support in eww-mode, if the
    ;; `variable-pitch' face supports it
@@ -215,10 +221,8 @@
    (global-ligature-mode t)
    )
 
-(filelock-with-lock
- (setq custom-file (expand-file-name "local_customized.el" user-emacs-directory))
- (load custom-file)
- )
+;; (add-hook 'elpaca-after-init-hook (lambda ()
+;; ))
 
 ;; Avoid locks on recentf
 (when (boundp 'server-name)
@@ -228,8 +232,6 @@
 ;;(when (fboundp 'native-compile-async)
 ;;  (native-compile-async user-init-dir))
 
-;; Disable TRAMP ssh options
-(customize-set-variable 'tramp-use-ssh-controlmaster-options nil)
 ;; Disable VC when in TRAMP buffer
 (setq vc-ignore-dir-regexp
       (format "\\(%s\\)\\|\\(%s\\)"
@@ -243,6 +245,17 @@
   (shell-command (concat "touch " (shell-quote-argument (buffer-file-name))))
   (clear-visited-file-modtime))
 (add-hook 'after-save-hook 'touch-buffer-file)
+
+;; Block until current queue processed.
+(elpaca-wait)
+
+(filelock-with-lock
+    (setq custom-file (expand-file-name "local_customized.el" user-emacs-directory))
+  (load custom-file)
+  )
+
+;; Disable TRAMP ssh options
+(customize-set-variable 'tramp-use-ssh-controlmaster-options nil)
 
 ;; Server Start
 (message "Sockets Dir: %s" server-socket-dir)

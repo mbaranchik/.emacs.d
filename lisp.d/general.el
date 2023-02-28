@@ -78,7 +78,7 @@
 
 (when use-corfu
   (use-package corfu-terminal
-  :straight (:type git
+  :elpaca (:type git
                    :repo "https://codeberg.org/akib/emacs-corfu-terminal.git")
   :config
   (daemon-wrap my/load-corfu-terminal
@@ -111,6 +111,7 @@
 
   ;; A few more useful configurations...
   (use-package emacs
+    :elpaca nil
     :init
     ;; TAB cycle if there are only few candidates
     (setq completion-cycle-threshold 3)

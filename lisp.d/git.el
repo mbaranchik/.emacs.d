@@ -5,8 +5,6 @@
 (use-package magit
   :mode ("/COMMIT_EDITMSG\\'" . vc-git-log-edit-mode)
   :commands (magit magit-status vc-git-log-edit-mode)
-  :init
-  (use-package magit-gerrit)
   )
 
 (defun my/load-git-gutter ()

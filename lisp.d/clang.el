@@ -10,13 +10,13 @@
 (if use-flycheck
   (use-package flycheck
     :hook (prog-mode . flycheck-mode)
-    :config
-    (use-package flycheck-clang-tidy
-    	:hook
-    	(flycheck-mode . flycheck-clang-tidy-setup)
-    	:config
-    	(setq flycheck-clang-tidy-executable my/flycheck-clang-tidy-executable)
-    	(setq flycheck-clang-tidy-build-path "."))
+    ;; :config
+    ;; (use-package flycheck-clang-tidy
+    ;; 	:hook
+    ;; 	(flycheck-mode . flycheck-clang-tidy-setup)
+    ;; 	:config
+    ;; 	(setq flycheck-clang-tidy-executable my/flycheck-clang-tidy-executable)
+    ;; 	(setq flycheck-clang-tidy-build-path "."))
     )
   )
 

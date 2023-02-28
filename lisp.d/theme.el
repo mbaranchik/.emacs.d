@@ -3,29 +3,26 @@
 (bench "Load extra themes"
        (use-package zenburn-theme)
        (use-package atom-dark-theme)
-       ;;(use-package spacemacs-common
-       ;;  ;;:defer t
-       ;;  :straight spacemacs-theme)
        (use-package spacemacs-theme)
        (use-package vscode-dark-plus-theme)
        (use-package doom-themes)
        )
-
-(bench "Load main theme"
-       (load-theme use-theme t t)
-       )
-(daemon-wrap my/load-theme
-             (bench "Enable main theme"
-                    (enable-theme use-theme)
-                    (when (fboundp 'powerline-reset)
-                      (powerline-reset)))
-             )
 
 ;;(daemon-wrap my/load-powerline
 (bench "Load powerline"
        (use-package powerline)
        )
 ;;)
+
+;; Block until current queue processed.
+(elpaca-wait)
+(daemon-wrap my/load-theme
+             (bench "Enable main theme"
+                    (load-theme use-theme t t)
+                    (enable-theme use-theme)
+                    (when (fboundp 'powerline-reset)
+                      (powerline-reset)))
+             )
 
 ;; ;;(load-theme 'zenburn t)
 ;;(use-package moe-theme)

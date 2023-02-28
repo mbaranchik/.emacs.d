@@ -7,7 +7,8 @@
 
 ;;(autoload 'whitespace-mode "whitespace" "Toggle whitespace visualization." t)
 
-(use-package whitespace-mode
+(use-package whitespace
+  :elpaca nil
   :hook (prog-mode . whitespace-mode))
 
 ;;(add-hook 'vterm-mode-hook (lambda ()

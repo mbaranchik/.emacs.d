@@ -2,7 +2,7 @@
 
 ;; Enable vertico
 (use-package vertico
-  :straight (:host github :repo "minad/vertico"
+  :elpaca (:host github :repo "minad/vertico"
                    :files (:defaults "extensions/*")
                    :includes (vertico-buffer
                               vertico-directory
@@ -33,7 +33,7 @@
   )
 
 (use-package vertico-repeat
-  :straight nil
+  :elpaca nil
   :after vertico
   :init
   (add-hook 'minibuffer-setup-hook #'vertico-repeat-save)
@@ -43,11 +43,12 @@
   )
 
 (use-package vertico-mouse
-  :straight nil
+  :elpaca nil
   :after vertico)
 
 ;; Persist history over Emacs restarts. Vertico sorts by history position.
 (use-package savehist
+  :elpaca nil
   :init
   (savehist-mode)
   :config
@@ -55,6 +56,7 @@
 
 ;; A few more useful configurations...
 (use-package emacs
+  :elpaca nil
   :init
   ;; Add prompt indicator to `completing-read-multiple'.
   ;; We display [CRM<separator>], e.g., [CRM,] if the separator is a comma.
