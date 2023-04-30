@@ -163,6 +163,8 @@
 
 (put 'upcase-region 'disabled nil)
 
+(load-user-file "ide")
+
 ;; LOAD THEME ;;
 (bench "Theme"
        (load-user-file "theme"))
