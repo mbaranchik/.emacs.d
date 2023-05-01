@@ -9,15 +9,20 @@
 
 # Undo-tree save-files
 *.~undo-tree
-.emacs.d/projectile-bookmarks.eld
-.emacs.d/local_customized.el
-.emacs.d/elpa/
-.emacs.d/smex-items
-.emacs.d/.lsp-session-v1
-.emacs.d/.python-environments
-.emacs.d/tramp
-.emacs.d/var
-.emacs.d/recentf
-.emacs.d/transient/
-.emacs.d/.cache/
+
+history
+straight
+eln-cache
+projectile-bookmarks.eld
+local_customized.el
+elpa/
+smex-items
+.lsp-session-v1
+.python-environments
+tramp
+var
+recentf
+transient/
+.cache/
 \#*
+
