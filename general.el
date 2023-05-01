@@ -46,6 +46,7 @@
 (use-package tree-sitter-langs)
 
 (use-package vterm-toggle
+  :after vterm
   :bind (([f2] . vterm-toggle)
          ([C-f2] . vterm-toggle-cd)))
 
