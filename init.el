@@ -10,7 +10,7 @@
 ;; Bootstrap Straight
 (load-user-file "straight-bootstrap.el")
 
-(add-to-list 'load-path (concat user-emacs-directory "lisp.d/"))
+;;(add-to-list 'load-path (concat user-emacs-directory "lisp.d/"))
 
 ;; This is now done with GCMH - Testing
 (add-hook 'after-init-hook (lambda ()
