@@ -200,6 +200,9 @@
 ;;         :config
 ;;         (spaceline-all-the-icons-theme)))
 
+(when (fboundp 'pixel-scroll-precision-mode)
+  (pixel-scroll-precision-mode t))
+
 (when (fboundp 'scroll-bar-mode)
 (bench "Scroll-bar-mode"
        (scroll-bar-mode -1))
