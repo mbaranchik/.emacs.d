@@ -3,9 +3,10 @@
 (bench "Load extra themes"
        (use-package zenburn-theme)
        (use-package atom-dark-theme)
-       (use-package spacemacs-common
-         ;;:defer t
-         :straight spacemacs-theme)
+       ;;(use-package spacemacs-common
+       ;;  ;;:defer t
+       ;;  :straight spacemacs-theme)
+       (use-package spacemacs-theme)
        (use-package vscode-dark-plus-theme)
        (use-package doom-themes)
        )

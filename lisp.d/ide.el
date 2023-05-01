@@ -2,7 +2,7 @@
 
 ;; vterm on bottom
 (use-package vterm
-  :init
+  :config
   (add-to-list 'display-buffer-alist
                '((lambda (buffer-or-name _)
                    (let ((buffer (get-buffer buffer-or-name)))

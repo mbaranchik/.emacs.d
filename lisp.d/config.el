@@ -132,4 +132,7 @@
 (setq-default sln-semi-is-electric nil)
 (setq-default speedbar-show-unknown-files t)
 (setq-default whitespace-style (quote (face trailing spaces tabs)))
+(setq-default cua-mode t)
+(setq-default display-time-mode t)
+(setq-default global-display-line-numbers-mode t)
 
