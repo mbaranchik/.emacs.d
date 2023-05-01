@@ -1,7 +1,7 @@
 #!/bin/bash
 
 EMACS=emacs
-BASE_DIR=$PWD
+BASE_DIR=~/.emacs.d
 CLEAN=
 
 usage() {
@@ -57,22 +57,9 @@ if [[ ! -d ${BASE_DIR} ]]; then
     exit 1
 fi
 
-if [[ -f ~/.emacs || -d ~/.emacs.d ]]; then
-    if [[ ~/.emacs -ef ${BASE_DIR}/.emacs && ~/.emacs.d -ef ${BASE_DIR}/.emacs.d ]]; then
-        echo "INFO: Re-using existing links"
-    else
-        echo "ERROR: Remove ~/.emacs and ~/.emacs.d and rerun"
-        exit 1
-    fi
-fi
-
 if [[ ! -z ${CLEAN} ]]; then
     echo "INFO: Removing ignored and untracked files from git"
     git -C ${BASE_DIR} clean -fdX
 fi
-
-echo "INFO: Linking git startup files"
-ln -s ${BASE_DIR}/.emacs ~/
-ln -s ${BASE_DIR}/.emacs.d ~/
 
 exec ${BASE_DIR}/update.sh --emacs ${EMACS} --dir ${BASE_DIR}

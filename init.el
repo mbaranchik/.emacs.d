@@ -1,6 +1,6 @@
 ;;; -*- lexical-binding: t -*-
 
-(defconst user-init-dir "~/emacs.init/")
+(defconst user-init-dir (concat user-emacs-directory "lisp.d/"))
 
 (defun load-user-file (file)
   (interactive "f")
@@ -10,7 +10,7 @@
 ;; Bootstrap Straight
 (load-user-file "straight-bootstrap.el")
 
-(add-to-list 'load-path (concat user-emacs-directory "lisp/"))
+(add-to-list 'load-path (concat user-emacs-directory "lisp.d/"))
 
 ;; This is now done with GCMH - Testing
 (add-hook 'after-init-hook (lambda ()
@@ -171,7 +171,6 @@
 
 (bench "Custom Hooks"
        (add-hook 'prog-mode-hook #'unshow-ws)
-       (add-hook 'sln-mode-hook #'unshow-ws)
        ;; HACK
        (add-hook 'c-mode-hook (lambda() (define-key c-mode-map (kbd "C-c C-c") nil)))
        (add-hook 'c++-mode-hook (lambda() (define-key c++-mode-map (kbd "C-c C-c") nil))))

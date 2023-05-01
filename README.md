@@ -8,7 +8,7 @@ My configuration of Emacs
 
     ```
     cd ~
-    git clone https://github.com/mbaranchik/emacs.init.git
+    git clone https://github.com/mbaranchik/.emacs.d.git
     ```
 
 * Install :
