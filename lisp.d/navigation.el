@@ -19,11 +19,17 @@
 (use-package multiple-cursors
   :commands multiple-cursors-mode)
 
-(use-package highlight-symbol
-  :bind (("<C-f3>" . highlight-symbol)
-         ("<f3>" . highlight-symbol-next)
-         ("<S-f3>" . highlight-symbol-prev)
-         ("<M-f3>" . highlight-symbol-query-replace)))
+;; (use-package highlight-symbol
+;;   :bind (("<C-f3>" . highlight-symbol)
+;;          ("<f3>" . highlight-symbol-next)
+;;          ("<S-f3>" . highlight-symbol-prev)
+;;          ("<M-f3>" . highlight-symbol-query-replace)))
+
+(use-package symbol-overlay
+  :bind (("<C-f3>" . symbol-overlay-put)
+         ("<f3>" . symbol-overlay-jump-next)
+         ("<S-f3>" . symbol-overlay-jump-prev)
+         ("<M-f3>" . symbol-overlay-rename)))
 
 (use-package back-button
   :config
