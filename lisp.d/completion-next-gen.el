@@ -202,7 +202,8 @@
          ("C-c k" . consult-ag)))
 (use-package consult-ls-git
   :bind (
-         ("C-c g" . consult-ls-git)))
+         ("C-c g f" . consult-ls-git-ls-files)
+         ("C-c g F" . consult-ls-git-ls-files-other-window)))
 
 (use-package orderless
   :custom
