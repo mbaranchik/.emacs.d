@@ -2,6 +2,16 @@
 
 ;; vterm on bottom
 (use-package vterm
+  :bind
+  (:map vterm-mode-map
+        ;; Copy-Paste
+        ("C-v" . vterm-yank)
+        ("<mouse-2>" . vterm-yank-primary)
+        ;; Delete
+        ("<deletechar>" . vterm-send-delete)
+        ;; PgUp & PgDn
+        ("<next>" . vterm-send-next)
+        ("<prior>" . vterm-send-prior))
   :config
   (add-to-list 'display-buffer-alist
                '((lambda (buffer-or-name _)

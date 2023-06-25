@@ -217,3 +217,5 @@
 
 (setq echo-keystrokes 0.01)
 
+(use-package emacs-everywhere)
+
