@@ -198,3 +198,4 @@ grayed out.")
 
 
 ;; profile-dotemacs.el ends here
+(provide 'my/profile-dotemacs)

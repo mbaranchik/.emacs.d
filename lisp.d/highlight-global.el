@@ -272,6 +272,5 @@ highlight"
     (setq window-size-change-functions '(update-highlight-fixup))
   (add-to-list 'window-size-change-functions 'update-highlight-fixup))
 
-(provide 'highlight-global)
-
 ;;; highlight-global.el ends here
+(provide 'my/highlight-global)

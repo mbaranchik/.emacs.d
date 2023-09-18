@@ -1,5 +1,9 @@
 ;;; -*- lexical-binding: t -*-
 
+;; Include basic macros and functions
+(defvar my/this nil) (setq my/this (symbol-file 'my/this))
+(require 'my/basic (concat (expand-file-name (file-name-directory (or load-file-name (buffer-file-name) my/this))) "basic"))
+
 ;; vterm on bottom
 (use-package vterm
   :bind
@@ -46,3 +50,9 @@
 ;;    ;; (slot . 1))
 ;;    ))
 
+;; code formatting
+(use-package apheleia
+  :config
+  (apheleia-global-mode +1))
+
+(provide 'my/ide)

@@ -1,5 +1,9 @@
 ;;; -*- lexical-binding: t -*-
 
+;; Include basic macros and functions
+(defvar my/this nil) (setq my/this (symbol-file 'my/this))
+(require 'my/basic (concat (expand-file-name (file-name-directory (or load-file-name (buffer-file-name) my/this))) "basic"))
+
 (defvar bootstrap-version)
 (let ((bootstrap-file
        (expand-file-name "straight/repos/straight.el/bootstrap.el" user-emacs-directory))
@@ -20,3 +24,4 @@
 (straight-use-package 'use-package)
 (setq straight-use-package-by-default t)
 
+(provide 'my/straight-bootstrap)

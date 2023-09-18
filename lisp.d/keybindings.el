@@ -1,5 +1,9 @@
 ;;; -*- lexical-binding: t -*-
 
+;; Include basic macros and functions
+(defvar my/this nil) (setq my/this (symbol-file 'my/this))
+(require 'my/basic (concat (expand-file-name (file-name-directory (or load-file-name (buffer-file-name) my/this))) "basic"))
+
 (use-package which-key)
 
 ;;;; Tabs
@@ -41,7 +45,7 @@
      (define-key c++-mode-map (kbd "C-c C-c") nil)
      (global-set-key (kbd "C-c C-c") 'comment-or-uncomment-region-or-line)))
 
-(when (not use-lsp-bridge)
+(when (not (config-wrap "use-lsp-bridge"))
   (global-set-key (kbd "M-,") 'xref-pop-marker-stack)
   (global-set-key (kbd "M-t") 'xref-find-definitions)
   (global-set-key (kbd "M-T") 'xref-find-definitions-other-window)
@@ -74,9 +78,9 @@
 (global-set-key (kbd "<end>") 'end-of-line)
 
 ;; Clang Format
-(global-set-key (kbd "C-s-<tab>") 'clang-format-region)
+;; (global-set-key (kbd "C-s-<tab>") 'clang-format-region)
 
-(when use-company
+(when (config-wrap "use-company")
   ;; Company Mode
   (global-set-key (kbd "<backtab>") 'company-complete)
   ;; Company - Yasnippet
@@ -117,3 +121,4 @@
   (global-set-key (kbd "M-[ Q") (kbd "<f2>"))
   (global-set-key (kbd "M-[ R") (kbd "<f3>"))
   (global-set-key (kbd "M-[ S") (kbd "<f4>")))
+(provide 'my/keybindings)

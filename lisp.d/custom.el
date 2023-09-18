@@ -1,5 +1,9 @@
 ;;; -*- lexical-binding: t -*-
 
+;; Include basic macros and functions
+(defvar my/this nil) (setq my/this (symbol-file 'my/this))
+(require 'my/basic (concat (expand-file-name (file-name-directory (or load-file-name (buffer-file-name) my/this))) "basic"))
+
 (defun in-directory (dir)
   "Runs execute-extended-command with default-directory set to the given
 directory."
@@ -46,21 +50,19 @@ directory."
 
 (defun unshow-ws ()
   (interactive)
-  (when use-whitespace
-    (set (make-local-variable 'whitespace-space) nil)
-    (set (make-local-variable 'whitespace-tab) nil)
-    (whitespace-mode 0)
-    (whitespace-mode 1))
+  (set (make-local-variable 'whitespace-space) nil)
+  (set (make-local-variable 'whitespace-tab) nil)
+  (whitespace-mode 0)
+  (whitespace-mode 1)
   ;;(set (make-local-variable 'whitespace-style) (quote (face trailing)))
   )
 
 (defun show-ws ()
   (interactive)
-  (when use-whitespace
-    (set (make-local-variable 'whitespace-space) (quote (t (:background "Green"))))
-    (set (make-local-variable 'whitespace-tab) (quote (t (:background "Magenta"))))
-    (whitespace-mode 0)
-    (whitespace-mode 1))
+  (set (make-local-variable 'whitespace-space) (quote (t (:background "Green"))))
+  (set (make-local-variable 'whitespace-tab) (quote (t (:background "Magenta"))))
+  (whitespace-mode 0)
+  (whitespace-mode 1)
   ;;(set (make-local-variable 'whitespace-style) (quote (face trailing spaces tabs)))
   )
 
@@ -123,7 +125,7 @@ directory."
 ;;                              (or (getenv "CFLAGS") "-ansi -pedantic -Wall -g")
 ;;                              file))))))
 
-;;(when use-flycheck
+;;(when (config-wrap "use-flycheck")
 ;;  (add-hook 'after-init-hook #'global-flycheck-mode)
 ;;  (eval-after-load "flycheck"
 ;;    '(progn
@@ -133,7 +135,7 @@ directory."
 ;;       ;; configuration
 ;;       (flycheck-add-next-checker 'c/c++-cppcheck '(warning . cstyle)))))
 
-(when use-flycheck
+(when (config-wrap "use-flycheck")
   (setq-default flycheck-disabled-checkers '(verilog-verilator)))
 
 (use-package scratch-pop)
@@ -148,10 +150,10 @@ directory."
   (cons "\\.\\([Hh]\\|hh\\|hpp\\)\\'" "My C / C++ header")
   '(nil
     "//\n"
-    "// " auto-insert-copyright "\n"
+    "// " (config-wrap "auto-insert-copyright") "\n"
     "//\n\n"
     "//\n"
-    "// Author: " auto-insert-name "\n"
+    "// Author: " (config-wrap "auto-insert-name") "\n"
     "//\n"
     "// Date: " (format-time-string "%Y-%m-%d")"\n"
     "//\n"
@@ -173,21 +175,27 @@ directory."
   (cons "\\.\\([Cc]\\|cc\\|cpp\\)\\'" "My C++ implementation")
   '(nil
     "//\n"
-    "// " auto-insert-copyright "\n"
+    "// " (config-wrap "auto-insert-copyright") "\n"
     "//\n\n"
     "//\n"
-    "// Author: " auto-insert-name "\n"
+    "// Author: " (config-wrap "auto-insert-name") "\n"
     "//\n"
     "// Date: " (format-time-string "%Y-%m-%d")"\n"
     "//\n"
     "// Description:\n"
     "//\n"
     (make-string 70 ?/) "\n\n"
-    (let* ((noext (substring buffer-file-name 0 (match-beginning 0)))
+    (let* ((noext (file-name-sans-extension buffer-file-name))
            (nopath (file-name-nondirectory noext))
-           (ident (concat nopath ".h")))
+           (ident-hdr (concat nopath ".h"))
+           (ident nopath))
       ;;(if (file-exists-p ident)
-      (concat "#include \"" ident "\"\n\n\n"));;)
+      (concat "#include \"" ident-hdr "\"\n\n"
+              ident "::" ident "(const sc_core::sc_module_name& name) : sc_core::sc_module(name), m_log(" (upcase ident) "_TAG)\n"
+              "{}\n\n"
+              ident "::~" ident "()\n"
+              "{}\n"
+              "\n\n"));;)
     (make-string 70 ?/) "\n"
     "//\n"
     ))
@@ -202,7 +210,7 @@ directory."
                     "#include \"tlm_utils/simple_initiator_socket.h\"\n"
                     "#include \"tlm_utils/simple_target_socket.h\"\n"
                     "\n"
-                    "#define " (upcase ident) "_TAG (std::string(this->name()) + \" @ " ident ".cpp \").c_str()\n"
+                    "#define " (upcase ident) "_TAG std::string(this->name())\n"
                     "\n"
                     "typedef tlm_utils::simple_target_socket<class " ident "> " ident "_t;\n"
                     "typedef tlm_utils::simple_initiator_socket<class " ident "> " ident "_i;\n"
@@ -210,8 +218,10 @@ directory."
                     "class " ident " : public sc_core::sc_module\n"
                     "{\n"
                     " public:\n"
-                    "    " ident "();\n"
+                    "    " ident "(const sc_core::sc_module_name& name);\n"
                     "    virtual ~" ident "();\n"
+                    " protected:\n"
+                    "    al_report m_log;\n"
                     "};"))
     )
   )
@@ -275,3 +285,4 @@ and set the focus back to Emacs frame"
 
 (add-to-list 'compilation-finish-functions
              'notify-compilation-result)
+(provide 'my/custom)

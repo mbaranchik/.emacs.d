@@ -1,5 +1,9 @@
 ;;; -*- lexical-binding: t -*-
 
+;; Include basic macros and functions
+(defvar my/this nil) (setq my/this (symbol-file 'my/this))
+(require 'my/basic (concat (expand-file-name (file-name-directory (or load-file-name (buffer-file-name) my/this))) "basic"))
+
 (setq-default indent-tabs-mode nil)
 (setq-default tab-width 4)
 
@@ -15,7 +19,8 @@
 ;;                             )
 ;;          )
 
-(when use-indent-guide
-  (use-package indent-guide
-    :hook (prog-mode . indent-guide-mode)))
+(use-package indent-guide
+  :if (config-wrap "use-indent-guide")
+  :hook (prog-mode . indent-guide-mode))
 
+(provide 'my/whitespace)

@@ -1,5 +1,9 @@
 ;;; -*- lexical-binding: t -*-
 
+;; Include basic macros and functions
+(defvar my/this nil) (setq my/this (symbol-file 'my/this))
+(require 'my/basic (concat (expand-file-name (file-name-directory (or load-file-name (buffer-file-name) my/this))) "basic"))
+
 ;;(unless (boundp 'aquamacs-version)
 ;;  (use-package tabbar)
 ;;  (tabbar-mode 1)
@@ -19,17 +23,42 @@
 (use-package multiple-cursors
   :commands multiple-cursors-mode)
 
-;; (use-package highlight-symbol
-;;   :bind (("<C-f3>" . highlight-symbol)
-;;          ("<f3>" . highlight-symbol-next)
-;;          ("<S-f3>" . highlight-symbol-prev)
-;;          ("<M-f3>" . highlight-symbol-query-replace)))
-
 (use-package symbol-overlay
   :bind (("<C-f3>" . symbol-overlay-put)
          ("<f3>" . symbol-overlay-jump-next)
          ("<S-f3>" . symbol-overlay-jump-prev)
-         ("<M-f3>" . symbol-overlay-rename)))
+         ("<M-f3>" . symbol-overlay-rename))
+  :config
+  (setq symbol-overlay-inhibit-map t)
+  :custom-face
+  ;; (symbol-overlay-default-face ((t (:foreground "#808080"))))
+  ;; (symbol-overlay-face-1 ((t (:foreground "#808080"))))
+  ;; (symbol-overlay-face-2 ((t (:foreground "#808080"))))
+  ;; (symbol-overlay-face-3 ((t (:foreground "#808080"))))
+  ;; (symbol-overlay-face-4 ((t (:foreground "#808080"))))
+  ;; (symbol-overlay-face-5 ((t (:foreground "#808080"))))
+  ;; (symbol-overlay-face-6 ((t (:foreground "#808080"))))
+  ;; (symbol-overlay-face-7 ((t (:foreground "#808080"))))
+  ;; (symbol-overlay-face-8 ((t (:foreground "#808080"))))
+  )
+
+;; (transient-define-prefix symbol-overlay-transient ()
+;;   "Symbol Overlay transient"
+;;   ["Symbol Overlay"
+;;    ["Overlays"
+;;     ("." "Add/Remove at point" symbol-overlay-put)
+;;     ("k" "Remove All" symbol-overlay-remove-all)
+;;     ]
+;;    ["Move to Symbol"
+;;     ("n" "Next" symbol-overlay-jump-next)
+;;     ("p" "Previous" symbol-overlay-jump-prev)
+;;     ]
+;;    ["Other"
+;;     ("m" "Highlight symbol-at-point" symbol-overlay-mode)
+;;     ]
+;;    ]
+;;   )
+;; (global-set-key (kbd "s-.") 'symbol-overlay-transient)
 
 (use-package back-button
   :config
@@ -80,3 +109,4 @@
 (use-package treemacs-magit
   :after (treemacs magit))
 
+(provide 'my/navigation)

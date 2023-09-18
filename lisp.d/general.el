@@ -1,5 +1,9 @@
 ;;; -*- lexical-binding: t -*-
 
+;; Include basic macros and functions
+(defvar my/this nil) (setq my/this (symbol-file 'my/this))
+(require 'my/basic (concat (expand-file-name (file-name-directory (or load-file-name (buffer-file-name) my/this))) "basic"))
+
 ;; turn on font-lock mode
 (when (fboundp 'global-font-lock-mode)
   (global-font-lock-mode t))
@@ -10,20 +14,14 @@
 (global-display-line-numbers-mode t)
 (put 'downcase-region 'disabled nil)
 (display-time-mode t)
-(if use-visual-line-mode
+(if (config-wrap "use-visual-line-mode")
     (global-visual-line-mode 1)
   (global-visual-line-mode 0)
   )
-(when (not use-visual-line-mode)
+(when (not (config-wrap "use-visual-line-mode"))
   (defun disable-visual-line-mode()
     (setq-local line-move-visual nil))
   (add-hook 'prog-mode-hook 'disable-visual-line-mode)
-  )
-
-(when use-autocomplete
-  (use-package auto-complete-config
-    :config
-    (ac-config-default))
   )
 
 (use-package desktop+
@@ -53,7 +51,7 @@
 (add-to-list 'auto-mode-alist '("\\.cshrc\\'" . sh-mode))
 (add-to-list 'auto-mode-alist '("\\.csh\\'" . sh-mode))
 
-(when use-company
+(when (config-wrap "use-company")
   (use-package company-c-headers)
   (use-package company
     :hook (prog-mode . company-mode)
@@ -66,7 +64,7 @@
     :after company
     :hook (company-mode . company-box-mode))
 
-  (when use-lsp
+  (when (config-wrap "use-lsp")
     (add-hook 'lsp-managed-mode-hook (lambda () (setq-local company-backends '(company-capf))))
 
     ;;(add-hook 'lsp-managed-mode-hook (lambda () (setq-local company-backends '((company-capf ;; I think this must come first?
@@ -76,7 +74,7 @@
     )
   )
 
-(when use-corfu
+(when (config-wrap "use-corfu")
   (use-package corfu-terminal
   :straight (:type git
                    :repo "https://codeberg.org/akib/emacs-corfu-terminal.git")
@@ -137,19 +135,52 @@
 ;; auto close bracket insertion. New in emacs 24
 (electric-pair-mode 1)
 
-;; Undo-Tree mode
-(use-package undo-tree
-  :hook (prog-mode . undo-tree-mode)
-  :bind ("C-x u" . undo-tree-visualize))
+(use-package cua-base
+  :config
+  (setq cua-remap-control-z nil)
+  (cua-mode t)
+  (setq cua-auto-tabify-rectangles nil) ;; Don't tabify after rectangle commands
+  (transient-mark-mode 1) ;; No region when it is not highlighted
+  (setq cua-keep-region-after-copy t) ;; Standard Windows behaviour
+  )
 
-;; ;; SLN mode
-;; (load "~/.emacs.d/sln-mode")
-;; (setq auto-mode-alist (cons  '("\\.sln\\'" . sln-mode) auto-mode-alist))(
-;;  custom-set-variables
-;;  '(sln-auto-newline nil)      ;; t for true, nil for false/disabled (do a new line after all semicolons, I rather disable this)
-;;  '(sln-semi-is-electric nil)  ;; t for true, nil for false/disabled (do new-line or goto begin of line, add "};" end comment, I rather disable this)
-;;  '(sln-basic-offset 4)        ;; set spaces-per-TAB size. 4 is my prefered optimum, to be aligend with 8 space tabs (some people like 2, 3, ... )
-;;  )
+;; Undo
+(use-package undo-fu
+  :config
+  (global-set-key (kbd "C-z") nil)
+  (global-set-key (kbd "C-z") 'undo-fu-only-undo)
+  (global-set-key (kbd "C-S-z") 'undo-fu-only-redo))
+(use-package undo-fu-session
+  :after undo-fu
+  :config
+  (setq undo-fu-session-incompatible-files '("/COMMIT_EDITMSG\\'" "/git-rebase-todo\\'"))
+  (undo-fu-session-global-mode))
+(use-package vundo
+  :commands (vundo)
+  :bind (
+         ("C-x u" . vundo)
+         :map vundo-mode-map
+         ("<right>" . vundo-forward)
+         ("<left>" . vundo-backward)
+         ("<down>" . vundo-next)
+         ("<up>" . vundo-previous)
+         ("<home>" . vundo-stem-root)
+         ("<end>" . vundo-stem-end)
+         ("q" . vundo-quit)
+         ("C-g" . vundo-quit)
+         ("RET" . vundo-confirm)
+   )
+
+  :config
+  ;; Take less on-screen space.
+  (setq vundo-compact-display t)
+
+  ;; Better contrasting highlight.
+  (custom-set-faces
+    '(vundo-node ((t (:foreground "#808080"))))
+    '(vundo-stem ((t (:foreground "#808080"))))
+    '(vundo-highlight ((t (:foreground "#FFFF00")))))
+  )
 
 ;; Transpose
 (use-package transpose-frame
@@ -178,9 +209,9 @@
   (setq verilog-simulator "make run"))
 
 ;; Idle-Highlight-Mode
-(when use-idlehightlist
-  (use-package idle-highlight-mode
-    :hook (prog-mode . idle-highlight-mode)))
+(use-package idle-highlight-mode
+  :if (config-wrap "use-idle-highlight")
+  :hook (prog-mode . idle-highlight-mode))
 
 ;; Highlight TODO
 (use-package hl-todo
@@ -219,3 +250,4 @@
 
 (use-package emacs-everywhere)
 
+(provide 'my/general)

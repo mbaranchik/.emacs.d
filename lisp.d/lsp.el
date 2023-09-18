@@ -1,11 +1,15 @@
 ;;; -*- lexical-binding: t -*-
 
+;; Include basic macros and functions
+(defvar my/this nil) (setq my/this (symbol-file 'my/this))
+(require 'my/basic (concat (expand-file-name (file-name-directory (or load-file-name (buffer-file-name) my/this))) "basic"))
+
 ;; Enable LSP
-(when use-lsp
+(when (config-wrap "use-lsp")
   (use-package lsp-mode
     :commands lsp
     :hook
-    ((c-mode c++-mode python-mode sh-mode) . (lambda () (hack-local-variables) (lsp) (which-function-mode)))
+    ((c-mode c++-mode python-mode sh-mode) . (lambda () (hack-local-variables) (lsp) (if (config-wrap "use-which-function") (which-function-mode))))
     (lsp-mode . lsp-enable-which-key-integration)
     :config
     (setq lsp-headerline-breadcrumb-segments '(symbols))
@@ -16,7 +20,7 @@
     (setq lsp-lens-auto-enable nil)
     (push "[/\\\\]\\.cquery_cached_index\\'" lsp-file-watch-ignored-directories)
     (push "[/\\\\][^/\\\\]*\\.\\(so\\|d\\|o\\)$" lsp-file-watch-ignored-files)
-    (when (string= my-lsp-c++-backend "ccls")
+    (when (string= (config-wrap "lsp/cpp-backend") "ccls")
       (use-package ccls))
     ;; TODO: pyright hangs
     ;;(use-package lsp-pyright
@@ -35,7 +39,7 @@
     )
   )
 
-(when use-eglot
+(when (config-wrap "use-eglot")
   (use-package markdown-mode)
   (unless (fboundp 'project-root)
     (defun project-root (project)
@@ -44,36 +48,41 @@
   (use-package eglot
     :commands eglot-ensure
     :hook
-    ((c-mode c++-mode python-mode sh-mode) . (lambda () (hack-local-variables) (eglot-ensure) (which-function-mode)))
+    ((c-mode c++-mode python-mode sh-mode) . (lambda () (hack-local-variables) (eglot-ensure) (if (config-wrap "use-which-function") (which-function-mode))))
     :config
-    (when (string= my-lsp-c++-backend "ccls")
+    (when (string= (config-wrap "lsp/cpp-backend") "ccls")
       (use-package ccls))
     )
   )
 
-(when use-lsp-bridge
+(when (config-wrap "use-lsp-bridge")
   (use-package posframe)
   (use-package markdown-mode)
-  (use-package lsp-bridge
-    :straight (:host github
-                     :repo "manateelazycat/lsp-bridge"
-                     :files ("*"))
-    :after yasnippet
-    :hook
-    ;;((c-mode c++-mode python-mode sh-mode lisp-mode) . (lambda () (hack-local-variables) (lsp-bridge-mode) (which-function-mode)))
-    ((prog-mode) . (lambda () (hack-local-variables) (yas-minor-mode-on) (lsp-bridge-mode) (which-function-mode)))
-    :init
-    (use-package acm
-      :straight (:local-repo "lsp-bridge/acm" :type nil
-			                 :files ("*")))
-    (use-package popon
+  (use-package popon
       :straight (:host nil :repo "https://codeberg.org/akib/emacs-popon.git"))
-    (daemon-wrap my/load-acm-terminal
+  (daemon-wrap my/load-acm-terminal
                  (unless (display-graphic-p)
                    (use-package acm-terminal
                      :straight (:host github :repo "twlz0ne/acm-terminal")
-                     :after acm)
+                     :after (lsp-bridge popon))
                    ))
+  (use-package lsp-bridge
+    :straight '(lsp-bridge :type git :host github :repo "manateelazycat/lsp-bridge"
+            :files (:defaults "*.el" "*.py" "acm" "core" "langserver" "multiserver" "resources")
+            :build (:not compile))
+
+    ;;:straight (:host github
+    ;;                 :repo "manateelazycat/lsp-bridge"
+    ;;                 :files ("*"))
+    :after yasnippet
+    :hook
+    ;;((c-mode c++-mode python-mode sh-mode lisp-mode) . (lambda () (hack-local-variables) (lsp-bridge-mode) (which-function-mode)))
+    ((prog-mode) . (lambda () (hack-local-variables) (yas-minor-mode-on) (lsp-bridge-mode) (if (config-wrap "use-which-function") (which-function-mode))))
+    :init
+    ;;(use-package acm
+    ;;  :straight (:local-repo "lsp-bridge/acm" :type nil
+    ;;			                 :files ("*")))
+
 
     (setq tab-always-indent t)
     (defun lsp-bridge-indent-for-tab-command (&optional arg)
@@ -84,7 +93,7 @@
     (push "find-file" lsp-bridge-completion-stop-commands)
     (push "projectile-find-file" lsp-bridge-completion-stop-commands)
     :custom
-    (lsp-bridge-c-lsp-server my-lsp-c++-backend)
+    (lsp-bridge-c-lsp-server (config-wrap "lsp/cpp-backend"))
     (lsp-bridge-enable-hover-diagnostic t)
     (acm-enable-yas t)
     (acm-enable-tabnine nil)
@@ -101,3 +110,4 @@
   )
 
 ;;;;;;;;;;;;;;;;;;;;;;;;
+(provide 'my/lsp)
