@@ -36,12 +36,47 @@
   :config
   (setq aw-scope 'frame))
 
-(use-package tree-sitter
-  :hook
-  ((c-mode python-mode c++-mode sh-mode json-mode js-mode html-mode verilog-mode yaml-mode) . tree-sitter-mode)
-  ((c-mode python-mode c++-mode sh-mode json-mode js-mode html-mode verilog-mode yaml-mode) . tree-sitter-hl-mode)
+(use-package treesit
+  :straight nil
+  :config
+  ;; Fallback for local compilation of tree-sitter language support
+  (setq treesit-language-source-alist
+   '((bash "https://github.com/tree-sitter/tree-sitter-bash")
+     (cmake "https://github.com/uyha/tree-sitter-cmake")
+     (c "https://github.com/tree-sitter/tree-sitter-c")
+     (cpp "https://github.com/tree-sitter/tree-sitter-cpp")
+     (css "https://github.com/tree-sitter/tree-sitter-css")
+     (elisp "https://github.com/Wilfred/tree-sitter-elisp")
+     (go "https://github.com/tree-sitter/tree-sitter-go")
+     (html "https://github.com/tree-sitter/tree-sitter-html")
+     (javascript "https://github.com/tree-sitter/tree-sitter-javascript" "master" "src")
+     (json "https://github.com/tree-sitter/tree-sitter-json")
+     (make "https://github.com/alemuller/tree-sitter-make")
+     (markdown "https://github.com/ikatyang/tree-sitter-markdown")
+     (python "https://github.com/tree-sitter/tree-sitter-python")
+     (toml "https://github.com/tree-sitter/tree-sitter-toml")
+     (tsx "https://github.com/tree-sitter/tree-sitter-typescript" "master" "tsx/src")
+     (typescript "https://github.com/tree-sitter/tree-sitter-typescript" "master" "typescript/src")
+     (rust "https://github.com/ikatyang/tree-sitter-rust")
+     (yaml "https://github.com/ikatyang/tree-sitter-yaml")
+     (verilog "https://github.com/tree-sitter/tree-sitter-verilog")))
+  (setq treesit-font-lock-level 4)
+  (add-to-list 'major-mode-remap-alist '(bash-mode . bash-ts-mode))
+  (add-to-list 'major-mode-remap-alist '(c-mode . c-ts-mode))
+  (add-to-list 'major-mode-remap-alist '(c++-mode . c++-ts-mode))
+  (add-to-list 'major-mode-remap-alist '(c-or-c++-mode . c-or-c++-ts-mode))
+  (add-to-list 'major-mode-remap-alist '(dockerfile-mode . dockerfile-ts-mode))
+  (add-to-list 'major-mode-remap-alist '(go-mode . go-ts-mode))
+  (add-to-list 'major-mode-remap-alist '(js-mode . js-ts-mode))
+  (add-to-list 'major-mode-remap-alist '(json-mode . json-ts-mode))
+  (add-to-list 'major-mode-remap-alist '(python-mode . python-ts-mode))
+  (add-to-list 'major-mode-remap-alist '(rust-mode . rust-ts-mode))
+  (add-to-list 'major-mode-remap-alist '(yaml-mode . yaml-ts-mode))
   )
-(use-package tree-sitter-langs)
+(use-package tree-sitter-langs
+  :after treesit
+  :init
+  (tree-sitter-langs-install-grammars t "0.12.60"))
 
 (use-package vterm-toggle
   :after vterm
