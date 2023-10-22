@@ -55,7 +55,9 @@
 (use-package vertico-posframe
   :after vertico
   :config
-  (vertico-posframe-mode))
+  (daemon-wrap my/load-vertico-posframe
+               (vertico-posframe-mode)
+               ))
 
 ;; Persist history over Emacs restarts. Vertico sorts by history position.
 (use-package savehist
