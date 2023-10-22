@@ -16,9 +16,35 @@
 ;;  )
 
 ;; Enable Tab-Line Mode (Emacs >= 27)
-;;(global-tab-line-mode t)
-
-(xterm-mouse-mode 1)
+(daemon-wrap my/load-tab-line
+             (progn
+               (defun my/tab-line-tab-name-buffer (buffer &optional _buffers)
+                 (concat (nerd-icons-powerline "nf-ple-forwardslash_separator")
+                         " "
+                         (nerd-icons-icon-for-file (buffer-name buffer))
+                         (format " %s " (buffer-name buffer))
+                         (nerd-icons-powerline "nf-ple-backslash_separator")
+                         )
+                 )
+               (use-package tab-line
+                 :straight nil
+                 :demand
+                 :custom
+                 (tab-line-switch-cycling t)
+                 :custom-face
+                 :bind
+                 ([M-left] . tab-line-switch-to-prev-tab)
+                 ([M-right] . tab-line-switch-to-next-tab)
+                 :config
+                 (global-tab-line-mode t)
+                 (setq
+                  tab-line-new-button-show nil  ;; do not show add-new button
+                  tab-line-close-button-show nil  ;; do not show close button
+                  tab-line-separator "|"  ;; delimitation between tabs
+                  tab-line-tab-name-function #'my/tab-line-tab-name-buffer
+                  ))
+               )
+             )
 
 (use-package multiple-cursors
   :commands multiple-cursors-mode)
@@ -60,35 +86,37 @@
 ;;   )
 ;; (global-set-key (kbd "s-.") 'symbol-overlay-transient)
 
-(use-package back-button
-  :config
-  (back-button-mode 1))
+;;(use-package back-button
+;;  :config
+;;  (back-button-mode 1))
 
 (message "Display: %s" (display-graphic-p))
 (message "Window-System: %s" window-system)
 
 ;; Centaur-Tabs
-(daemon-wrap my/load-centaur
-             (progn
-               (use-package centaur-tabs
-                 :demand
-                 :bind
-                 ([M-left] . centaur-tabs-backward)
-                 ([M-right] . centaur-tabs-forward))
-               (centaur-tabs-mode nil)
-               (setq centaur-tabs-style "bar"
-	                 centaur-tabs-height 32
-	                 centaur-tabs-set-icons t
-	                 centaur-tabs-set-bar 'left
-	                 x-underline-at-descent-line t)
-               (centaur-tabs-mode t)
-               (centaur-tabs-headline-match)
-               (centaur-tabs-group-by-projectile-project)
-               )
-             )
+;;(daemon-wrap my/load-centaur
+;;             (progn
+;;               (use-package centaur-tabs
+;;                 :demand
+;;                 :bind
+;;                 ([M-left] . centaur-tabs-backward)
+;;                 ([M-right] . centaur-tabs-forward))
+;;               (centaur-tabs-mode nil)
+;;               (setq centaur-tabs-style "bar"
+;;	                 centaur-tabs-height 32
+;;	                 centaur-tabs-set-icons t
+;;	                 centaur-tabs-set-bar 'left
+;;	                 x-underline-at-descent-line t)
+;;               (centaur-tabs-mode t)
+;;               (centaur-tabs-headline-match)
+;;               (centaur-tabs-group-by-projectile-project)
+;;               )
+;;             )
 
 ;; Treemacs
 (use-package treemacs
+  :bind
+  ("M-s M-s" . treemacs)
   :config
   (treemacs-follow-mode t)
   (treemacs-filewatch-mode t)

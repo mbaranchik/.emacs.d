@@ -46,44 +46,33 @@
       (car (project-roots project)))
     )
   (use-package eglot
+    :straight nil
     :commands eglot-ensure
     :hook
-    ((c-mode c++-mode python-mode sh-mode) . (lambda () (hack-local-variables) (eglot-ensure) (if (config-wrap "use-which-function") (which-function-mode))))
+    ((prog-mode text-mode) . (lambda () (hack-local-variables) (eglot-ensure) (if (config-wrap "use-which-function") (which-function-mode))))
     :config
-    (when (string= (config-wrap "lsp/cpp-backend") "ccls")
-      (use-package ccls))
+    (add-to-list 'eglot-server-programs '(python-mode . ("pyright")))
+    (add-to-list 'eglot-server-programs '(c-mode . ("ccls")))
+    (add-to-list 'eglot-server-programs '(c++-mode . ("ccls")))
     )
   )
 
 (when (config-wrap "use-lsp-bridge")
-  (use-package posframe)
   (use-package markdown-mode)
-  (use-package popon
-      :straight (:host nil :repo "https://codeberg.org/akib/emacs-popon.git"))
-  (daemon-wrap my/load-acm-terminal
-                 (unless (display-graphic-p)
-                   (use-package acm-terminal
-                     :straight (:host github :repo "twlz0ne/acm-terminal")
-                     :after (lsp-bridge popon))
-                   ))
   (use-package lsp-bridge
     :straight '(lsp-bridge :type git :host github :repo "manateelazycat/lsp-bridge"
             :files (:defaults "*.el" "*.py" "acm" "core" "langserver" "multiserver" "resources")
             :build (:not compile))
 
-    ;;:straight (:host github
-    ;;                 :repo "manateelazycat/lsp-bridge"
-    ;;                 :files ("*"))
-    :after yasnippet
+    :after (markdown-mode yasnippet)
     :hook
-    ;;((c-mode c++-mode python-mode sh-mode lisp-mode) . (lambda () (hack-local-variables) (lsp-bridge-mode) (which-function-mode)))
-    ((prog-mode) . (lambda () (hack-local-variables) (yas-minor-mode-on) (lsp-bridge-mode) (if (config-wrap "use-which-function") (which-function-mode))))
+    ((prog-mode text-mode) . (lambda ()
+                               (hack-local-variables)
+                               (lsp-bridge-mode)
+                               (if (config-wrap "use-which-function") (which-function-mode))
+                               (when (config-wrap "use-flycheck") (flycheck-mode nil))
+                               (when (config-wrap "use-flymake") (flymake-mode nil))))
     :init
-    ;;(use-package acm
-    ;;  :straight (:local-repo "lsp-bridge/acm" :type nil
-    ;;			                 :files ("*")))
-
-
     (setq tab-always-indent t)
     (defun lsp-bridge-indent-for-tab-command (&optional arg)
       (interactive "P")
@@ -107,6 +96,14 @@
            ("<tab>" . 'lsp-bridge-indent-for-tab-command)
            )
     )
+  (daemon-wrap my/load-acm-terminal
+               (unless (display-graphic-p)
+                 (use-package popon
+                   :straight (:host nil :repo "https://codeberg.org/akib/emacs-popon.git"))
+                 (use-package acm-terminal
+                   :straight (:host github :repo "twlz0ne/acm-terminal")
+                   :after (lsp-bridge popon))
+                 ))
   )
 
 ;;;;;;;;;;;;;;;;;;;;;;;;

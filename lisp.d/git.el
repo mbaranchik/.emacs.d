@@ -7,25 +7,39 @@
 (use-package magit
   :mode ("/COMMIT_EDITMSG\\'" . vc-git-log-edit-mode)
   :commands (magit magit-status vc-git-log-edit-mode)
-  :init
-  (use-package magit-gerrit)
   )
 
-(defun my/load-git-gutter ()
-  "loads git-gutter-mode if file has a vc-backend"
-  (when (string= "Git" (vc-backend (buffer-file-name)))
-    (git-gutter-mode)))
+(when (config-wrap "use-git-gutter")
+  (defun my/load-git-gutter ()
+    "loads git-gutter-mode if file has a vc-backend"
+    (when (string= "Git" (vc-backend (buffer-file-name)))
+      (git-gutter-mode)))
 
-(use-package git-gutter
-  :hook (prog-mode . my/load-git-gutter)
-  :config
-  (setq git-gutter:update-interval 2))
+  (use-package git-gutter
+    :config
+    (setq git-gutter:update-interval 2)
+    (add-hook 'find-file-hook 'my/load-git-gutter))
 
-(use-package git-gutter-fringe
-  :config
-  (define-fringe-bitmap 'git-gutter-fr:added [224] nil nil '(center repeated))
-  (define-fringe-bitmap 'git-gutter-fr:modified [224] nil nil '(center repeated))
-  (define-fringe-bitmap 'git-gutter-fr:deleted [128 192 224 240] nil nil 'bottom))
+  (use-package git-gutter-fringe
+    :after git-gutter
+    :config
+    (define-fringe-bitmap 'git-gutter-fr:added [224] nil nil '(center repeated))
+    (define-fringe-bitmap 'git-gutter-fr:modified [224] nil nil '(center repeated))
+    (define-fringe-bitmap 'git-gutter-fr:deleted [128 192 224 240] nil nil 'bottom))
+  )
+
+(when (config-wrap "use-diff-hl")
+  (use-package diff-hl
+    :custom
+    (diff-hl-disable-on-remote t)
+    :config
+    (global-diff-hl-mode)
+    (global-diff-hl-show-hunk-mouse-mode)
+    ;;(add-hook 'find-file-hook 'diff-hl-flydiff-mode) ;; Use flydiff for unsaved changes diff
+    (add-hook 'magit-pre-refresh-hook 'diff-hl-magit-pre-refresh)
+    (add-hook 'magit-post-refresh-hook 'diff-hl-magit-post-refresh)
+    )
+  )
 
 ;;(use-package blamer
 ;;  :straight (:host github :repo "artawower/blamer.el")

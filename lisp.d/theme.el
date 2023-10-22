@@ -53,13 +53,15 @@
   (bench-wrap "Mood-Modeline"
               (use-package mood-line
                 :config
-                (mode-line-mode)
+                (mood-line-mode)
                 )
               )
   )
 
 (when (fboundp 'pixel-scroll-precision-mode)
-  (pixel-scroll-precision-mode t))
+  (pixel-scroll-precision-mode t)
+  (setq window-resize-pixelwise t)
+  (setq frame-resize-pixelwise t))
 
 (when (fboundp 'scroll-bar-mode)
 (bench-wrap "Scroll-bar-mode"

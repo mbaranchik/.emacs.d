@@ -31,6 +31,11 @@
                )
   )
 
+(use-package vterm-toggle
+  :bind (("<f2>" . vterm-toggle)
+         ("<C-f2>" . vterm-toggle-cd))
+  )
+
 ;; treemacs
 
 ;; 

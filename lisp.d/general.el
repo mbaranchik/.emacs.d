@@ -61,30 +61,64 @@
      (yaml "https://github.com/ikatyang/tree-sitter-yaml")
      (verilog "https://github.com/tree-sitter/tree-sitter-verilog")))
   (setq treesit-font-lock-level 4)
-  (add-to-list 'major-mode-remap-alist '(bash-mode . bash-ts-mode))
-  (add-to-list 'major-mode-remap-alist '(c-mode . c-ts-mode))
-  (add-to-list 'major-mode-remap-alist '(c++-mode . c++-ts-mode))
-  (add-to-list 'major-mode-remap-alist '(c-or-c++-mode . c-or-c++-ts-mode))
-  (add-to-list 'major-mode-remap-alist '(dockerfile-mode . dockerfile-ts-mode))
-  (add-to-list 'major-mode-remap-alist '(go-mode . go-ts-mode))
-  (add-to-list 'major-mode-remap-alist '(js-mode . js-ts-mode))
-  (add-to-list 'major-mode-remap-alist '(json-mode . json-ts-mode))
-  (add-to-list 'major-mode-remap-alist '(python-mode . python-ts-mode))
-  (add-to-list 'major-mode-remap-alist '(rust-mode . rust-ts-mode))
-  (add-to-list 'major-mode-remap-alist '(yaml-mode . yaml-ts-mode))
+  ;;(add-to-list 'major-mode-remap-alist '(sh-mode . bash-ts-mode))
+  ;;(add-to-list 'major-mode-remap-alist '(c-mode . c-ts-mode))
+  ;;(add-to-list 'major-mode-remap-alist '(c++-mode . c++-ts-mode))
+  ;;(add-to-list 'major-mode-remap-alist '(c-or-c++-mode . c-or-c++-ts-mode))
+  ;;(add-to-list 'major-mode-remap-alist '(dockerfile-mode . dockerfile-ts-mode))
+  ;;(add-to-list 'major-mode-remap-alist '(go-mode . go-ts-mode))
+  ;;(add-to-list 'major-mode-remap-alist '(js-mode . js-ts-mode))
+  ;;(add-to-list 'major-mode-remap-alist '(js-json-mode . json-ts-mode))
+  ;;(add-to-list 'major-mode-remap-alist '(python-mode . python-ts-mode))
+  ;;(add-to-list 'major-mode-remap-alist '(rust-mode . rust-ts-mode))
+  ;;(add-to-list 'major-mode-remap-alist '(yaml-mode . yaml-ts-mode))
   )
+
 (use-package tree-sitter-langs
-  :after treesit
-  :init
-  (tree-sitter-langs-install-grammars t "0.12.60"))
-
-(use-package vterm-toggle
-  :after vterm
-  :bind (([f2] . vterm-toggle)
-         ([C-f2] . vterm-toggle-cd)))
-
-(add-to-list 'auto-mode-alist '("\\.cshrc\\'" . sh-mode))
-(add-to-list 'auto-mode-alist '("\\.csh\\'" . sh-mode))
+  :after treesit)
+(use-package json-ts-mode
+  :straight nil)
+(use-package sh-script
+  :straight nil
+  :config
+  (add-to-list 'major-mode-remap-alist '(sh-mode . bash-ts-mode))
+  (add-to-list 'auto-mode-alist '("\\.cshrc\\'" . sh-mode))
+  (add-to-list 'auto-mode-alist '("\\.csh\\'" . sh-mode))
+  )
+(use-package dockerfile-ts-mode
+  :straight nil)
+(use-package c-ts-mode
+  :straight nil
+  :hook
+  (after-init . (lambda ()
+                  (setq c-ts-mode-hook c-mode-hook)
+                  (message "Copying c-mode-hook to c-ts-mode-hook: %s" c-ts-mode-hook)
+                  ))
+  )
+(use-package c++-ts-mode
+  :straight nil
+  :hook
+  (after-init . (lambda ()
+                  (setq c++-ts-mode-hook c++-mode-hook)
+                  (message "Copying c++-mode-hook to c++-ts-mode-hook: %s" c++-ts-mode-hook)
+                  ))
+  )
+(use-package python
+  :straight nil
+  :hook
+  (after-init . (lambda ()
+                  (setq python-ts-mode-hook python-mode-hook)
+                  (message "Copying python-mode-hook to python-ts-mode-hook %s" python-ts-mode-hook)
+                  ))
+  :config
+  (add-to-list 'major-mode-remap-alist '(python-mode . python-ts-mode))
+  )
+(use-package cmake-ts-mode
+  :straight nil)
+(use-package rust-ts-mode
+  :straight nil)
+(use-package yaml-ts-mode
+  :straight nil)
 
 (when (config-wrap "use-company")
   (use-package company-c-headers)
@@ -254,9 +288,8 @@
 
 ;; Yasnippet
 (use-package yasnippet
-  :hook (prog-mode . yas-minor-mode-on)
-  :config
-  (yas-reload-all))
+  :hook (prog-mode . (lambda () (yas-reload-all) (yas-minor-mode-on)))
+  )
 
 ;; TODO: Not supported with acm/lsp-bridge
 ;; (setq tab-always-indent 'complete)
@@ -279,10 +312,20 @@
   :bind ("C-=" . expand-region))
 
 ;; Enable mouse in Xterm
-(xterm-mouse-mode 1)
+(daemon-wrap my/set-xterm-mouse-mode
+             (unless (display-graphic-p)
+               (xterm-mouse-mode 1)
+               ))
+
+;; Enable Clipetty
+(daemon-wrap my/set-clipetty
+             (unless (display-graphic-p)
+               (use-package clipetty
+                 :hook (after-init . global-clipetty-mode))
+               ))
 
 (setq echo-keystrokes 0.01)
 
-(use-package emacs-everywhere)
+;; (use-package emacs-everywhere)
 
 (provide 'my/general)

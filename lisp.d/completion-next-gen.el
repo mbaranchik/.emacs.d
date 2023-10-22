@@ -33,6 +33,8 @@
   :bind (:map vertico-map
               ("<next>" . vertico-scroll-up)
               ("<prior>" . vertico-scroll-down)
+              ("<end>" . vertico-last)
+              ("<home>" . vertico-first)
               ("<tab>" . vertico-insert))
   )
 
@@ -49,6 +51,11 @@
 (use-package vertico-mouse
   :straight nil
   :after vertico)
+
+(use-package vertico-posframe
+  :after vertico
+  :config
+  (vertico-posframe-mode))
 
 ;; Persist history over Emacs restarts. Vertico sorts by history position.
 (use-package savehist

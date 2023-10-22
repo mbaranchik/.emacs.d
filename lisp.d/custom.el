@@ -143,7 +143,26 @@ directory."
 ;; Vimish-Fold
 (use-package vimish-fold
   :hook
-  (prog-mode . vimish-fold-mode))
+  (prog-mode . vimish-fold-mode)
+  :bind
+  (
+   ("C-M-`" . vimish-fold)
+   ("C-M-~" . vimish-fold-delete)
+   )
+  )
+
+;; TODO: When it supports built-in treesit
+;;;; Tree-sitter fold
+;;(use-package ts-fold
+;;  :straight (ts-fold :type git :host github :repo "emacs-tree-sitter/ts-fold")
+;;  )
+(use-package hs
+  :hook
+  (prog-mode . hs-minor-mode)
+  :bind
+  (
+   ("C-`" . hs-toggle-hiding)
+   ))
 
 ;; autoinsert C/C++ header
 (define-auto-insert

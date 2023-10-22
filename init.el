@@ -18,8 +18,7 @@
 
 ;; This is now done with GCMH - Testing
 (add-hook 'after-init-hook (lambda ()
-                             (setq gc-cons-threshold (* 100 1024 1024) ;; 100mb
-                                   gc-cons-percentage 0.1)
+                             (setq gc-cons-threshold (* 200 1024 1024)) ;; 100mb
                              (setq read-process-output-max (* 1024 1024)) ;; 1mb
                              ))
 
@@ -61,9 +60,6 @@
 
 (bench-wrap "Higlight-Global"
             (load-user-file "highlight-global"))
-
-(bench-wrap "Navigation"
-            (load-user-file "navigation"))
 
 (bench-wrap "Git"
             (load-user-file "git"))
@@ -108,6 +104,9 @@
 (bench-wrap "Theme"
             (load-user-file "theme"))
 
+(bench-wrap "Navigation"
+            (load-user-file "navigation"))
+
 (bench-wrap "Custom Hooks"
             (add-hook 'prog-mode-hook #'unshow-ws)
             ;; HACK
@@ -141,7 +140,8 @@
 
 (filelock-with-lock
     (setq custom-file (expand-file-name "local_customized.el" user-emacs-directory))
-  (load custom-file)
+  (when (file-exists-p custom-file)
+    (load custom-file))
   )
 
 ;; Avoid locks on recentf
@@ -164,7 +164,7 @@
 (defun touch-buffer-file ()
   "updates mtime on the file for the current buffer"
   (interactive)
-  (shell-command (concat "touch " (shell-quote-argument (buffer-file-name))))
+  (shell-command (concat "touch " (shell-quote-argument (expand-file-name (buffer-file-name)))))
   (clear-visited-file-modtime))
 (add-hook 'after-save-hook 'touch-buffer-file)
 
