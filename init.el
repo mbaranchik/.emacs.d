@@ -166,7 +166,7 @@
   (interactive)
   (shell-command (concat "touch " (shell-quote-argument (expand-file-name (buffer-file-name)))))
   (clear-visited-file-modtime))
-(add-hook 'after-save-hook 'touch-buffer-file)
+;;(add-hook 'after-save-hook 'touch-buffer-file)
 
 ;; Server Start
 (message "Sockets Dir: %s" server-socket-dir)
