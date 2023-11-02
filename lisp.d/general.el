@@ -94,6 +94,8 @@
                   (setq c-ts-mode-hook c-mode-hook)
                   (message "Copying c-mode-hook to c-ts-mode-hook: %s" c-ts-mode-hook)
                   ))
+  :init
+  (add-hook 'c-ts-mode-hook (lambda() (define-key c-ts-mode-map (kbd "C-c C-c") nil)))
   )
 (use-package c++-ts-mode
   :straight nil
@@ -102,6 +104,8 @@
                   (setq c++-ts-mode-hook c++-mode-hook)
                   (message "Copying c++-mode-hook to c++-ts-mode-hook: %s" c++-ts-mode-hook)
                   ))
+  :init
+  (add-hook 'c++-ts-mode-hook (lambda() (define-key c++-ts-mode-map (kbd "C-c C-c") nil)))
   )
 (use-package python
   :straight nil
@@ -112,6 +116,8 @@
                   ))
   :config
   (add-to-list 'major-mode-remap-alist '(python-mode . python-ts-mode))
+  :init
+  (add-hook 'python-ts-mode-hook (lambda() (define-key python-ts-mode-map (kbd "C-c C-c") nil)))
   )
 (use-package cmake-ts-mode
   :straight nil)
@@ -120,27 +126,44 @@
 (use-package yaml-ts-mode
   :straight nil)
 
+(when (or (config-wrap "use-company") (config-wrap "use-corfu"))
+;; A few more useful configurations...
+  (use-package emacs
+    :straight nil
+    :init
+    ;; TAB cycle if there are only few candidates
+    (setq completion-cycle-threshold 3)
+
+    ;; Emacs 28: Hide commands in M-x which do not apply to the current mode.
+    ;; Corfu commands are hidden, since they are not supposed to be used via M-x.
+    ;; (setq read-extended-command-predicate
+    ;;       #'command-completion-default-include-p)
+
+    ;; Enable indentation+completion using the TAB key.
+    ;; `completion-at-point' is often bound to M-TAB.
+    (setq tab-always-indent 'complete))
+)
+
 (when (config-wrap "use-company")
-  (use-package company-c-headers)
   (use-package company
     :hook (prog-mode . company-mode)
     :config
-    (setq company-backends (delete 'company-semantic company-backends))
-    (add-to-list 'company-backends 'company-c-headers)
+    (setq company-backends '((company-capf :with company-yasnippet)))
+    (define-key company-mode-map [remap indent-for-tab-command] #'company-indent-or-complete-common)
     )
 
   (use-package company-box
     :after company
     :hook (company-mode . company-box-mode))
 
-  (when (config-wrap "use-lsp")
-    (add-hook 'lsp-managed-mode-hook (lambda () (setq-local company-backends '(company-capf))))
+  ;;(when (config-wrap "use-lsp")
+  ;;  (add-hook 'lsp-managed-mode-hook (lambda () (setq-local company-backends '(company-capf))))
 
-    ;;(add-hook 'lsp-managed-mode-hook (lambda () (setq-local company-backends '((company-capf ;; I think this must come first?
-    ;;          :with
-    ;;          company-yasnippet)))))
-    ;;(setq lsp-completion-provider :none)
-    )
+  ;;  ;;(add-hook 'lsp-managed-mode-hook (lambda () (setq-local company-backends '((company-capf ;; I think this must come first?
+  ;;  ;;          :with
+  ;;  ;;          company-yasnippet)))))
+  ;;  ;;(setq lsp-completion-provider :none)
+  ;;  )
   )
 
 (when (config-wrap "use-corfu")
@@ -176,20 +199,7 @@
     :init
     (global-corfu-mode))
 
-  ;; A few more useful configurations...
-  (use-package emacs
-    :init
-    ;; TAB cycle if there are only few candidates
-    (setq completion-cycle-threshold 3)
-
-    ;; Emacs 28: Hide commands in M-x which do not apply to the current mode.
-    ;; Corfu commands are hidden, since they are not supposed to be used via M-x.
-    ;; (setq read-extended-command-predicate
-    ;;       #'command-completion-default-include-p)
-
-    ;; Enable indentation+completion using the TAB key.
-    ;; `completion-at-point' is often bound to M-TAB.
-    (setq tab-always-indent 'complete)))
+  )
 
 (use-package rainbow-delimiters
   :hook (prog-mode . rainbow-delimiters-mode)
@@ -318,11 +328,12 @@
                ))
 
 ;; Enable Clipetty
-(daemon-wrap my/set-clipetty
+(use-package clipetty
+  :config
+  (daemon-wrap my/set-clipetty
              (unless (display-graphic-p)
-               (use-package clipetty
-                 :hook (after-init . global-clipetty-mode))
-               ))
+               (global-clipetty-mode)
+               )))
 
 (setq echo-keystrokes 0.01)
 

@@ -40,6 +40,8 @@
   )
 
 (when (config-wrap "use-eglot")
+  (defun my/eglot-enable ()
+    (eglot-ensure))
   (use-package markdown-mode)
   (unless (fboundp 'project-root)
     (defun project-root (project)
@@ -49,12 +51,23 @@
     :straight nil
     :commands eglot-ensure
     :hook
-    ((prog-mode text-mode) . (lambda () (hack-local-variables) (eglot-ensure) (if (config-wrap "use-which-function") (which-function-mode))))
+    ((c-mode
+      c-ts-mode
+      c++-mode
+      c++-ts-mode
+      python-mode
+      python-ts-mode
+      sh-mode
+      bash-ts-mode) . (lambda ()
+                               (hack-local-variables)
+                               (my/eglot-enable)
+                               (if (config-wrap "use-which-function") (which-function-mode))))
     :config
-    (add-to-list 'eglot-server-programs '(python-mode . ("pyright")))
-    (add-to-list 'eglot-server-programs '(c-mode . ("ccls")))
-    (add-to-list 'eglot-server-programs '(c++-mode . ("ccls")))
+    (push '(python-mode . ("pyright")) eglot-server-programs)
+    (when (string= (config-wrap "lsp/cpp-backend") "ccls")
+      (push '((c-mode c-ts-mode c++-mode c++-ts-mode) . ("ccls")) eglot-server-programs))
     )
+    (add-hook 'eglot-managed-mode-hook (lambda () (add-hook 'before-save-hook 'eglot-format-buffer nil t)))
   )
 
 (when (config-wrap "use-lsp-bridge")

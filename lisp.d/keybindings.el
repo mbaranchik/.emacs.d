@@ -30,22 +30,6 @@
 (global-set-key (kbd "C-<") 'transparency-decrease)
 
 (global-set-key (kbd "C-c C-c") 'comment-or-uncomment-region-or-line)
-(eval-after-load "verilog-mode"
-  '(progn
-     (define-key verilog-mode-map (kbd "C-c C-c") nil)
-     (global-set-key (kbd "C-c C-c") 'comment-or-uncomment-region-or-line)))
-(eval-after-load "sh-mode"
-  '(progn
-     (define-key sh-mode-map (kbd "C-c C-c") nil)
-     (global-set-key (kbd "C-c C-c") 'comment-or-uncomment-region-or-line)))
-(eval-after-load "c-mode"
-  '(progn
-     (define-key c-mode-map (kbd "C-c C-c") nil)
-     (global-set-key (kbd "C-c C-c") 'comment-or-uncomment-region-or-line)))
-(eval-after-load "c++-mode"
-  '(progn
-     (define-key c++-mode-map (kbd "C-c C-c") nil)
-     (global-set-key (kbd "C-c C-c") 'comment-or-uncomment-region-or-line)))
 
 (when (not (config-wrap "use-lsp-bridge"))
   (global-set-key (kbd "M-,") 'xref-pop-marker-stack)
@@ -68,13 +52,6 @@
 
 ;; Clang Format
 ;; (global-set-key (kbd "C-s-<tab>") 'clang-format-region)
-
-(when (config-wrap "use-company")
-  ;; Company Mode
-  (global-set-key (kbd "<backtab>") 'company-complete)
-  ;; Company - Yasnippet
-  (global-set-key (kbd "C-<tab>") 'company-yasnippet)
-  )
 
 ;; Auto Insert
 (global-set-key (kbd "<f12>") 'auto-insert)
