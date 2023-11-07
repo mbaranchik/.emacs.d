@@ -61,7 +61,9 @@
       bash-ts-mode) . (lambda ()
                                (hack-local-variables)
                                (my/eglot-enable)
-                               (if (config-wrap "use-which-function") (which-function-mode))))
+                               (if (config-wrap "use-which-function") (which-function-mode))
+                               (when (or (string= major-mode "python-mode") (string= major-mode "python-ts-mode"))
+                                 (setq-local eglot-ignored-server-capabilities '(:documentFormattingProvider :documentRangeFormattingProvider)))))
     :config
     (push '(python-mode . ("pyright")) eglot-server-programs)
     (when (string= (config-wrap "lsp/cpp-backend") "ccls")
