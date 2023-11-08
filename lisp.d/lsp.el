@@ -4,41 +4,6 @@
 (defvar my/this nil) (setq my/this (symbol-file 'my/this))
 (require 'my/basic (concat (expand-file-name (file-name-directory (or load-file-name (buffer-file-name) my/this))) "basic"))
 
-;; Enable LSP
-(when (config-wrap "use-lsp")
-  (use-package lsp-mode
-    :commands lsp
-    :hook
-    ((c-mode c++-mode python-mode sh-mode) . (lambda () (hack-local-variables) (lsp) (if (config-wrap "use-which-function") (which-function-mode))))
-    (lsp-mode . lsp-enable-which-key-integration)
-    :config
-    (setq lsp-headerline-breadcrumb-segments '(symbols))
-    (set-config-var 'lsp-headerline-breadcrumb-enable nil "EMACS_LSP_BREADCRUMB")
-    (setq lsp-enable-semantic-tokens nil)
-    (setq lsp-enable-file-watchers nil)
-    (setq lsp-lens-enable nil)
-    (setq lsp-lens-auto-enable nil)
-    (push "[/\\\\]\\.cquery_cached_index\\'" lsp-file-watch-ignored-directories)
-    (push "[/\\\\][^/\\\\]*\\.\\(so\\|d\\|o\\)$" lsp-file-watch-ignored-files)
-    (when (string= (config-wrap "lsp/cpp-backend") "ccls")
-      (use-package ccls))
-    ;; TODO: pyright hangs
-    ;;(use-package lsp-pyright
-    ;;  :config
-    ;;  (add-to-list 'lsp-disabled-clients 'pyls)
-    ;;  (add-to-list 'lsp-disabled-clients 'jedi)
-    ;;  (add-to-list 'lsp-disabled-clients 'mspyls)
-    ;;  (add-to-list 'lsp-enabled-clients 'pyright)
-    ;;  (setq lsp-pyright-log-level "info")
-    ;;  (setq lsp-pyright-diagnostic-mode "openFilesOnly")
-    ;;  (setq lsp-pyright-python-executable-cmd "/usr/local/bin/python3.9")
-    ;;  )
-    (add-to-list 'lsp-enabled-clients 'bash-ls)
-    (add-to-list 'lsp-enabled-clients 'ccls)
-    (add-to-list 'lsp-enabled-clients 'pyls)
-    )
-  )
-
 (when (config-wrap "use-eglot")
   (defun my/eglot-enable ()
     (eglot-ensure))

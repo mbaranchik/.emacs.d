@@ -60,30 +60,51 @@
 (defun set-config-quote-var (varname default &optional env)
   (let ((varsym (intern (concat "my/" varname)))
         (envvar (getenv (or env ""))))
-    (cond ((getenv env) (set varsym (intern envvar)))
+    (cond (envvar (set varsym (intern envvar)))
 	      (t (set varsym default))
           )
     )
   )
 
-;; Server Enable
-(set-config-bool-var "start-server" t "EMACS_START_SERVER")
+;; Set defaults
+(set-config-bool-var "start-server" nil)
+(set-config-var "lsp" "")
+(set-config-var "lsp/cpp-backend" "")
+(set-config-var "lsp/py-backend" "")
+(set-config-var "lsp/enable-modes" '())
+(set-config-var "autocomplete" "")
+(set-config-var "code-diag" "")
+(set-config-var "modeline" "")
+(set-config-var "theme-name" "default")
+(set-config-quote-var "theme-sym" 'default)
+(set-config-bool-var "use-idle-highlight" nil)
+(set-config-bool-var "use-visual-line-mode" nil)
+(set-config-bool-var "use-indent-guide" nil)
+(set-config-bool-var "use-which-function" nil)
+(set-config-bool-var "use-diff-hl" t)
+(set-config-var "auto-insert-copyright" "")
+(set-config-var "auto-insert-name" "")
+
+;; Load user configuration
+(defconst user-config (expand-file-name "config.el" user-emacs-directory))
+(when (file-exists-p user-config)
+  (load user-config))
 
 ;; LSP
 ;; ["lsp", "eglot", "lsp-bridge"]
 (set-config-bool-var "use-lsp" nil)
 (set-config-bool-var "use-eglot" nil)
 (set-config-bool-var "use-lsp-bridge" nil)
-(set-config-var "lsp" "lsp-bridge" "EMACS_LSP")
 (cond ((string= "lsp" (config-wrap "lsp")) (set-config-bool-var "use-lsp" t))
       ((string= "eglot" (config-wrap "lsp")) (set-config-bool-var "use-eglot" t))
       ((string= "lsp-bridge" (config-wrap "lsp")) (set-config-bool-var "use-lsp-bridge" t))
+      ((string= "" (config-wrap "lsp")) (message "skipping LSP"))
       (t (if (config-wrap "lsp")
              (warn "EMACS_LSP env var can receive one of lsp|eglot|lsp-bridge, received %s instead" (config-wrap "lsp"))))
       )
-(set-config-var "lsp/cpp-backend" "clangd" "EMACS_LSP_CPP_BACKEND")
 (cond ((string= "clangd" (config-wrap "lsp/cpp-backend")) (set-config-bool-var "use-lsp-clangd" t))
       ((string= "ccls" (config-wrap "lsp/cpp-backend")) (set-config-bool-var "use-lsp-ccls" t))
+      ((string= "" (config-wrap "lsp/cpp-backend")) (message "skipping cpp-backend"))
       (t (if (config-wrap "lsp/cpp-backend")
              (warn "EMACS_LSP_CPP_BACKEND env var can receive one of ccls|clangd, received %s instead" (config-wrap "lsp/cpp-backend"))))
       )
@@ -92,9 +113,9 @@
 ;; ["company", "corfu", "acm"]
 (set-config-bool-var "use-company" nil)
 (set-config-bool-var "use-corfu" nil)
-(set-config-var "autocomplete" nil "EMACS_AUTOCOMPLETE")
 (cond ((string= "company" (config-wrap "autocomplete")) (set-config-bool-var "use-company" t))
       ((string= "corfu" (config-wrap "autocomplete")) (set-config-bool-var "use-corfu" t))
+      ((string= "" (config-wrap "autocomplete")) (message "skipping autocomplete"))
       (t (if (config-wrap "autocomplete")
              (warn "EMACS_AUTOCOMPLETE env var can receive one of company|ac, received %s instead" (config-wrap "autocomplete"))))
       )
@@ -103,7 +124,6 @@
 ;; ["flycheck", "flymake"]
 (set-config-bool-var "use-flycheck" nil)
 (set-config-bool-var "use-flymake" nil)
-(set-config-var "code-diag" "" "EMACS_DIAGNOSTICS")
 (cond ((string= "flycheck" (config-wrap "code-diag")) (set-config-bool-var "use-flycheck" t))
       ((string= "flymake" (config-wrap "code-diag")) (set-config-bool-var "use-flymake" t))
       ((string= "" (config-wrap "code-diag")) (message "skipping code-diag"))
@@ -111,38 +131,15 @@
              (warn "EMACS_DIAGNOSTICS env var can receive one of flycheck|flymake, received %s instead" (config-wrap "code-diag"))))
       )
 
-;; UI - General
-(set-config-var "theme-name" "doom-vibrant" "EMACS_USE_THEME")
-(set-config-quote-var "theme-sym" 'doom-vibrant "EMACS_USE_THEME")
-(set-config-bool-var "use-idle-highlight" nil "EMACS_USE_IDLE_HIGHLIGHT")
-(set-config-bool-var "use-visual-line-mode" nil "EMACS_USE_VISUAL_LINE_MODE")
-(set-config-bool-var "use-indent-guide" nil "EMACS_USE_INDENT_GUIDE")
-(set-config-bool-var "use-which-function" nil "EMACS_USE_WHICH_FUNCTION")
-(set-config-bool-var "use-diff-hl" t)
-(set-config-bool-var "use-git-gutter" nil)
-(set-config-var "vc-gutter" "diff-hl" "EMACS_VC_GUTTER")
-(cond ((string= "diff-hl" (config-wrap "vc-gutter")) (set-config-bool-var "use-diff-hl" t))
-      ((string= "git-gutter" (config-wrap "vc-gutter")) (set-config-bool-var "use-git-gutter" t))
-      (t (if (config-wrap "vc-gutter")
-             (warn "EMACS_VC_GUTTER env var can receive one of diff-hl|git-gutter, received %s instead" (config-wrap "vc-gutter"))))
-      )
 ;; UI - Modeline
 (set-config-bool-var "use-doom-modeline" nil)
 (set-config-bool-var "use-mood-modeline" nil)
-(set-config-var "modeline" "doom" "EMACS_MODELINE")
 (cond ((string= "doom" (config-wrap "modeline")) (set-config-bool-var "use-doom-modeline" t))
       ((string= "mood" (config-wrap "modeline")) (set-config-bool-var "use-mood-modeline" t))
+      ((string= "" (config-wrap "modeline")) (message "skipping modeline"))
       (t (if (config-wrap "modeline")
              (warn "EMACS_MODELINE env var can receive one of doom|mood, received %s instead" (config-wrap "modeline"))))
       )
-
-;; Code - Misc
-(set-config-var "flycheck-clang-tidy-executable" "clang-tidy" "EMACS_FLYCHECK_TIDY_EXEC")
-
-;; Specifics
-(set-config-var "auto-insert-copyright" "REPLACE_WITH_COPYRIGHT" "EMACS_COPYRIGHT_COMPANY")
-(set-config-var "auto-insert-name" "REPLACE_WITH_NAME" "EMACS_COPYRIGHT_NAME")
-
 
 ;; Customs - Vars
 (setq-default server-socket-dir "~/.emacs.d/server-sock")
