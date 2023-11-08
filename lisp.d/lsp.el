@@ -5,8 +5,14 @@
 (require 'my/basic (concat (expand-file-name (file-name-directory (or load-file-name (buffer-file-name) my/this))) "basic"))
 
 (when (config-wrap "use-eglot")
-  (defun my/eglot-enable ()
-    (eglot-ensure))
+  (defun my/eglot-enable (type)
+    (when (member type (config-wrap "lsp/enable-modes"))
+      (hack-local-variables)
+      (eglot-ensure)
+      (when (config-wrap "use-which-function")
+        (which-function-mode))
+      (when (or (string= major-mode "python-mode") (string= major-mode "python-ts-mode"))
+        (setq-local eglot-ignored-server-capabilities '(:documentFormattingProvider :documentRangeFormattingProvider)))))
   (use-package markdown-mode)
   (unless (fboundp 'project-root)
     (defun project-root (project)
@@ -16,19 +22,10 @@
     :straight nil
     :commands eglot-ensure
     :hook
-    ((c-mode
-      c-ts-mode
-      c++-mode
-      c++-ts-mode
-      python-mode
-      python-ts-mode
-      sh-mode
-      bash-ts-mode) . (lambda ()
-                               (hack-local-variables)
-                               (my/eglot-enable)
-                               (if (config-wrap "use-which-function") (which-function-mode))
-                               (when (or (string= major-mode "python-mode") (string= major-mode "python-ts-mode"))
-                                 (setq-local eglot-ignored-server-capabilities '(:documentFormattingProvider :documentRangeFormattingProvider)))))
+    ((c-mode c-ts-mode) . (lambda () (my/eglot-enable 'c)))
+    ((c++-mode c++-ts-mode) . (lambda () (my/eglot-enable 'cpp)))
+    ((python-mode python-ts-mode) . (lambda () (my/eglot-enable 'python)))
+    ((sh-mode bash-ts-mode) . (lambda () (my/eglot-enable 'bash)))
     :config
     (push '(python-mode . ("pyright")) eglot-server-programs)
     (when (string= (config-wrap "lsp/cpp-backend") "ccls")
@@ -38,6 +35,16 @@
   )
 
 (when (config-wrap "use-lsp-bridge")
+  (defun my/lsp-bridge-enable (type)
+    (when (member type (config-wrap "lsp/enable-modes"))
+      (hack-local-variables)
+      (lsp-bridge-mode)
+      (when (config-wrap "use-which-function")
+        (which-function-mode))
+      (when (config-wrap "use-flycheck")
+        (flycheck-mode nil))
+      (when (config-wrap "use-flymake")
+        (flymake-mode nil))))
   (use-package markdown-mode)
   (use-package lsp-bridge
     :straight '(lsp-bridge :type git :host github :repo "manateelazycat/lsp-bridge"
@@ -46,12 +53,10 @@
 
     :after (markdown-mode yasnippet)
     :hook
-    ((prog-mode text-mode) . (lambda ()
-                               (hack-local-variables)
-                               (lsp-bridge-mode)
-                               (if (config-wrap "use-which-function") (which-function-mode))
-                               (when (config-wrap "use-flycheck") (flycheck-mode nil))
-                               (when (config-wrap "use-flymake") (flymake-mode nil))))
+    ((c-mode c-ts-mode) . (lambda () (my/lsp-bridge-enable 'c)))
+    ((c++-mode c++-ts-mode) . (lambda () (my/lsp-bridge-enable 'cpp)))
+    ((python-mode python-ts-mode) . (lambda () (my/lsp-bridge-enable 'python)))
+    ((sh-mode bash-ts-mode) . (lambda () (my/lsp-bridge-enable 'bash)))
     :init
     (setq tab-always-indent t)
     (defun lsp-bridge-indent-for-tab-command (&optional arg)
