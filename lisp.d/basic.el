@@ -151,7 +151,6 @@
     (modeline . t)
     (fringe)
     (cursor-color . "Red")
-    (background-mode . light)
     (tool-bar-lines . 1)
     (fontsize . 0)
     (font-backend mac-ct ns))))
