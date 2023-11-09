@@ -13,10 +13,9 @@
   )
 
 (when (not (string= (config-wrap "theme-name") "default"))
-  (bench-wrap "Load main theme"
-              (load-theme (config-wrap "theme-sym") t t))
   (daemon-wrap "my/load-theme"
                (bench-wrap "Enable main theme"
+                           (load-theme (config-wrap "theme-sym") t t)
                            (enable-theme (config-wrap "theme-sym")))))
 
 (bench-wrap "Load nerd-icons"
