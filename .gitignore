@@ -26,3 +26,5 @@ transient/
 .cache/
 \#*
 
+undo-fu-session/
+config.el
