@@ -46,6 +46,11 @@ if __name__ == "__main__":
                         nargs="+",
                         default=["c", "cpp", "python", "bash"],
                         help="enable LSP for these modes, default=all")
+    parser.add_argument("--lsp-autoformat-enable-modes",
+                        choices=["c", "cpp", "python", "bash"],
+                        nargs="+",
+                        default=[],
+                        help="enable auto-format buffer on save for these modes")
     parser.add_argument("--diag",
                         choices=["flycheck", "flymake"],
                         default=None,
@@ -58,6 +63,10 @@ if __name__ == "__main__":
                         choices=["doom", "mood"],
                         default="doom",
                         help="use this as mode-line")
+    parser.add_argument("--treesit",
+                        choices=["on", "off"],
+                        default="off",
+                        help="enable treesit and install plugins")
     parser.add_argument("--theme",
                         choices=["doom-vibrant", "doom-moonlight", "doom-xcode"],
                         default="doom-xcode",
@@ -120,6 +129,13 @@ if __name__ == "__main__":
 ;; "bash":   Enable for sh-mode/bash-ts-mode
 (set-config-var "lsp/enable-modes" '({" ".join(args.lsp_enable_modes)}))
 
+;; <LSP AutoFormat Enabled Modes>
+;; "c":      Enable for c-mode/c-ts-mode
+;; "cpp":    Enable for c++-mode/c++-ts-mode
+;; "python": Enable for python-mode/python-ts-mode
+;; "bash":   Enable for sh-mode/bash-ts-mode
+(set-config-var "lsp/autoformat-enable-modes" '({" ".join(args.lsp_autoformat_enable_modes)}))
+
 ;; <Programming Completion>
 ;; "corfu":   Enable corfu completion framework
 ;; "company": Enable company completion framework
@@ -142,6 +158,9 @@ if __name__ == "__main__":
 ;; *: Use any available theme
 (set-config-var "theme-name" "{args.theme}" "EMACS_USE_THEME")
 (set-config-quote-var "theme-sym" '{args.theme} "EMACS_USE_THEME")
+
+;; <Treesit>
+(set-config-bool-var "use-treesit" {elisp_bool(args.treesit)})
 
 ;; <UI>
 (set-config-bool-var "use-idle-highlight" nil) ;; Enable idle symbol highlight

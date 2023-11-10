@@ -61,11 +61,4 @@
     :config
     (apheleia-global-mode +1)))
 
-(use-package emacs
-  :straight nil
-  :config
-  (add-hook 'after-init-hook (lambda ()
-                               (define-key sh-mode-map (kbd "C-c C-c") nil)
-                               (global-set-key (kbd "C-c C-c") 'comment-or-uncomment-region-or-line))))
-
 (provide 'my/ide)

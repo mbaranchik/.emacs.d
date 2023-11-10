@@ -52,6 +52,9 @@
 ;;(load-user-file "filelock.el")
 (use-package filelock)
 
+(bench-wrap "Prog"
+            (load-user-file "prog"))
+
 (bench-wrap "General"
             (load-user-file "general"))
 

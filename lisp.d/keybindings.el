@@ -79,9 +79,6 @@
 ;; Zoom-Window
 (global-set-key (kbd "M-z") 'zoom-window-zoom)
 
-;; Expand-Region
-(global-set-key (kbd "C-=") 'er/expand-region)
-
 (daemon-wrap my/terminal-key-map
              (unless (display-graphic-p)
                (global-set-key (kbd "M-[ P") (kbd "<f1>"))
