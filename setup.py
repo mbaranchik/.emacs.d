@@ -4,6 +4,7 @@ import argparse
 import os
 import sys
 import shutil
+import subprocess
 
 script_dir = os.path.dirname(os.path.abspath(__file__))
 
@@ -67,6 +68,9 @@ if __name__ == "__main__":
                         choices=["on", "off"],
                         default="off",
                         help="enable treesit and install plugins")
+    parser.add_argument("--treesit-install-grammers",
+                        action="store_true",
+                        help="install treesit grammers")
     parser.add_argument("--theme",
                         choices=["doom-vibrant", "doom-moonlight", "doom-xcode"],
                         default="doom-xcode",
@@ -97,6 +101,12 @@ if __name__ == "__main__":
         if not args.force:
             sys.stderr.write("ERROR: Bad option supplied to --py-server, use --force to use anyway")
             sys.exit(1)
+
+    if args.treesit_install_grammers:
+        subprocess.check_call(f"cd {script_dir} && \
+        {shutil.which('emacs')} -Q \
+        --batch --eval \
+        '(progn (load-file \"lisp.d/treesit-sources.el\") (load-file \"lisp.d/treesit-install.el\"))'", shell=True)
 
     with open(os.path.join(script_dir, 'config.el'), 'w') as f:
               f.write(f""";;; -*- lexical-binding: t -*-
