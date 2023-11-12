@@ -179,6 +179,10 @@ if __name__ == "__main__":
 (set-config-bool-var "use-which-function" nil) ;; Enable which-function in mode-line
 (set-config-bool-var "use-diff-hl" t) ;; Enable version-control diff in gutter
 
+;; <General>
+(set-config-var "basic-indent-offset" 4) ;; Default indent offset for all modes, nil to ignore this
+(set-config-bool-var "use-indent-tabs" nil) ;; Default value for indent-tabs-mode
+
 ;; <Copyright>
 (set-config-var "auto-insert-copyright" "REPLACE_WITH_COPYRIGHT" "EMACS_COPYRIGHT_COMPANY")
 (set-config-var "auto-insert-name" "REPLACE_WITH_NAME" "EMACS_COPYRIGHT_NAME")

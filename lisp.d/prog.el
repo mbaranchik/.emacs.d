@@ -33,6 +33,24 @@
     (defvaralias 'my/sh-mode-hook 'sh-mode-hook)
     (defvaralias 'my/sh-mode-map 'sh-mode-map)))
 
+(when (config-wrap "basic-indent-offset")
+    (setq my/indent-var-list '('c-basic-offset
+                                  'c-ts-mode-indent-offset
+                                  'lisp-indent-offset
+                                  'groovy-indent-offset
+                                  'js-indent-level
+                                  'json-ts-mode-indent-offset
+                                  'python-indent-offset
+                                  'rust-indent-offset
+                                  'sh-basic-offset
+                                  'verilog-indent-level
+                                  'yaml-indent-offset))
+    (dolist (item my/indent-var-list)
+        (message "DEBUG: Setting %s" item)
+        (setq-default item (config-wrap "basic-indent-offset"))))
+
+(setq indent-tabs-mode (config-wrap "use-indent-tabs"))
+
 ;; Treesit
 (when (config-wrap "use-treesit")
   (require 'my/treesit-sources (concat (expand-file-name (file-name-directory (or load-file-name (buffer-file-name) my/this))) "treesit-sources"))
@@ -80,10 +98,6 @@
       (add-to-list 'major-mode-remap-alist '(sh-mode . bash-ts-mode)))
     (add-to-list 'auto-mode-alist '("\\.cshrc\\'" . sh-mode))
     (add-to-list 'auto-mode-alist '("\\.csh\\'" . sh-mode)))
-
-(use-package emacs
-  :config
-  )
 
 (use-package emacs
   :straight nil

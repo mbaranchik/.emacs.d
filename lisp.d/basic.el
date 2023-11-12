@@ -82,6 +82,8 @@
 (set-config-bool-var "use-indent-guide" nil)
 (set-config-bool-var "use-which-function" nil)
 (set-config-bool-var "use-diff-hl" t)
+(set-config-var "basic-indent-offset" 4)
+(set-config-bool-var "use-indent-tabs" nil)
 (set-config-var "auto-insert-copyright" "")
 (set-config-var "auto-insert-name" "")
 
