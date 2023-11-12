@@ -34,11 +34,16 @@
 (use-package vterm-toggle
   :bind (("<f2>" . vterm-toggle)
          ("<C-f2>" . vterm-toggle-cd))
-  )
+    )
+
+;; project - built-in, doesn't do anything else now
+(use-package project
+    :straight nil
+    :config
+    (setq project-vc-extra-root-markers '(".root")))
 
 ;; treemacs
 
-;; 
 
 ;;(setq display-buffer-alist
 ;;      `(

@@ -109,7 +109,6 @@
 ;;	                 x-underline-at-descent-line t)
 ;;               (centaur-tabs-mode t)
 ;;               (centaur-tabs-headline-match)
-;;               (centaur-tabs-group-by-projectile-project)
 ;;               )
 ;;             )
 

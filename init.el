@@ -70,12 +70,6 @@
 (bench-wrap "Completion-Next-Gen"
             (load-user-file "completion-next-gen"))
 
-(bench-wrap "Projectile"
-            (use-package projectile
-              :config
-              (setq projectile-indexing-method 'alien))
-            (projectile-mode t))
-
 (bench-wrap "Custom"
             (load-user-file "custom"))
 

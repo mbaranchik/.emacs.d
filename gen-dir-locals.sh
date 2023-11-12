@@ -24,7 +24,7 @@ echo ";;; Directory Local Variables
 ;;; For more information see (info \"(emacs) Directory Variables\")
 (${C_STR}
  (nil .
-         ((eval . (let ((root (projectile-project-root)))
+         ((eval . (let ((root (project-root (project-current))))
                     (setq-local company-c-headers-path-user
                         (list" > $1
 

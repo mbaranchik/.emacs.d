@@ -255,17 +255,17 @@ directory."
   (save-buffer)
   )
 
-(setq cc-other-file-alist
-      '(("\\.c"   (".h"))
-       ("\\.cpp"   (".h"))
-       ("\\.h"   (".c"".cpp"))))
+;;(setq cc-other-file-alist
+;;      '(("\\.c"   (".h"))
+;;       ("\\.cpp"   (".h"))
+;;       ("\\.h"   (".c"".cpp"))))
 
 (setq cc-search-directories
-      '("." "../src" "../include" "../source"))
+    '("." "../src" "../include" "../source"))
 
 (defun gen-dir-locals ()
   (interactive)
-  (let* ((my_dir (projectile-project-root)))
+  (let* ((my_dir (project-root (project-current))))
     (when (not my_dir)
       (setq my_dir (locate-dominating-file default-directory ".git")))
     (when (not my_dir)

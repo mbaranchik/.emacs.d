@@ -71,7 +71,6 @@
       (indent-for-tab-command arg))
     :config
     (push "find-file" lsp-bridge-completion-stop-commands)
-    (push "projectile-find-file" lsp-bridge-completion-stop-commands)
     :custom
     (lsp-bridge-c-lsp-server (config-wrap "lsp/cpp-backend"))
     (lsp-bridge-enable-hover-diagnostic t)
