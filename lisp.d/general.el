@@ -58,7 +58,7 @@
   (use-package company
     :hook (prog-mode . company-mode)
     :config
-    (setq company-backends '((company-capf :with company-yasnippet)))
+    (setq company-backends '((company-capf :with company-yasnippet company-dabbrev-code)))
     (define-key company-mode-map [remap indent-for-tab-command] #'company-indent-or-complete-common)
     )
 
@@ -229,7 +229,7 @@
 
 ;; Expand-Region
 (use-package expand-region
-  :bind ("C-=" . expand-region))
+  :bind ("C-=" . er/expand-region))
 
 ;; Enable mouse in Xterm
 (daemon-wrap my/set-xterm-mouse-mode
