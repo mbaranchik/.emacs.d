@@ -10,9 +10,14 @@
       (hack-local-variables)
       (when (config-wrap "use-which-function")
         (which-function-mode))
-      (add-hook 'eglot-managed-mode-hook (lambda () (when (not (member type (config-wrap "lsp/autoformat-enable-modes")))
-                                                      (add-to-list (make-local-variable 'eglot-ignored-server-capabilities) :documentFormattingProvider)
-                                                      (add-to-list (make-local-variable 'eglot-ignored-server-capabilities) :documentRangeFormattingProvider))))
+      (when (not (member type (config-wrap "lsp/diagnostics-enable-modes")))
+        (remove-hook 'flymake-diagnostic-functions 'eglot-flymake-backend t)
+        (flymake-mode 0)
+        (add-to-list (make-local-variable 'eglot-stay-out-of) 'flymake))
+      (when (not (member type (config-wrap "lsp/autoformat-enable-modes")))
+        (add-to-list (make-local-variable 'eglot-ignored-server-capabilities) :documentOnTypeFormattingProvider)
+        (add-to-list (make-local-variable 'eglot-ignored-server-capabilities) :documentFormattingProvider)
+        (add-to-list (make-local-variable 'eglot-ignored-server-capabilities) :documentRangeFormattingProvider))
       (when (member type (config-wrap "lsp/autoformat-enable-modes"))
         (add-hook 'eglot-managed-mode-hook (lambda () (add-hook 'before-save-hook 'eglot-format-buffer nil t))))
       (eglot-ensure)))
@@ -23,7 +28,7 @@
     )
   (use-package eglot
     :straight nil
-    :commands eglot-ensure
+    :demand t
     :hook
     ((my/c-mode) . (lambda () (my/eglot-enable 'c)))
     ((my/c++-mode) . (lambda () (my/eglot-enable 'cpp)))
@@ -31,12 +36,12 @@
     ((my/sh-mode) . (lambda () (my/eglot-enable 'bash)))
     :config
     (pcase (config-wrap "lsp/cpp-backend")
-      ("ccls" (push '((my/c-mode my/c++-mode) . ("ccls")) eglot-server-programs))
-      ("clangd" (push '((my/c-mode my/c++-mode) . ("clangd")) eglot-server-programs))
+      ("ccls" (push `((,(my/get-mode "c") ,(my/get-mode "c++")) . ("ccls")) eglot-server-programs))
+      ("clangd" (push `((,(my/get-mode "c") ,(my/get-mode "c++")) . ("clangd")) eglot-server-programs))
       (_ (warn "Unknown option for 'lsp/cpp-backend': %s" (config-wrap "lsp/cpp-backend"))))
     (pcase (config-wrap "lsp/py-backend")
-      ("pylsp" (push '((my/python-mode) . ("pylsp")) eglot-server-programs))
-      ("pyright" (push '((my/python-mode) . ("pyright")) eglot-server-programs))
+      ("pylsp" (push `((,(my/get-mode "python")) . ("pylsp")) eglot-server-programs))
+      ("pyright" (push `((,(my/get-mode "python")) . ("pyright-langserver" "--stdio")) eglot-server-programs))
       (_ (warn "Unknown option for 'lsp/py-backend': %s" (config-wrap "lsp/py-backend")))))
   )
 
@@ -59,10 +64,10 @@
 
     :after (markdown-mode yasnippet)
     :hook
-    ((c-mode c-ts-mode) . (lambda () (my/lsp-bridge-enable 'c)))
-    ((c++-mode c++-ts-mode) . (lambda () (my/lsp-bridge-enable 'cpp)))
-    ((python-mode python-ts-mode) . (lambda () (my/lsp-bridge-enable 'python)))
-    ((sh-mode bash-ts-mode) . (lambda () (my/lsp-bridge-enable 'bash)))
+    ((my/c-mode) . (lambda () (my/lsp-bridge-enable 'c)))
+    ((my/c++-mode) . (lambda () (my/lsp-bridge-enable 'cpp)))
+    ((my/python-mode) . (lambda () (my/lsp-bridge-enable 'python)))
+    ((my/sh-mode) . (lambda () (my/lsp-bridge-enable 'bash)))
     :init
     (setq tab-always-indent t)
     (defun lsp-bridge-indent-for-tab-command (&optional arg)

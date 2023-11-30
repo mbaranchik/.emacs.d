@@ -33,21 +33,26 @@
     (defvaralias 'my/sh-mode-hook 'sh-mode-hook)
     (defvaralias 'my/sh-mode-map 'sh-mode-map)))
 
+(defun my/get-mode (mode)
+  (car (function-alias-p (intern (concat "my/" mode "-mode")))))
+
+(defun my/get-mode-str (mode)
+  (concat "my/" mode "-mode"))
+
 (when (config-wrap "basic-indent-offset")
-    (setq my/indent-var-list '('c-basic-offset
-                                  'c-ts-mode-indent-offset
-                                  'lisp-indent-offset
-                                  'groovy-indent-offset
-                                  'js-indent-level
-                                  'json-ts-mode-indent-offset
-                                  'python-indent-offset
-                                  'rust-indent-offset
-                                  'sh-basic-offset
-                                  'verilog-indent-level
-                                  'yaml-indent-offset))
-    (dolist (item my/indent-var-list)
-        (message "DEBUG: Setting %s" item)
-        (setq-default item (config-wrap "basic-indent-offset"))))
+  (setq my/indent-var-list '('c-basic-offset
+                             'c-ts-mode-indent-offset
+                             'lisp-indent-offset
+                             'groovy-indent-offset
+                             'js-indent-level
+                             'json-ts-mode-indent-offset
+                             'python-indent-offset
+                             'rust-indent-offset
+                             'sh-basic-offset
+                             'verilog-indent-level
+                             'yaml-indent-offset))
+  (dolist (item my/indent-var-list)
+    (setq-default item (config-wrap "basic-indent-offset"))))
 
 (setq indent-tabs-mode (config-wrap "use-indent-tabs"))
 

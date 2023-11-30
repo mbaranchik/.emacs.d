@@ -51,7 +51,12 @@ if __name__ == "__main__":
                         choices=["c", "cpp", "python", "bash"],
                         nargs="+",
                         default=[],
-                        help="enable auto-format buffer on save for these modes")
+                        help="enable auto-format buffer on save using LSP for these modes")
+    parser.add_argument("--lsp-diag-enable-modes",
+                        choices=["c", "cpp", "python", "bash"],
+                        nargs="+",
+                        default=[],
+                        help="enable diagnostics from LSP for these modes")
     parser.add_argument("--diag",
                         choices=["flycheck", "flymake"],
                         default=None,
@@ -146,6 +151,13 @@ if __name__ == "__main__":
 ;; "bash":   Enable for sh-mode/bash-ts-mode
 (set-config-var "lsp/autoformat-enable-modes" '({" ".join(args.lsp_autoformat_enable_modes)}))
 
+;; <LSP Diagnostics Enabled Modes>
+;; "c":      Enable for c-mode/c-ts-mode
+;; "cpp":    Enable for c++-mode/c++-ts-mode
+;; "python": Enable for python-mode/python-ts-mode
+;; "bash":   Enable for sh-mode/bash-ts-mode
+(set-config-var "lsp/diagnostics-enable-modes" '({" ".join(args.lsp_diag_enable_modes)}))
+
 ;; <Programming Completion>
 ;; "corfu":   Enable corfu completion framework
 ;; "company": Enable company completion framework
@@ -167,7 +179,7 @@ if __name__ == "__main__":
 ;; "doom-moonlight"
 ;; *: Use any available theme
 (set-config-var "theme-name" "{args.theme}" "EMACS_USE_THEME")
-(set-config-quote-var "theme-sym" '{args.theme} "EMACS_USE_THEME")
+(set-config-quote-var "theme-sym" (config-wrap "theme-name"))
 
 ;; <Treesit>
 (set-config-bool-var "use-treesit" {elisp_bool(args.treesit)})

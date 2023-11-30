@@ -13,10 +13,11 @@
   )
 
 (when (not (string= (config-wrap "theme-name") "default"))
-  (daemon-wrap "my/load-theme"
-               (bench-wrap "Enable main theme"
-                           (load-theme (config-wrap "theme-sym") t t)
-                           (enable-theme (config-wrap "theme-sym")))))
+  (bench-wrap "Enable main theme"
+              (load-theme (config-wrap "theme-sym") t t)
+              (enable-theme (config-wrap "theme-sym"))
+              (when (memq window-system '(ns))
+                (customize-set-variable 'ns-antialias-text t))))
 
 (bench-wrap "Load nerd-icons"
        (use-package nerd-icons
@@ -54,16 +55,99 @@
               )
   )
 
+
+;; Enable Tab-Line Mode (Emacs >= 27)
+(use-package s)
+(use-package powerline)
+
+(defun my/tab-line-buffer-group (buffer)
+  "Use the project.el name for the buffer group"
+  (with-current-buffer buffer
+    (if (project-current)
+        (s-chop-suffix "/" (project-root (project-current)))
+      "+++")))
+
+(defun my/buffer-sort (a b) (string< (buffer-name a) (buffer-name b)))
+
+(defvar my/tab-height 25)
+(defvar my/tab-left (powerline-wave-right 'tab-line nil my/tab-height))
+(defvar my/tab-right (powerline-wave-left nil 'tab-line my/tab-height))
+
+(defun my/tab-line-tab-name-buffer (buffer &optional _buffers)
+  (powerline-render (list my/tab-left
+                          (nerd-icons-icon-for-file (buffer-name buffer))
+                          (format " %s" (buffer-name buffer))
+                          my/tab-right)))
+;;(defun my/tab-line-tab-name-buffer (buffer &optional _buffers)
+;;  (concat ;;(nerd-icons-powerline "nf-ple-ice_waveform_mirrored")
+;;   ;;"  "
+;;   "["
+;;   (nerd-icons-icon-for-file (buffer-name buffer))
+;;   " ]"
+;;   (format " %s " (buffer-name buffer))
+;;   ;;(nerd-icons-powerline "nf-ple-ice_waveform")
+;;   ))
+
+(defun my/tab-line-tabs-buffer-list ()
+  (seq-filter (lambda (b) (and (buffer-live-p b)
+                               (/= (aref (buffer-name b) 0) ?\s)
+                               (with-current-buffer b
+                                 (not (or (minibufferp)
+                                          (string-match-p "\\` " (buffer-name))
+                                          (string-match-p "\\*" (buffer-name))
+                                          (memq major-mode tab-line-exclude-modes)
+                                          (get major-mode 'tab-line-exclude)
+                                          (buffer-local-value 'tab-line-exclude (current-buffer)))))))
+              (seq-uniq (append (list (current-buffer))
+                                (mapcar #'car (window-prev-buffers))
+                                (buffer-list)))))
+
+(use-package tab-line
+  :straight nil
+  :demand
+  :custom
+  (tab-line-switch-cycling t)
+  :custom-face
+  (tab-line ((t (:inherit modus-themes-ui-variable-pitch :background "#2c3045" :height 1.0))))
+  (tab-line-highlight ((t (:background "#45605e" :foreground "#FFFFFF" :box nil))))
+  (tab-line-tab ((t (:background "#0d0e1c"))))
+  (tab-line-tab-current ((t (:inherit bold :background "#0d0e1c" :foreground "gray93" :box nil))))
+  (tab-line-tab-group ((t (:inherit tab-line :box nil))))
+  (tab-line-tab-inactive ((t (:background "#4a4f6a" :foreground "gray93" :box nil))))
+  :custom
+  (tab-line-new-button-show nil)  ;; do not show add-new button
+  (tab-line-close-button-show nil)  ;; do not show close button
+  (tab-line-tabs-function #'tab-line-tabs-buffer-groups)
+  (tab-line-tab-name-function #'my/tab-line-tab-name-buffer)
+  (tab-line-exclude-modes '(completion-list-mode
+                            special-mode
+                            lisp-interaction-mode
+                            messages-buffer-mode))
+  :bind
+  ("M-<left>" . tab-line-switch-to-prev-tab)
+  ("M-<right>" . tab-line-switch-to-next-tab)
+  :config
+  (global-tab-line-mode 1)
+  (setq
+   tab-line-tabs-buffer-group-sort-function #'my/buffer-sort
+   tab-line-tabs-buffer-group-function #'my/tab-line-buffer-group
+   tab-line-tabs-function #'tab-line-tabs-buffer-groups
+   tab-line-tabs-buffer-list-function #'my/tab-line-tabs-buffer-list)
+  (add-to-list 'tab-line-tab-face-functions 'tab-line-tab-face-group))
+
 (when (fboundp 'pixel-scroll-precision-mode)
   (pixel-scroll-precision-mode t)
   (setq window-resize-pixelwise t)
   (setq frame-resize-pixelwise t))
 
-(when (fboundp 'scroll-bar-mode)
-(bench-wrap "Scroll-bar-mode"
-       (scroll-bar-mode -1))
-  )
-
+(show-paren-mode 1)
+(display-time-mode 1)
+(global-display-line-numbers-mode 1)
+(line-number-mode 1)
+(column-number-mode 1)
+(tool-bar-mode -1)
+(scroll-bar-mode 1)
+(menu-bar-mode 1)
 
 ;; Set Title Bar
 (setq frame-title-format "%b")

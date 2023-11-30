@@ -82,8 +82,8 @@
                    :repo "https://codeberg.org/akib/emacs-corfu-terminal.git")
   :config
   (daemon-wrap my/load-corfu-terminal
-  (unless (display-graphic-p)
-    (corfu-terminal-mode +1))))
+               (unless (display-graphic-p)
+                 (corfu-terminal-mode +1))))
 
   (use-package corfu
     ;; Optional customizations
@@ -234,16 +234,14 @@
 ;; Enable mouse in Xterm
 (daemon-wrap my/set-xterm-mouse-mode
              (unless (display-graphic-p)
-               (xterm-mouse-mode 1)
-               ))
+               (xterm-mouse-mode 1)))
 
 ;; Enable Clipetty
 (use-package clipetty
   :config
   (daemon-wrap my/set-clipetty
              (unless (display-graphic-p)
-               (global-clipetty-mode)
-               )))
+               (global-clipetty-mode))))
 
 (setq echo-keystrokes 0.01)
 

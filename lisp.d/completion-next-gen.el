@@ -43,10 +43,7 @@
   :after vertico
   :init
   (add-hook 'minibuffer-setup-hook #'vertico-repeat-save)
-  :bind (
-         ("C-c r" . vertico-repeat)
-         )
-  )
+  :bind (("C-c r" . vertico-repeat)))
 
 (use-package vertico-mouse
   :straight nil
@@ -57,9 +54,7 @@
   :config
   (daemon-wrap my/load-vertico-posframe
                (when (display-graphic-p)
-                 (vertico-posframe-mode)
-                 )
-               ))
+                 (vertico-posframe-mode))))
 
 ;; Persist history over Emacs restarts. Vertico sorts by history position.
 (use-package savehist

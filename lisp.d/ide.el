@@ -66,4 +66,11 @@
     :config
     (apheleia-global-mode +1)))
 
+;; GDB
+(setq
+ ;; use gdb-many-windows by default
+ gdb-many-windows t
+ ;; Non-nil means display source file containing the main routine at startup
+ gdb-show-main t)
+
 (provide 'my/ide)

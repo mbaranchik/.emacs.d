@@ -19,7 +19,7 @@
 (defmacro daemon-wrap (name &rest code)
   `(if (daemonp)
        (cl-labels ((,name (frame)
-                          (with-selected-frame frame
+                     (with-selected-frame frame
                             ,@code)
                           (remove-hook 'after-make-frame-functions #',name)))
          (add-hook 'after-make-frame-functions #',name))
@@ -61,7 +61,7 @@
   (let ((varsym (intern (concat "my/" varname)))
         (envvar (getenv (or env ""))))
     (cond (envvar (set varsym (intern envvar)))
-	      (t (set varsym default))
+	      (t (set varsym (intern default)))
           )
     )
   )
@@ -72,11 +72,13 @@
 (set-config-var "lsp/cpp-backend" "")
 (set-config-var "lsp/py-backend" "")
 (set-config-var "lsp/enable-modes" '())
+(set-config-var "lsp/autoformat-enable-modes" '())
+(set-config-var "lsp/diagnostics-enable-modes" '())
 (set-config-var "autocomplete" "")
 (set-config-var "code-diag" "")
 (set-config-var "modeline" "")
 (set-config-var "theme-name" "default")
-(set-config-quote-var "theme-sym" 'default)
+(set-config-quote-var "theme-sym" (config-wrap "theme-name"))
 (set-config-bool-var "use-idle-highlight" nil)
 (set-config-bool-var "use-visual-line-mode" nil)
 (set-config-bool-var "use-indent-guide" nil)
@@ -144,8 +146,12 @@
       )
 
 ;; Customs - Vars
-(setq-default server-socket-dir "~/.emacs.d/server-sock")
-(setq-default c-basic-offset 4)
+(setq-default server-socket-dir (concat user-emacs-directory "server-sock"))
+(setq-default inhibit-startup-screen t)
+(setq-default semantic-mode nil)
+(setq-default send-mail-function nil)
+
+
 (setq-default default-frame-alist
   (quote
    ((cursor-type . (bar . 3))
@@ -156,17 +162,8 @@
     (tool-bar-lines . 1)
     (fontsize . 0)
     (font-backend mac-ct ns))))
-(setq-default inhibit-startup-screen t)
-(setq-default ns-antialias-text t)
-(setq-default semantic-mode nil)
-(setq-default send-mail-function nil)
-(setq-default show-paren-mode t)
-(setq-default speedbar-show-unknown-files t)
 (setq-default whitespace-style (quote (face trailing spaces tabs)))
-(setq-default display-time-mode t)
-(setq-default global-display-line-numbers-mode t)
-(setq-default line-numbers-mode t)
-(setq-default column-numbers-mode t)
+
 (defalias 'yes-or-no #'y-or-n-p)
 (setopt use-short-answers t)
 (setq confirm-kill-emacs #'yes-or-no-p)

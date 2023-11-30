@@ -97,10 +97,6 @@
 
 (load-user-file "ide")
 
-;; LOAD THEME ;;
-(bench-wrap "Theme"
-            (load-user-file "theme"))
-
 (bench-wrap "Navigation"
             (load-user-file "navigation"))
 
@@ -135,6 +131,11 @@
   :custom
   (global-ligature-mode t)
   )
+
+;; LOAD THEME ;;
+(daemon-wrap my/load-theme
+             (bench-wrap "Theme"
+                         (load-user-file "theme")))
 
 (filelock-with-lock
     (setq custom-file (expand-file-name "local_customized.el" user-emacs-directory))

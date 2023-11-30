@@ -85,6 +85,5 @@
                (global-set-key (kbd "M-[ Q") (kbd "<f2>"))
                (global-set-key (kbd "M-[ R") (kbd "<f3>"))
                (global-set-key (kbd "M-[ S") (kbd "<f4>"))
-               (global-set-key (kbd "<select>") (kbd "<end>")))
-             )
+               (global-set-key (kbd "<select>") (kbd "<end>"))))
 (provide 'my/keybindings)
