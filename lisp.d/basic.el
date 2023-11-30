@@ -78,7 +78,6 @@
 (set-config-var "code-diag" "")
 (set-config-var "modeline" "")
 (set-config-var "theme-name" "default")
-(set-config-quote-var "theme-sym" (config-wrap "theme-name"))
 (set-config-bool-var "use-idle-highlight" nil)
 (set-config-bool-var "use-visual-line-mode" nil)
 (set-config-bool-var "use-indent-guide" nil)
@@ -93,6 +92,8 @@
 (defconst user-config (expand-file-name "config.el" user-emacs-directory))
 (when (file-exists-p user-config)
   (load user-config))
+
+(set-config-quote-var "theme-sym" (config-wrap "theme-name"))
 
 ;; LSP
 ;; ["lsp", "eglot", "lsp-bridge"]
