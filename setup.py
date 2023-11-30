@@ -77,7 +77,6 @@ if __name__ == "__main__":
                         action="store_true",
                         help="install treesit grammers")
     parser.add_argument("--theme",
-                        choices=["doom-vibrant", "doom-moonlight", "doom-xcode"],
                         default="doom-xcode",
                         help="use this as theme")
     parser.add_argument("--auto-server",
@@ -179,7 +178,6 @@ if __name__ == "__main__":
 ;; "doom-moonlight"
 ;; *: Use any available theme
 (set-config-var "theme-name" "{args.theme}" "EMACS_USE_THEME")
-(set-config-quote-var "theme-sym" (config-wrap "theme-name"))
 
 ;; <Treesit>
 (set-config-bool-var "use-treesit" {elisp_bool(args.treesit)})

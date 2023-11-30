@@ -135,10 +135,13 @@
    tab-line-tabs-buffer-list-function #'my/tab-line-tabs-buffer-list)
   (add-to-list 'tab-line-tab-face-functions 'tab-line-tab-face-group))
 
-(when (fboundp 'pixel-scroll-precision-mode)
-  (pixel-scroll-precision-mode t)
+(when (and (window-system) (fboundp 'pixel-scroll-precision-mode))
+  (pixel-scroll-precision-mode 1)
   (setq window-resize-pixelwise t)
-  (setq frame-resize-pixelwise t))
+  (setq frame-resize-pixelwise t)
+  (when (vertico-mode) ;; TODO: Fix properly
+    (keymap-set vertico-map "<remap> <pixel-scroll-interpolate-down>" 'vertico-scroll-up)
+    (keymap-set vertico-map "<remap> <pixel-scroll-interpolate-up>" 'vertico-scroll-down)))
 
 (show-paren-mode 1)
 (display-time-mode 1)
