@@ -4,20 +4,37 @@
 (defvar my/this nil) (setq my/this (symbol-file 'my/this))
 (require 'my/basic (concat (expand-file-name (file-name-directory (or load-file-name (buffer-file-name) my/this))) "basic"))
 
-(pcase (config-wrap "theme-name")
-  ((pred (string-match "zenburn")) (use-package zenburn-theme))
-  ((pred (string-match "atom")) (use-package atom-dark-theme))
-  ((pred (string-match "spacemacs")) (use-package spacemacs-theme))
-  ((pred (string-match "vscode")) (use-package vscode-dark-plus-theme))
-  ((pred (string-match "doom")) (use-package doom-themes))
-  )
+(defun my/load-theme ()
+  (when (not (string= (config-wrap "theme-name") "default"))
+    (bench-wrap "Enable main theme"
+                (load-theme (config-wrap "theme-sym") t)
+                (when (memq window-system '(ns))
+                  (customize-set-variable 'ns-antialias-text t)))))
 
-(when (not (string= (config-wrap "theme-name") "default"))
-  (bench-wrap "Enable main theme"
-              (load-theme (config-wrap "theme-sym") t t)
-              (enable-theme (config-wrap "theme-sym"))
-              (when (memq window-system '(ns))
-                (customize-set-variable 'ns-antialias-text t))))
+(pcase (config-wrap "theme-name")
+  ((pred (string-match "zenburn")) (use-package zenburn-theme
+                                     :config
+                                     (my/load-theme)))
+  ((pred (string-match "atom")) (use-package atom-dark-theme
+                                  :config
+                                  (my/load-theme)))
+  ((pred (string-match "spacemacs")) (use-package spacemacs-theme
+                                       :config
+                                       (my/load-theme)))
+  ((pred (string-match "vscode")) (use-package vscode-dark-plus-theme
+                                    :config
+                                    (my/load-theme)))
+  ((pred (string-match "doom")) (use-package doom-themes
+                                  :config
+                                  (my/load-theme)))
+  ((pred (string-match "modus")) (use-package modus-themes
+                                   :straight nil
+                                   :config
+                                   (my/load-theme)))
+  ((pred (string-match "ef")) (use-package ef-themes
+                                   :config
+                                   (my/load-theme)))
+  (_ (my/load-theme)))
 
 (bench-wrap "Load nerd-icons"
        (use-package nerd-icons
