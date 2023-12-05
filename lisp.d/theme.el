@@ -28,7 +28,6 @@
                                   :config
                                   (my/load-theme)))
   ((pred (string-match "modus")) (use-package modus-themes
-                                   :straight nil
                                    :config
                                    (my/load-theme)))
   ((pred (string-match "ef")) (use-package ef-themes
