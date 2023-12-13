@@ -169,4 +169,11 @@
 (setopt use-short-answers t)
 (setq confirm-kill-emacs #'yes-or-no-p)
 
+(daemon-wrap my/confirm-client-exit
+             (define-advice save-buffers-kill-terminal (:around (oldfun &rest args) my/delete-client)
+               "Confirm deleting the client."
+               (interactive)
+               (when (y-or-n-p "Confirm exit ? ")
+                 (apply oldfun args))))
+
 (provide 'my/basic)
