@@ -39,6 +39,9 @@
 (defun my/get-mode-str (mode)
   (concat "my/" mode "-mode"))
 
+(defmacro my/set-indirect-var (name value)
+  `(when (boundp ',name)
+     (setopt ,name ,value)))
 (when (config-wrap "basic-indent-offset")
   (setq my/indent-var-list '('c-basic-offset
                              'c-ts-mode-indent-offset
@@ -47,12 +50,13 @@
                              'js-indent-level
                              'json-ts-mode-indent-offset
                              'python-indent-offset
-                             'rust-indent-offset
+                             'rust-ts-mode-indent-offset
                              'sh-basic-offset
                              'verilog-indent-level
-                             'yaml-indent-offset))
+                             'yaml-indent-offset
+                             'cmake-ts-mode-indent-offset))
   (dolist (item my/indent-var-list)
-    (setq-default item (config-wrap "basic-indent-offset"))))
+    (my/set-indirect-var item (config-wrap "basic-indent-offset"))))
 
 (setq indent-tabs-mode (config-wrap "use-indent-tabs"))
 
