@@ -133,9 +133,8 @@
   )
 
 ;; LOAD THEME ;;
-(daemon-wrap my/load-theme
-             (bench-wrap "Theme"
-                         (load-user-file "theme")))
+(bench-wrap "Theme"
+            (load-user-file "theme"))
 
 (filelock-with-lock
     (setq custom-file (expand-file-name "local_customized.el" user-emacs-directory))
