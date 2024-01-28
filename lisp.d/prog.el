@@ -108,6 +108,14 @@
     (add-to-list 'auto-mode-alist '("\\.cshrc\\'" . sh-mode))
     (add-to-list 'auto-mode-alist '("\\.csh\\'" . sh-mode)))
 
+(use-package markdown-mode
+  :mode ("README\\.md\\'" . gfm-mode)
+  :bind (:map markdown-mode-map
+              ("C-c C-e" . markdown-do))
+  :config
+  (use-package edit-indirect)
+  (setopt markdown-fontify-code-blocks-natively t))
+
 (use-package emacs
   :straight nil
   :config
