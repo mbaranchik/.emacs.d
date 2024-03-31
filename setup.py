@@ -1,12 +1,89 @@
 #!/usr/bin/env python3
 
 import argparse
+import platform
 import os
 import sys
 import shutil
 import subprocess
+import termcolor
+import urllib.request
+import tarfile
+import zipfile
+from io import BytesIO
+import socket
 
+hostname = socket.gethostname()
 script_dir = os.path.dirname(os.path.abspath(__file__))
+
+def fatal(*args, **kwargs):
+    print(f"{termcolor.colored('[FATAL]:', 'red', attrs=['bold'])}", *args, **kwargs)
+    sys.stdout.flush()
+
+def error( *args, **kwargs):
+    print(f"{termcolor.colored('[ERROR]:', 'red', attrs=['bold'])}", *args, **kwargs)
+    sys.stdout.flush()
+
+def warn(*args, **kwargs):
+    print(f"{termcolor.colored('[WARN]:', 'yellow', attrs=['bold'])}", *args, **kwargs)
+    sys.stdout.flush()
+
+def info(*args, **kwargs):
+    print(f"{termcolor.colored('[INFO]:', 'grey', attrs=['bold'])}", *args, **kwargs)
+    sys.stdout.flush()
+
+def log(*args, **kwargs):
+    print(f"{termcolor.colored('[LOG]:', 'white', attrs=['bold'])}", *args, **kwargs)
+    sys.stdout.flush()
+
+def is_linux():
+    return sys.platform in ["linux", "linux2"]
+
+def is_macos():
+    return sys.platform == "darwin"
+
+def is_macos_intel():
+    return is_macos() and 'i386' in platform.processor()
+
+def is_macos_arm():
+    return is_macos() and not is_macos_intel()
+
+def platform_name():
+    if is_linux():
+        return 'linux'
+    if is_macos_intel():
+        return 'macos-intel'
+    if is_macos_arm():
+        return 'macos-arm'
+    if is_windows():
+        return 'windows'
+
+def get_home_dir():
+    return os.path.expanduser('~')
+
+def get_home_bin():
+    return os.path.expanduser('~/bin')
+
+def download(url):
+    info(f"Downloading {url}")
+    return urllib.request.urlopen(url)
+
+def unzip(file, where):
+    with zipfile.ZipFile(BytesIO(file.read())) as t:
+        log(f"Extracting files {t.namelist()}")
+        t.extractall(path=where)
+
+def untar(file):
+    with tarfile.open(name=None, fileobj=BytesIO(file.read())) as t:
+        members = t.getmembers()
+        log(f"Extracting files {[x.name for x in members]}")
+        t.extractall(path=where, members=members)
+
+emacs_lsp_booster_releases = {
+    'linux': 'https://github.com/blahgeek/emacs-lsp-booster/releases/download/v0.2.0/emacs-lsp-booster_v0.2.0_x86_64-unknown-linux-musl.zip',
+    'macos-intel': 'https://github.com/blahgeek/emacs-lsp-booster/releases/download/v0.2.0/emacs-lsp-booster_v0.2.0_x86_64-apple-darwin.zip',
+    'macos-arm': 'https://github.com/blahgeek/emacs-lsp-booster/releases/download/v0.2.0/emacs-lsp-booster_v0.2.0_x86_64-apple-darwin.zip'
+}
 
 def elisp_bool(val):
     if val == "on":
@@ -111,6 +188,10 @@ if __name__ == "__main__":
         {shutil.which('emacs')} -Q \
         --batch --eval \
         '(progn (load-file \"lisp.d/treesit-sources.el\") (load-file \"lisp.d/treesit-install.el\"))'", shell=True)
+
+    if args.lsp == "eglot":
+        # Install eglot booster
+        unzip(download(emacs_lsp_booster_releases[platform_name()]), get_home_bin())
 
     with open(os.path.join(script_dir, 'config.el'), 'w') as f:
               f.write(f""";;; -*- lexical-binding: t -*-

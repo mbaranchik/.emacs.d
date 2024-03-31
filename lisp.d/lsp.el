@@ -43,6 +43,10 @@
       ("pylsp" (push `((,(my/get-mode "python")) . ("pylsp")) eglot-server-programs))
       ("pyright" (push `((,(my/get-mode "python")) . ("pyright-langserver" "--stdio")) eglot-server-programs))
       (_ (warn "Unknown option for 'lsp/py-backend': %s" (config-wrap "lsp/py-backend")))))
+  (use-package eglot-booster
+    :straight (:host github :repo "jdtsmith/eglot-booster")
+	:after eglot
+	:config	(eglot-booster-mode))
   )
 
 (when (config-wrap "use-lsp-bridge")
