@@ -29,3 +29,5 @@ transient/
 undo-fu-session/
 config.el
 tree-sitter/
+projects
+nohup.out
