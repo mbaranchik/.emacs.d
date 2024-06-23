@@ -35,6 +35,7 @@
     ((my/python-mode) . (lambda () (my/eglot-enable 'python)))
     ((my/sh-mode) . (lambda () (my/eglot-enable 'bash)))
     :config
+    ;;(push `((,(my/get-mode "c") ,(my/get-mode "c++") ,(my/get-mode "python")) . ("cwls")) eglot-server-programs))
     (pcase (config-wrap "lsp/cpp-backend")
       ("ccls" (push `((,(my/get-mode "c") ,(my/get-mode "c++")) . ("ccls")) eglot-server-programs))
       ("clangd" (push `((,(my/get-mode "c") ,(my/get-mode "c++")) . ("clangd")) eglot-server-programs))
