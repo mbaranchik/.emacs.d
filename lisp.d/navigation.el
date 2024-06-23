@@ -11,7 +11,7 @@
   :bind (("<C-f3>" . symbol-overlay-put)
          ("<f3>" . symbol-overlay-jump-next)
          ("<S-f3>" . symbol-overlay-jump-prev)
-         ("<M-f3>" . symbol-overlay-rename))
+         ("<M-f3>" . symbol-overlay-query-replace))
   :config
   (setq symbol-overlay-inhibit-map t)
   :custom-face
