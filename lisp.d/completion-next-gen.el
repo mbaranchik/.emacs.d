@@ -49,12 +49,19 @@
   :straight nil
   :after vertico)
 
-(use-package vertico-posframe
-  :after vertico
+(use-package mini-frame
   :config
-  (daemon-wrap my/load-vertico-posframe
-               (when (display-graphic-p)
-                 (vertico-posframe-mode))))
+  (setopt mini-frame-show-parameters
+           '((top . 0.4)
+             (width . 0.5)
+             (left . 0.5)))
+  (mini-frame-mode 1))
+;; (use-package vertico-posframe
+;;   :after vertico
+;;   :config
+;;   (daemon-wrap my/load-vertico-posframe
+;;                (when (display-graphic-p)
+;;                  (vertico-posframe-mode 1))))
 
 ;; Persist history over Emacs restarts. Vertico sorts by history position.
 (use-package savehist
