@@ -97,15 +97,15 @@
 
 ;; LSP
 ;; ["lsp", "eglot", "lsp-bridge"]
-(set-config-bool-var "use-lsp" nil)
+(set-config-bool-var "use-lsp-mode" nil)
 (set-config-bool-var "use-eglot" nil)
 (set-config-bool-var "use-lsp-bridge" nil)
-(cond ((string= "lsp" (config-wrap "lsp")) (set-config-bool-var "use-lsp" t))
+(cond ((string= "lsp-mode" (config-wrap "lsp")) (set-config-bool-var "use-lsp-mode" t))
       ((string= "eglot" (config-wrap "lsp")) (set-config-bool-var "use-eglot" t))
       ((string= "lsp-bridge" (config-wrap "lsp")) (set-config-bool-var "use-lsp-bridge" t))
       ((string= "" (config-wrap "lsp")) (message "skipping LSP"))
       (t (if (config-wrap "lsp")
-             (warn "EMACS_LSP env var can receive one of lsp|eglot|lsp-bridge, received %s instead" (config-wrap "lsp"))))
+             (warn "EMACS_LSP env var can receive one of lsp-mode|eglot|lsp-bridge, received %s instead" (config-wrap "lsp"))))
       )
 (cond ((string= "clangd" (config-wrap "lsp/cpp-backend")) (set-config-bool-var "use-lsp-clangd" t))
       ((string= "ccls" (config-wrap "lsp/cpp-backend")) (set-config-bool-var "use-lsp-ccls" t))
