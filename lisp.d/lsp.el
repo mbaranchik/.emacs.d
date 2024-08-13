@@ -64,8 +64,8 @@
   (use-package markdown-mode)
   (use-package lsp-bridge
     :straight '(lsp-bridge :type git :host github :repo "manateelazycat/lsp-bridge"
-            :files (:defaults "*.el" "*.py" "acm" "core" "langserver" "multiserver" "resources")
-            :build (:not compile))
+                           :files (:defaults "*.el" "*.py" "acm" "core" "langserver" "multiserver" "resources")
+                           :build (:not compile))
 
     :after (markdown-mode yasnippet)
     :hook
@@ -81,6 +81,8 @@
       (indent-for-tab-command arg))
     :config
     (push "find-file" lsp-bridge-completion-stop-commands)
+    (setq lsp-bridge-python-command (string-trim
+                                     (shell-command-to-string "pyenv which python3")))
     :custom
     (lsp-bridge-c-lsp-server (config-wrap "lsp/cpp-backend"))
     (lsp-bridge-enable-hover-diagnostic t)
