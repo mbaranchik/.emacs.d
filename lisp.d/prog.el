@@ -101,12 +101,12 @@
     :straight nil))
 
 (use-package sh-script
-    :straight nil
-    :config
-    (when (config-wrap "use-treesit")
-      (add-to-list 'major-mode-remap-alist '(sh-mode . bash-ts-mode)))
-    (add-to-list 'auto-mode-alist '("\\.cshrc\\'" . sh-mode))
-    (add-to-list 'auto-mode-alist '("\\.csh\\'" . sh-mode)))
+  :straight nil
+  :config
+  (when (config-wrap "use-treesit")
+    (add-to-list 'major-mode-remap-alist '(sh-mode . bash-ts-mode)))
+  (add-to-list 'auto-mode-alist '("\\.cshrc\\'" . sh-mode))
+  (add-to-list 'auto-mode-alist '("\\.csh\\'" . sh-mode)))
 
 (use-package markdown-mode
   :mode ("README\\.md\\'" . gfm-mode)
@@ -120,10 +120,10 @@
   :straight nil
   :config
   (add-hook 'emacs-startup-hook (lambda ()
-                               (define-key my/sh-mode-map (kbd "C-c C-c") nil)
-                               (define-key my/c-mode-map (kbd "C-c C-c") nil)
-                               (define-key my/c++-mode-map (kbd "C-c C-c") nil)
-                               (define-key my/python-mode-map (kbd "C-c C-c") nil)
-                               (global-set-key (kbd "C-c C-c") 'comment-or-uncomment-region-or-line))))
+                                  (define-key my/sh-mode-map (kbd "C-c C-c") nil)
+                                  (define-key my/c-mode-map (kbd "C-c C-c") nil)
+                                  (define-key my/c++-mode-map (kbd "C-c C-c") nil)
+                                  (define-key my/python-mode-map (kbd "C-c C-c") nil)
+                                  (global-set-key (kbd "C-c C-c") 'comment-or-uncomment-region-or-line))))
 
 (provide 'my/prog)
