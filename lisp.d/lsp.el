@@ -110,29 +110,29 @@
 
 (when (config-wrap "use-lsp-mode")
   (use-package lsp-mode
-  :init
-  ;; set prefix for lsp-command-keymap (few alternatives - "C-l", "C-c l")
-  (setq lsp-keymap-prefix "C-c l")
-  :hook (;; replace XXX-mode with concrete major-mode(e. g. python-mode)
-         ((my/c-mode) . lsp)
-         ((my/c++-mode) . lsp)
-         ((my/python-mode) . lsp)
-         ((my/sh-mode) . lsp)
-         ;; if you want which-key integration
-         (lsp-mode . lsp-enable-which-key-integration))
-  :commands lsp
-  :config
-  ;; (lsp-register-client
-  ;;  (make-lsp-client :new-connection (lsp-stdio-connection "cwls")
-  ;;                   :major-modes `(,(my/get-mode "python")
-  ;;                                  ,(my/get-mode "sh")
-  ;;                                  ,(my/get-mode "c")
-  ;;                                  ,(my/get-mode "c++")
-  ;;                                  )
-  ;;                   ;; Allow other servers to run in parallel
-  ;;                   :add-on? t
-  ;;                   :server-id 'cwls))
-  )
+    :init
+    ;; set prefix for lsp-command-keymap (few alternatives - "C-l", "C-c l")
+    (setq lsp-keymap-prefix "C-c l")
+    :hook (;; replace XXX-mode with concrete major-mode(e. g. python-mode)
+           ((my/c-mode) . lsp)
+           ((my/c++-mode) . lsp)
+           ((my/python-mode) . lsp)
+           ((my/sh-mode) . lsp)
+           ;; if you want which-key integration
+           (lsp-mode . lsp-enable-which-key-integration))
+    :commands lsp
+    :config
+    (lsp-register-client
+     (make-lsp-client :new-connection (lsp-stdio-connection "cwls")
+                      :major-modes `(,(my/get-mode "python")
+                                     ,(my/get-mode "sh")
+                                     ,(my/get-mode "c")
+                                     ,(my/get-mode "c++")
+                                     )
+                      ;; Allow other servers to run in parallel
+                      :add-on? t
+                      :server-id 'cwls))
+    )
   )
 
 ;;;;;;;;;;;;;;;;;;;;;;;;
