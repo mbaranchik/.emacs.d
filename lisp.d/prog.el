@@ -39,24 +39,37 @@
 (defun my/get-mode-str (mode)
   (concat "my/" mode "-mode"))
 
-(defmacro my/set-indirect-var (name value)
-  `(when (boundp ',name)
-     (setopt ,name ,value)))
 (when (config-wrap "basic-indent-offset")
-  (setq my/indent-var-list '('c-basic-offset
-                             'c-ts-mode-indent-offset
-                             'lisp-indent-offset
-                             'groovy-indent-offset
-                             'js-indent-level
-                             'json-ts-mode-indent-offset
-                             'python-indent-offset
-                             'rust-ts-mode-indent-offset
-                             'sh-basic-offset
-                             'verilog-indent-level
-                             'yaml-indent-offset
-                             'cmake-ts-mode-indent-offset))
-  (dolist (item my/indent-var-list)
-    (my/set-indirect-var item (config-wrap "basic-indent-offset"))))
+    (dolist (item '(c-basic-offset
+                       c-ts-mode-indent-offset
+                       lisp-indent-offset
+                       groovy-indent-offset
+                       js-indent-level
+                       json-ts-mode-indent-offset
+                       python-indent-offset
+                       rust-ts-mode-indent-offset
+                       sh-basic-offset
+                       verilog-indent-level
+                       yaml-indent-offset
+                       cmake-ts-mode-indent-offset))
+        (when (boundp `,item)
+            (set item (config-wrap "basic-indent-offset")))))
+
+;;(dolist (item (mapcar (lambda (sym) (cons sym sym))
+;;                       '(c-basic-offset
+;;                         c-ts-mode-indent-offset
+;;                         lisp-indent-offset
+;;                         groovy-indent-offset
+;;                         js-indent-level
+;;                         json-ts-mode-indent-offset
+;;                         python-indent-offset
+;;                         rust-ts-mode-indent-offset
+;;                         sh-basic-offset
+;;                         verilog-indent-level
+;;                         yaml-indent-offset
+;;                         cmake-ts-mode-indent-offset)))
+;;  (when (boundp (car item))
+;;    (set item (config-wrap "basic-indent-offset"))))
 
 (setq indent-tabs-mode (config-wrap "use-indent-tabs"))
 
@@ -69,17 +82,17 @@
     ;; Fallback for local compilation of tree-sitter language support
     (setq treesit-language-source-alist my/treesit-sources)
     (setq treesit-font-lock-level 4)
-    ;;(add-to-list 'major-mode-remap-alist '(sh-mode . bash-ts-mode))
-    ;;(add-to-list 'major-mode-remap-alist '(c-mode . c-ts-mode))
-    ;;(add-to-list 'major-mode-remap-alist '(c++-mode . c++-ts-mode))
-    ;;(add-to-list 'major-mode-remap-alist '(c-or-c++-mode . c-or-c++-ts-mode))
-    ;;(add-to-list 'major-mode-remap-alist '(dockerfile-mode . dockerfile-ts-mode))
-    ;;(add-to-list 'major-mode-remap-alist '(go-mode . go-ts-mode))
-    ;;(add-to-list 'major-mode-remap-alist '(js-mode . js-ts-mode))
-    ;;(add-to-list 'major-mode-remap-alist '(js-json-mode . json-ts-mode))
-    ;;(add-to-list 'major-mode-remap-alist '(python-mode . python-ts-mode))
-    ;;(add-to-list 'major-mode-remap-alist '(rust-mode . rust-ts-mode))
-    ;;(add-to-list 'major-mode-remap-alist '(yaml-mode . yaml-ts-mode))
+    (add-to-list 'major-mode-remap-alist '(sh-mode . bash-ts-mode))
+    (add-to-list 'major-mode-remap-alist '(c-mode . c-ts-mode))
+    (add-to-list 'major-mode-remap-alist '(c++-mode . c++-ts-mode))
+    (add-to-list 'major-mode-remap-alist '(c-or-c++-mode . c-or-c++-ts-mode))
+    (add-to-list 'major-mode-remap-alist '(dockerfile-mode . dockerfile-ts-mode))
+    (add-to-list 'major-mode-remap-alist '(go-mode . go-ts-mode))
+    (add-to-list 'major-mode-remap-alist '(js-mode . js-ts-mode))
+    (add-to-list 'major-mode-remap-alist '(js-json-mode . json-ts-mode))
+    (add-to-list 'major-mode-remap-alist '(python-mode . python-ts-mode))
+    (add-to-list 'major-mode-remap-alist '(rust-mode . rust-ts-mode))
+    (add-to-list 'major-mode-remap-alist '(yaml-mode . yaml-ts-mode))
     )
   (use-package json-ts-mode
     :straight nil)

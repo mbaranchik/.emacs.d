@@ -73,10 +73,6 @@
 (bench-wrap "Custom"
             (load-user-file "custom"))
 
-(bench-wrap "Clang"
-            (load-user-file "clang")
-            )
-
 (bench-wrap "LSP"
             (load-user-file "lsp"))
 
@@ -95,7 +91,8 @@
 
 (put 'upcase-region 'disabled nil)
 
-(load-user-file "ide")
+(bench-wrap "IDE"
+            (load-user-file "ide"))
 
 (bench-wrap "Navigation"
             (load-user-file "navigation"))

@@ -24,4 +24,7 @@
 (straight-use-package 'use-package)
 (setq straight-use-package-by-default t)
 
+;; use ssh to clone
+(setq straight-vc-git-default-protocol 'ssh)
+
 (provide 'my/straight-bootstrap)

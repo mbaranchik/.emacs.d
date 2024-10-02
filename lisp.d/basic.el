@@ -4,14 +4,14 @@
 (defmacro bench-wrap (name &rest code)
   `(cond ((string= "y" (getenv "EMACS_BENCHMARK"))
           (progn
-             (message "Benchmark for '%s':" ,name)
-             (benchmark-progn
-               ,@code
-               )
-             ))
+            (message "Benchmark for '%s':" ,name)
+            (benchmark-progn
+              ,@code
+              )
+            ))
          (t (progn
-               ,@code
-               ))
+              ,@code
+              ))
          )
   )
 
@@ -20,8 +20,8 @@
   `(if (daemonp)
        (cl-labels ((,name (frame)
                      (with-selected-frame frame
-                            ,@code)
-                          (remove-hook 'after-make-frame-functions #',name)))
+                       ,@code)
+                     (remove-hook 'after-make-frame-functions #',name)))
          (add-hook 'after-make-frame-functions #',name))
      ,@code
      )
@@ -36,11 +36,11 @@
 (defun set-config-var (varname default &optional env)
   (let ((varsym (intern (concat "my/" varname)))
         (envvar (getenv (or env ""))))
-      (cond ((or (string= "1" envvar) (string= "y" envvar)) (set varsym t))
-	        ((or (string= "0" envvar) (string= "n" envvar)) (set varsym nil))
-	        (envvar (set varsym (getenv env)))
-            (t (set varsym default))
-            )
+    (cond ((or (string= "1" envvar) (string= "y" envvar)) (set varsym t))
+	      ((or (string= "0" envvar) (string= "n" envvar)) (set varsym nil))
+	      (envvar (set varsym (getenv env)))
+          (t (set varsym default))
+          )
     )
   )
 
@@ -48,11 +48,11 @@
 (defun set-config-bool-var (varname default &optional env)
   (let ((varsym (intern (concat "my/" varname)))
         (envvar (getenv (or env ""))))
-      (cond ((or (string= "1" envvar) (string= "y" envvar)) (set varsym t))
-	        ((or (string= "0" envvar) (string= "n" envvar)) (set varsym nil))
-	        (envvar (warn "%s is boolean, can recieve {y, n, 1, 0}. received '%s'" env envvar))
-            (t (set varsym default))
-            )
+    (cond ((or (string= "1" envvar) (string= "y" envvar)) (set varsym t))
+	      ((or (string= "0" envvar) (string= "n" envvar)) (set varsym nil))
+	      (envvar (warn "%s is boolean, can recieve {y, n, 1, 0}. received '%s'" env envvar))
+          (t (set varsym default))
+          )
     )
   )
 
@@ -72,8 +72,8 @@
 (set-config-var "lsp/cpp-backend" "")
 (set-config-var "lsp/py-backend" "")
 (set-config-var "lsp/enable-modes" '())
-(set-config-var "lsp/autoformat-enable-modes" '())
-(set-config-var "lsp/diagnostics-enable-modes" '())
+(set-config-var "ide/autoformat-enable-modes" '())
+(set-config-var "ide/diagnostics-enable-modes" '())
 (set-config-var "autocomplete" "")
 (set-config-var "code-diag" "")
 (set-config-var "modeline" "")
@@ -154,15 +154,15 @@
 
 
 (setq-default default-frame-alist
-  (quote
-   ((cursor-type . (bar . 3))
-    (internal-border-width . 0)
-    (modeline . t)
-    (fringe)
-    (cursor-color . "Red")
-    (tool-bar-lines . 1)
-    (fontsize . 0)
-    (font-backend mac-ct ns))))
+              (quote
+               ((cursor-type . (bar . 3))
+                (internal-border-width . 0)
+                (modeline . t)
+                (fringe)
+                (cursor-color . "Red")
+                (tool-bar-lines . 1)
+                (fontsize . 0)
+                (font-backend mac-ct ns))))
 (setq-default whitespace-style (quote (face trailing spaces tabs)))
 
 (defalias 'yes-or-no #'y-or-n-p)

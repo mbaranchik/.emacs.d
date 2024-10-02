@@ -34,13 +34,13 @@
 (use-package vterm-toggle
   :bind (("<f2>" . vterm-toggle)
          ("<C-f2>" . vterm-toggle-cd))
-    )
+  )
 
 ;; project - built-in, doesn't do anything else now
 (use-package project
-    :straight nil
-    :config
-    (setq project-vc-extra-root-markers '(".root")))
+  :straight nil
+  :config
+  (setq project-vc-extra-root-markers '(".root")))
 
 ;; treemacs
 
@@ -61,10 +61,40 @@
 ;;    ))
 
 ;; code formatting
-(when (not (config-wrap "use-eglot"))
-  (use-package apheleia
-    :config
-    (apheleia-global-mode +1)))
+(defun my/autoformat-enable (type)
+  (when (member type (config-wrap "ide/autoformat-enable-modes"))
+    (apheleia-mode +1)))
+(use-package apheleia
+  :hook
+  ((my/c-mode) . (lambda () (my/autoformat-enable 'c)))
+  ((my/c++-mode) . (lambda () (my/autoformat-enable 'cpp)))
+  ((my/python-mode) . (lambda () (my/autoformat-enable 'python)))
+  ((my/sh-mode) . (lambda () (my/autoformat-enable 'bash)))
+  (lisp-mode . (lambda () (apheleia-mode +1))))
+
+;; code diagnostics
+(defun my/diag-enable (type)
+  (when (member type (config-wrap "ide/diagnostics-enable-modes"))
+    (if (config-wrap "use-flycheck")
+        (flycheck-mode +1)
+      (flymake-mode +1))))
+(when (config-wrap "use-flycheck")
+  (use-package flycheck
+    :hook
+    ((my/c-mode) . (lambda () (my/diag-enable 'c)))
+    ((my/c++-mode) . (lambda () (my/diag-enable 'cpp)))
+    ((my/python-mode) . (lambda () (my/diag-enable 'python)))
+    ((my/sh-mode) . (lambda () (my/diag-enable 'bash)))
+    (lisp-mode . (lambda () (flycheck-mode +1)))
+    ))
+(when (config-wrap "use-flymake")
+  (use-package flymake
+    :hook
+    ((my/c-mode) . (lambda () (my/diag-enable 'c)))
+    ((my/c++-mode) . (lambda () (my/diag-enable 'cpp)))
+    ((my/python-mode) . (lambda () (my/diag-enable 'python)))
+    ((my/sh-mode) . (lambda () (my/diag-enable 'bash)))
+    (lisp-mode . (lambda () (flymake-mode +1)))))
 
 ;; GDB
 (setq
