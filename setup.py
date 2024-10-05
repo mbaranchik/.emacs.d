@@ -294,13 +294,13 @@ if __name__ == "__main__":
             sys.exit(1)
 
     if not shutil.which(cfg["lsp"]["c"]["server"]):
-        sys.stderr.write(f"WARNING: LSP server '{cfg["lsp"]["c"]["server"]}' not found in PATH!\n")
+        sys.stderr.write(f"WARNING: LSP server '{cfg['lsp']['c']['server']}' not found in PATH!\n")
         if not args.force:
             sys.stderr.write("ERROR: Bad option supplied to --c-server, use --force to use anyway")
             sys.exit(1)
 
     if not shutil.which(cfg["lsp"]["python"]["server"]):
-        sys.stderr.write(f"WARNING: LSP server '{cfg["lsp"]["python"]["server"]}' not found in PATH!")
+        sys.stderr.write(f"WARNING: LSP server '{cfg['lsp']['python']['server']}' not found in PATH!")
         if not args.force:
             sys.stderr.write("ERROR: Bad option supplied to --py-server, use --force to use anyway")
             sys.exit(1)
