@@ -44,6 +44,7 @@
     (pcase (config-wrap "lsp/py-backend")
       ("pylsp" (push `((,(my/get-mode "python")) . ("pylsp")) eglot-server-programs))
       ("pyright" (push `((,(my/get-mode "python")) . ("pyright-langserver" "--stdio")) eglot-server-programs))
+      ("pylyzer" (push `((,(my/get-mode "python")) . ("pylyzer" "--server" "--verbose" "2")) eglot-server-programs))
       (_ (warn "Unknown option for 'lsp/py-backend': %s" (config-wrap "lsp/py-backend")))))
   (use-package eglot-booster
     :straight (:host github :repo "jdtsmith/eglot-booster")
