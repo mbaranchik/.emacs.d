@@ -39,22 +39,6 @@
 (defun my/get-mode-str (mode)
   (concat "my/" mode "-mode"))
 
-(when (config-wrap "basic-indent-offset")
-    (dolist (item '(c-basic-offset
-                       c-ts-mode-indent-offset
-                       lisp-indent-offset
-                       groovy-indent-offset
-                       js-indent-level
-                       json-ts-mode-indent-offset
-                       python-indent-offset
-                       rust-ts-mode-indent-offset
-                       sh-basic-offset
-                       verilog-indent-level
-                       yaml-indent-offset
-                       cmake-ts-mode-indent-offset))
-        (when (boundp `,item)
-            (set item (config-wrap "basic-indent-offset")))))
-
 ;;(dolist (item (mapcar (lambda (sym) (cons sym sym))
 ;;                       '(c-basic-offset
 ;;                         c-ts-mode-indent-offset
@@ -128,6 +112,22 @@
   :config
   (use-package edit-indirect)
   (setopt markdown-fontify-code-blocks-natively t))
+
+(when (config-wrap "basic-indent-offset")
+    (dolist (item '(c-basic-offset
+                       c-ts-mode-indent-offset
+                       lisp-indent-offset
+                       groovy-indent-offset
+                       js-indent-level
+                       json-ts-mode-indent-offset
+                       python-indent-offset
+                       rust-ts-mode-indent-offset
+                       sh-basic-offset
+                       verilog-indent-level
+                       yaml-indent-offset
+                       cmake-ts-mode-indent-offset))
+        (when (boundp `,item)
+            (set item (config-wrap "basic-indent-offset")))))
 
 (use-package emacs
   :straight nil
