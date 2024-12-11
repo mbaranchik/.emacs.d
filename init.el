@@ -107,6 +107,9 @@
             ;; (add-hook 'c++-mode-hook (lambda() (define-key c++-mode-map (kbd "C-c C-c") nil)))
     )
 
+(bench-wrap "Org"
+    (load-user-file "org"))
+
 ;; Load Ligatures ;;
 (use-package ligature
   :straight (:host github :repo "mickeynp/ligature.el")
@@ -168,7 +171,7 @@
 
 ;; Server Start
 (message "Sockets Dir: %s" server-socket-dir)
-(when (config-wrap "start-server")
+(when (config-wrap "server")
   (server-start))
 
 ;;(gcmh-mode 1)

@@ -62,7 +62,7 @@
 
 ;; code formatting
 (defun my/autoformat-enable (type)
-  (when (member type (config-wrap "ide/autoformat-enable-modes"))
+  (when (member (symbol-name type) (get-enabled-modes "autoformat"))
     (apheleia-mode +1)))
 (use-package apheleia
   :hook
@@ -74,11 +74,11 @@
 
 ;; code diagnostics
 (defun my/diag-enable (type)
-  (when (member type (config-wrap "ide/diagnostics-enable-modes"))
-    (if (config-wrap "use-flycheck")
+  (when (member (symbol-name type) (get-enabled-modes "code-diag"))
+    (if (string= (config-wrap "code-diag/package") "flycheck")
         (flycheck-mode +1)
       (flymake-mode +1))))
-(when (config-wrap "use-flycheck")
+(when (string= (config-wrap "code-diag/package") "flycheck")
   (use-package flycheck
     :hook
     ((my/c-mode) . (lambda () (my/diag-enable 'c)))
@@ -87,7 +87,7 @@
     ((my/sh-mode) . (lambda () (my/diag-enable 'bash)))
     (lisp-mode . (lambda () (flycheck-mode +1)))
     ))
-(when (config-wrap "use-flymake")
+(when (string= (config-wrap "code-diag/package") "flymake")
   (use-package flymake
     :hook
     ((my/c-mode) . (lambda () (my/diag-enable 'c)))

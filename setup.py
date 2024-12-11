@@ -206,7 +206,7 @@ if __name__ == "__main__":
     def get_enabled_modes(opt):
         return [x for x in cfg[opt].keys() if x != "package" and cfg[opt][x]["enable"]]
 
-    parser = argparse.ArgumentParser(description="Prepare config.el to your liking",
+    parser = argparse.ArgumentParser(description="Prepare config.json to your liking",
                                      formatter_class=argparse.ArgumentDefaultsHelpFormatter)
     parser.add_argument("--lsp",
                         choices=["eglot", "lsp-bridge", ""],
@@ -319,90 +319,3 @@ if __name__ == "__main__":
         # Install eglot booster
         unzip(download(emacs_lsp_booster_releases[platform_name()]), get_home_bin())
 
-    with open(os.path.join(script_dir, 'config.el'), 'w') as f:
-              f.write(f""";;; -*- lexical-binding: t -*-
-
-;; <Server Enable>
-;; t:   Auto start server if not already running
-;; nil: Do nothing
-(set-config-bool-var "start-server" {elisp_bool(cfg['server'])})
-
-;; <LSP Client>
-;; "eglot":      Use EGLOT (built-in)
-;; "lsp-bridge": Use lsp-bridge
-;;               Notice: Uses proprietary completion and diagnostics framework
-(set-config-var "lsp" "{elisp_string(cfg["lsp"]["package"])}" "EMACS_LSP_SERVER")
-
-;; <C/C++ LSP Server>
-;; "ccls":   Use ccls
-;; "clangd": Use clangd
-(set-config-var "lsp/cpp-backend" "{elisp_string(cfg["lsp"]["c"]["server"])}")
-
-;; <Python LSP Server>
-;; "pylsp":   Use python-lsp-server (see https://github.com/python-lsp/python-lsp-server)
-;; "pyright": Use pyright (see https://github.com/microsoft/pyright)
-(set-config-var "lsp/py-backend" "{elisp_string(cfg["lsp"]["python"]["server"])}")
-
-;; <LSP Enabled Modes>
-;; "c":      Enable for c-mode/c-ts-mode
-;; "cpp":    Enable for c++-mode/c++-ts-mode
-;; "python": Enable for python-mode/python-ts-mode
-;; "bash":   Enable for sh-mode/bash-ts-mode
-(set-config-var "lsp/enable-modes" '({" ".join(get_enabled_modes("lsp"))}))
-
-;; <LSP AutoFormat Enabled Modes>
-;; "c":      Enable for c-mode/c-ts-mode
-;; "cpp":    Enable for c++-mode/c++-ts-mode
-;; "python": Enable for python-mode/python-ts-mode
-;; "bash":   Enable for sh-mode/bash-ts-mode
-(set-config-var "ide/autoformat-enable-modes" '({" ".join(get_enabled_modes("autoformat"))}))
-
-;; <LSP Diagnostics Enabled Modes>
-;; "c":      Enable for c-mode/c-ts-mode
-;; "cpp":    Enable for c++-mode/c++-ts-mode
-;; "python": Enable for python-mode/python-ts-mode
-;; "bash":   Enable for sh-mode/bash-ts-mode
-(set-config-var "ide/diagnostics-enable-modes" '({" ".join(get_enabled_modes("code-diag"))}))
-
-;; <Programming Completion>
-;; "corfu":   Enable corfu completion framework
-;; "company": Enable company completion framework
-(set-config-var "autocomplete" "{elisp_string(cfg['autocomplete'])}" "EMACS_COMPLETE")
-
-;; <Diagnostics>
-;; "flymake":  Use flymake as diagnostics framework
-;; "flycheck": Use flycheck as diagnostics framework
-(set-config-var "code-diag" "{elisp_string(cfg['code-diag']['package'])}")
-
-;; <Mode-Line>
-;; "doom": Use doom mode-line
-;; "mood": Use mood mode-line
-(set-config-var "modeline" "{elisp_string(cfg['ui']['modeline'])}")
-
-;; <Theme>
-;; "doom-xcode"
-;; "doom-vibrant"
-;; "doom-moonlight"
-;; *: Use any available theme
-(set-config-var "theme-name" "{cfg['ui']['theme']}" "EMACS_USE_THEME")
-
-;; <Treesit>
-(set-config-bool-var "use-treesit" {elisp_bool(cfg['treesit'])})
-
-;; <UI>
-(set-config-bool-var "use-idle-highlight" {elisp_bool(cfg['ui']['idle-highlight'])}) ;; Enable idle symbol highlight
-(set-config-bool-var "use-visual-line-mode" {elisp_bool(cfg['ui']['visual-line-mode'])}) ;; Enable visual line mode
-(set-config-bool-var "use-indent-guide" {elisp_bool(cfg['ui']['indent-guide'])}) ;; Enable indent-guide
-(set-config-bool-var "use-which-function" {elisp_bool(cfg['ui']['which-function'])}) ;; Enable which-function in mode-line
-(set-config-bool-var "use-diff-hl" {elisp_bool(cfg['ui']['diff-hl'])}) ;; Enable version-control diff in gutter
-
-;; <General>
-(set-config-var "basic-indent-offset" {cfg['indent']['basic-offset']}) ;; Default indent offset for all modes, nil to ignore this
-(set-config-bool-var "use-indent-tabs" {elisp_bool(cfg['indent']['indent-tabs'])}) ;; Default value for indent-tabs-mode
-
-;; <Copyright>
-(set-config-var "auto-insert-copyright" "{cfg['copyright']['header']}" "EMACS_COPYRIGHT_COMPANY")
-(set-config-var "auto-insert-name" "{cfg['copyright']['name']}" "EMACS_COPYRIGHT_NAME")
-
-(provide 'my/config)
-""")

@@ -135,7 +135,7 @@ directory."
 ;;       ;; configuration
 ;;       (flycheck-add-next-checker 'c/c++-cppcheck '(warning . cstyle)))))
 
-(when (config-wrap "use-flycheck")
+(when (string= (config-wrap "code-diag/package") "flycheck")
   (setq-default flycheck-disabled-checkers '(verilog-verilator)))
 
 (use-package scratch-pop)
@@ -169,10 +169,10 @@ directory."
   (cons "\\.\\([Hh]\\|hh\\|hpp\\)\\'" "My C / C++ header")
   '(nil
     "//\n"
-    "// " (config-wrap "auto-insert-copyright") "\n"
+    "// " (config-wrap "copyright/header") "\n"
     "//\n\n"
     "//\n"
-    "// Author: " (config-wrap "auto-insert-name") "\n"
+    "// Author: " (config-wrap "copyright/name") "\n"
     "//\n"
     "// Date: " (format-time-string "%Y-%m-%d")"\n"
     "//\n"
@@ -194,10 +194,10 @@ directory."
   (cons "\\.\\([Cc]\\|cc\\|cpp\\)\\'" "My C++ implementation")
   '(nil
     "//\n"
-    "// " (config-wrap "auto-insert-copyright") "\n"
+    "// " (config-wrap "copyright/header") "\n"
     "//\n\n"
     "//\n"
-    "// Author: " (config-wrap "auto-insert-name") "\n"
+    "// Author: " (config-wrap "copyright/name") "\n"
     "//\n"
     "// Date: " (format-time-string "%Y-%m-%d")"\n"
     "//\n"

@@ -5,19 +5,19 @@
 (require 'my/basic (concat (expand-file-name (file-name-directory (or load-file-name (buffer-file-name) my/this))) "basic"))
 
 (defun my/enable-theme ()
-  (when (not (string= (config-wrap "theme-name") "default"))
+  (when (not (string= (config-wrap "ui/theme") "default"))
     (daemon-wrap my/enable-theme-daemon
                  (bench-wrap "Enable main theme"
-                             (enable-theme (config-wrap "theme-sym"))
+                             (enable-theme (intern (config-wrap "ui/theme")))
                              (when (memq window-system '(ns))
                                (customize-set-variable 'ns-antialias-text t))))))
 
 (defun my/load-theme ()
-  (when (not (string= (config-wrap "theme-name") "default"))
+  (when (not (string= (config-wrap "ui/theme") "default"))
     (bench-wrap "Load main theme"
-                (load-theme (config-wrap "theme-sym") t))))
+                (load-theme (intern (config-wrap "ui/theme")) t))))
 
-(pcase (config-wrap "theme-name")
+(pcase (config-wrap "ui/theme")
   ((pred (string-match "zenburn")) (use-package zenburn-theme
                                      :config
                                      (my/load-theme)
@@ -63,7 +63,7 @@
        (use-package nerd-icons-dired)
        (use-package nerd-icons-ibuffer))
 
-(when (config-wrap "use-doom-modeline")
+(when (string= (config-wrap "ui/modeline") "doom")
   (bench-wrap "Doom-Modeline"
          (use-package doom-modeline
            :demand
@@ -76,7 +76,7 @@
            )
          )
   )
-(when (config-wrap "use-mood-modeline")
+(when (string= (config-wrap "ui/modeline") "mood")
   (bench-wrap "Mood-Modeline"
               (use-package mood-line
                 :config

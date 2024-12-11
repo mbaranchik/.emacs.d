@@ -1,150 +1,108 @@
 ;;; -*- lexical-binding: t -*-
 
+(require 'json)
+
 ;; Benchmark macro
 (defmacro bench-wrap (name &rest code)
-  `(cond ((string= "y" (getenv "EMACS_BENCHMARK"))
-          (progn
-            (message "Benchmark for '%s':" ,name)
-            (benchmark-progn
-              ,@code
-              )
-            ))
+    `(cond ((string= "y" (getenv "EMACS_BENCHMARK"))
+               (progn
+                   (message "Benchmark for '%s':" ,name)
+                   (benchmark-progn
+                       ,@code
+                       )
+                   ))
          (t (progn
-              ,@code
-              ))
+                ,@code
+                ))
          )
-  )
+    )
 
 ;; Macro for graphics dependant code
 (defmacro daemon-wrap (name &rest code)
-  `(if (daemonp)
-       (cl-labels ((,name (frame)
-                     (with-selected-frame frame
-                       ,@code)
-                     (remove-hook 'after-make-frame-functions #',name)))
-         (add-hook 'after-make-frame-functions #',name))
-     ,@code
-     )
-  )
+    `(if (daemonp)
+         (cl-labels ((,name (frame)
+                         (with-selected-frame frame
+                             ,@code)
+                         (remove-hook 'after-make-frame-functions #',name)))
+             (add-hook 'after-make-frame-functions #',name))
+         ,@code
+         )
+    )
 
-;; Macro for getting config value
+;; Function to load and cache configuration
+(defvar my/config-cache nil)
+(defvar my/config-file (expand-file-name "config.json" user-emacs-directory))
+
+(defvar my/enable-debug-prints nil)
+
+(defun my/debug-print (format-string &rest args)
+    (when my/enable-debug-prints
+        (apply #'message (concat "[CONFIG-DEBUG] " format-string) args)))
+
+(defun my/convert-json-bool (value)
+  "Convert JSON boolean values to proper Lisp boolean values"
+  (cond ((eq value t) t)
+        ((eq value :false) nil)
+        (t value)))
+
+(defun my/load-config ()
+    "Load configuration from JSON file"
+    (my/debug-print "Loading config from: %s" my/config-file)
+    (unless my/config-cache
+        (if (file-exists-p my/config-file)
+            (with-temp-buffer
+                (insert-file-contents my/config-file)
+                (let ((json-contents (buffer-string)))
+                  (my/debug-print "Config file contents: %s" json-contents)
+                  ;; Validate JSON structure
+                  (unless (string-match-p "\"ui\"\\s-*:" json-contents)
+                    (error "Config file missing required 'ui' section"))
+                  )
+                (setq my/config-cache (json-parse-buffer :object-type 'alist)))
+            (error "Configuration file %s not found" my/config-file)))
+    my/config-cache)
+
+(defun my/get-config-value (path &optional default)
+    "Get configuration value at PATH with optional DEFAULT.
+PATH is a list of keys to traverse the JSON structure."
+    (let* ((config (my/load-config))
+              (value nil)
+              (path-str (mapconcat #'identity path "/")))
+        (while (and path config)
+            (let ((key (if (stringp (car path))
+                          (intern (car path))
+                        (car path))))
+              (setq value (alist-get key config nil nil #'equal))
+              (setq config value))
+            (setq path (cdr path)))
+        (my/debug-print "Getting config value for path: %s -> %S" path-str value)
+        (my/convert-json-bool (or value default))))
+
+;; Macro for getting config value using dot notation
 (defmacro config-wrap (name)
-  `(symbol-value (intern (concat "my/" ,name)))
-  )
-
-;; Function for setting a configuration variable with default value and override
-(defun set-config-var (varname default &optional env)
-  (let ((varsym (intern (concat "my/" varname)))
-        (envvar (getenv (or env ""))))
-    (cond ((or (string= "1" envvar) (string= "y" envvar)) (set varsym t))
-	      ((or (string= "0" envvar) (string= "n" envvar)) (set varsym nil))
-	      (envvar (set varsym (getenv env)))
-          (t (set varsym default))
-          )
+    `(let* ((path (split-string ,name "/"))
+               (result (my/get-config-value path)))
+         (my/debug-print "config-wrap: %s -> %S" ,name result)
+         result)
     )
-  )
 
-;; Same as above, but verifies boolean
-(defun set-config-bool-var (varname default &optional env)
-  (let ((varsym (intern (concat "my/" varname)))
-        (envvar (getenv (or env ""))))
-    (cond ((or (string= "1" envvar) (string= "y" envvar)) (set varsym t))
-	      ((or (string= "0" envvar) (string= "n" envvar)) (set varsym nil))
-	      (envvar (warn "%s is boolean, can recieve {y, n, 1, 0}. received '%s'" env envvar))
-          (t (set varsym default))
-          )
-    )
-  )
+;; Helper function to get enabled modes from a feature section
+(defun get-enabled-modes (feature)
+    "Get list of enabled modes for a given feature (lsp, code-diag, autoformat)"
+    (let ((modes '())
+             (config (my/get-config-value (list feature)))
+             (feature-name feature))
+        (my/debug-print "Checking enabled modes for feature '%s'" feature-name)
+        (my/debug-print "Feature '%s' config = %S" feature-name config)
+        (dolist (mode '("c" "cpp" "python" "bash"))
+            (let* ((mode-config (alist-get (intern mode) config))
+                      (enabled (and mode-config (my/convert-json-bool (alist-get 'enable mode-config)))))
+                (my/debug-print "Feature '%s' mode '%s': config=%S, enabled=%S" feature-name mode mode-config enabled)
+                (when (eq enabled t)  ; Only consider explicitly set to t as enabled
+                    (push mode modes))))
+        (my/debug-print "Feature '%s' enabled modes = %S" feature-name modes)
+        modes))
 
-;; Same as above, only creates a symbol out of the value
-(defun set-config-quote-var (varname default &optional env)
-  (let ((varsym (intern (concat "my/" varname)))
-        (envvar (getenv (or env ""))))
-    (cond (envvar (set varsym (intern envvar)))
-	      (t (set varsym (intern default)))
-          )
-    )
-  )
-
-;; Set defaults
-(set-config-bool-var "start-server" nil)
-(set-config-var "lsp" "")
-(set-config-var "lsp/cpp-backend" "")
-(set-config-var "lsp/py-backend" "")
-(set-config-var "lsp/enable-modes" '())
-(set-config-var "ide/autoformat-enable-modes" '())
-(set-config-var "ide/diagnostics-enable-modes" '())
-(set-config-var "autocomplete" "")
-(set-config-var "code-diag" "")
-(set-config-var "modeline" "")
-(set-config-var "theme-name" "default")
-(set-config-bool-var "use-idle-highlight" nil)
-(set-config-bool-var "use-visual-line-mode" nil)
-(set-config-bool-var "use-indent-guide" nil)
-(set-config-bool-var "use-which-function" nil)
-(set-config-bool-var "use-diff-hl" t)
-(set-config-var "basic-indent-offset" 4)
-(set-config-bool-var "use-indent-tabs" nil)
-(set-config-var "auto-insert-copyright" "")
-(set-config-var "auto-insert-name" "")
-
-;; Load user configuration
-(defconst user-config (expand-file-name "config.el" user-emacs-directory))
-(when (file-exists-p user-config)
-  (load user-config))
-
-(set-config-quote-var "theme-sym" (config-wrap "theme-name"))
-
-;; LSP
-;; ["lsp", "eglot", "lsp-bridge"]
-(set-config-bool-var "use-lsp-mode" nil)
-(set-config-bool-var "use-eglot" nil)
-(set-config-bool-var "use-lsp-bridge" nil)
-(cond ((string= "lsp-mode" (config-wrap "lsp")) (set-config-bool-var "use-lsp-mode" t))
-      ((string= "eglot" (config-wrap "lsp")) (set-config-bool-var "use-eglot" t))
-      ((string= "lsp-bridge" (config-wrap "lsp")) (set-config-bool-var "use-lsp-bridge" t))
-      ((string= "" (config-wrap "lsp")) (message "skipping LSP"))
-      (t (if (config-wrap "lsp")
-             (warn "EMACS_LSP env var can receive one of lsp-mode|eglot|lsp-bridge, received %s instead" (config-wrap "lsp"))))
-      )
-(cond ((string= "clangd" (config-wrap "lsp/cpp-backend")) (set-config-bool-var "use-lsp-clangd" t))
-      ((string= "ccls" (config-wrap "lsp/cpp-backend")) (set-config-bool-var "use-lsp-ccls" t))
-      ((string= "" (config-wrap "lsp/cpp-backend")) (message "skipping cpp-backend"))
-      (t (if (config-wrap "lsp/cpp-backend")
-             (warn "EMACS_LSP_CPP_BACKEND env var can receive one of ccls|clangd, received %s instead" (config-wrap "lsp/cpp-backend"))))
-      )
-
-;; Completion - Code
-;; ["company", "corfu", "acm"]
-(set-config-bool-var "use-company" nil)
-(set-config-bool-var "use-corfu" nil)
-(cond ((string= "company" (config-wrap "autocomplete")) (set-config-bool-var "use-company" t))
-      ((string= "corfu" (config-wrap "autocomplete")) (set-config-bool-var "use-corfu" t))
-      ((string= "" (config-wrap "autocomplete")) (message "skipping autocomplete"))
-      (t (if (config-wrap "autocomplete")
-             (warn "EMACS_AUTOCOMPLETE env var can receive one of company|ac, received %s instead" (config-wrap "autocomplete"))))
-      )
-
-;; Diagnostics - Code
-;; ["flycheck", "flymake"]
-(set-config-bool-var "use-flycheck" nil)
-(set-config-bool-var "use-flymake" nil)
-(cond ((string= "flycheck" (config-wrap "code-diag")) (set-config-bool-var "use-flycheck" t))
-      ((string= "flymake" (config-wrap "code-diag")) (set-config-bool-var "use-flymake" t))
-      ((string= "" (config-wrap "code-diag")) (message "skipping code-diag"))
-      (t (if (config-wrap "code-diag")
-             (warn "EMACS_DIAGNOSTICS env var can receive one of flycheck|flymake, received %s instead" (config-wrap "code-diag"))))
-      )
-
-;; UI - Modeline
-(set-config-bool-var "use-doom-modeline" nil)
-(set-config-bool-var "use-mood-modeline" nil)
-(cond ((string= "doom" (config-wrap "modeline")) (set-config-bool-var "use-doom-modeline" t))
-      ((string= "mood" (config-wrap "modeline")) (set-config-bool-var "use-mood-modeline" t))
-      ((string= "" (config-wrap "modeline")) (message "skipping modeline"))
-      (t (if (config-wrap "modeline")
-             (warn "EMACS_MODELINE env var can receive one of doom|mood, received %s instead" (config-wrap "modeline"))))
-      )
 
 ;; Customs - Vars
 (setq-default server-socket-dir (concat user-emacs-directory "server-sock"))
@@ -154,15 +112,15 @@
 
 
 (setq-default default-frame-alist
-              (quote
-               ((cursor-type . (bar . 3))
-                (internal-border-width . 0)
-                (modeline . t)
-                (fringe)
-                (cursor-color . "Red")
-                (tool-bar-lines . 1)
-                (fontsize . 0)
-                (font-backend mac-ct ns))))
+    (quote
+        ((cursor-type . (bar . 3))
+            (internal-border-width . 0)
+            (modeline . t)
+            (fringe)
+            (cursor-color . "Red")
+            (tool-bar-lines . 1)
+            (fontsize . 0)
+            (font-backend mac-ct ns))))
 (setq-default whitespace-style (quote (face trailing spaces tabs)))
 
 (defalias 'yes-or-no #'y-or-n-p)
@@ -170,10 +128,10 @@
 (setq confirm-kill-emacs #'yes-or-no-p)
 
 (daemon-wrap my/confirm-client-exit
-             (define-advice save-buffers-kill-terminal (:around (oldfun &rest args) my/delete-client)
-               "Confirm deleting the client."
-               (interactive)
-               (when (y-or-n-p "Confirm exit ? ")
-                 (apply oldfun args))))
+    (define-advice save-buffers-kill-terminal (:around (oldfun &rest args) my/delete-client)
+        "Confirm deleting the client."
+        (interactive)
+        (when (y-or-n-p "Confirm exit ? ")
+            (apply oldfun args))))
 
 (provide 'my/basic)

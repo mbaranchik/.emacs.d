@@ -14,11 +14,11 @@
 (global-display-line-numbers-mode t)
 (put 'downcase-region 'disabled nil)
 (display-time-mode t)
-(if (config-wrap "use-visual-line-mode")
+(if (config-wrap "ui/visual-line-mode")
     (global-visual-line-mode 1)
-  (global-visual-line-mode 0)
+  (global-visual-line-mode -1)
   )
-(when (not (config-wrap "use-visual-line-mode"))
+(when (not (config-wrap "ui/visual-line-mode"))
   (defun disable-visual-line-mode()
     (setq-local line-move-visual nil))
   (add-hook 'prog-mode-hook 'disable-visual-line-mode)
@@ -36,7 +36,7 @@
   :config
   (setq aw-scope 'frame))
 
-(when (or (config-wrap "use-company") (config-wrap "use-corfu"))
+(when (or (string= (config-wrap "autocomplete") "company") (string= (config-wrap "autocomplete") "corfu"))
 ;; A few more useful configurations...
   (use-package emacs
     :straight nil
@@ -54,7 +54,7 @@
     (setq tab-always-indent 'complete))
 )
 
-(when (config-wrap "use-company")
+(when (string= (config-wrap "autocomplete") "company")
   (use-package company
     :hook (prog-mode . company-mode)
     :config
@@ -76,7 +76,7 @@
   ;;  )
   )
 
-(when (config-wrap "use-corfu")
+(when (string= (config-wrap "autocomplete") "corfu")
   (use-package corfu-terminal
   :straight (:type git
                    :repo "https://codeberg.org/akib/emacs-corfu-terminal.git")
@@ -199,7 +199,7 @@
 
 ;; Idle-Highlight-Mode
 (use-package idle-highlight-mode
-  :if (config-wrap "use-idle-highlight")
+  :if (config-wrap "ui/idle-highlight")
   :hook (prog-mode . idle-highlight-mode))
 
 ;; Highlight TODO

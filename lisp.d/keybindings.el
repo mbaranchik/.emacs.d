@@ -31,11 +31,11 @@
 
 (global-set-key (kbd "C-c C-c") 'comment-or-uncomment-region-or-line)
 
-(when (not (config-wrap "use-lsp-bridge"))
+(when (not (string= (config-wrap "lsp/package") "lsp-bridge"))
   (global-set-key (kbd "M-,") 'xref-pop-marker-stack)
   (global-set-key (kbd "M-t") 'xref-find-definitions)
   (global-set-key (kbd "M-T") 'xref-find-definitions-other-window)
-  (if (config-wrap "use-lsp-mode")
+  (if (string= (config-wrap "lsp/package") "lsp-mode")
       (global-set-key (kbd "M-r") 'lsp-find-references)
     (global-set-key (kbd "M-r") 'xref-find-references))
   )

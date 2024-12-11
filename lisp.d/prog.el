@@ -5,7 +5,7 @@
 (require 'my/basic (concat (expand-file-name (file-name-directory (or load-file-name (buffer-file-name) my/this))) "basic"))
 
 ;; Set modes aliasing
-(if (config-wrap "use-treesit")
+(if (config-wrap "treesit")
     (progn
       (defalias 'my/c-mode 'c-ts-mode)
       (defvaralias 'my/c-mode-hook 'c-ts-mode-hook)
@@ -55,10 +55,13 @@
 ;;  (when (boundp (car item))
 ;;    (set item (config-wrap "basic-indent-offset"))))
 
-(setq indent-tabs-mode (config-wrap "use-indent-tabs"))
+(if (config-wrap "indent/indent-tabs")
+    (indent-tabs-mode +1)
+    (indent-tabs-mode -1))
+(setq tab-width (config-wrap "indent/basic-offset"))
 
 ;; Treesit
-(when (config-wrap "use-treesit")
+(when (config-wrap "treesit")
   (require 'my/treesit-sources (concat (expand-file-name (file-name-directory (or load-file-name (buffer-file-name) my/this))) "treesit-sources"))
   (use-package treesit
     :straight nil
@@ -100,7 +103,7 @@
 (use-package sh-script
   :straight nil
   :config
-  (when (config-wrap "use-treesit")
+  (when (config-wrap "treesit")
     (add-to-list 'major-mode-remap-alist '(sh-mode . bash-ts-mode)))
   (add-to-list 'auto-mode-alist '("\\.cshrc\\'" . sh-mode))
   (add-to-list 'auto-mode-alist '("\\.csh\\'" . sh-mode)))
@@ -113,7 +116,7 @@
   (use-package edit-indirect)
   (setopt markdown-fontify-code-blocks-natively t))
 
-(when (config-wrap "basic-indent-offset")
+(when (config-wrap "indent/basic-offset")
     (dolist (item '(c-basic-offset
                        c-ts-mode-indent-offset
                        lisp-indent-offset
@@ -127,7 +130,7 @@
                        yaml-indent-offset
                        cmake-ts-mode-indent-offset))
         (when (boundp `,item)
-            (set item (config-wrap "basic-indent-offset")))))
+            (set item (config-wrap "indent/basic-offset")))))
 
 (use-package emacs
   :straight nil

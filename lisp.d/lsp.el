@@ -4,13 +4,13 @@
 (defvar my/this nil) (setq my/this (symbol-file 'my/this))
 (require 'my/basic (concat (expand-file-name (file-name-directory (or load-file-name (buffer-file-name) my/this))) "basic"))
 
-(when (config-wrap "use-eglot")
+(when (string= (config-wrap "lsp/package") "eglot")
   (defun my/eglot-enable (type)
-    (when (member type (config-wrap "lsp/enable-modes"))
+    (when (member (symbol-name type) (get-enabled-modes "lsp"))
       (hack-local-variables)
-      (when (config-wrap "use-which-function")
+      (when (config-wrap "ui/which-function")
         (which-function-mode))
-      (when (or (not (member type (config-wrap "ide/diagnostics-enable-modes"))) (not (config-wrap "use-flymake")))
+      (when (or (not (member type (get-enabled-modes "code-diag"))) (not (string= (config-wrap "code-diag/package") "flymake")))
         (remove-hook 'flymake-diagnostic-functions 'eglot-flymake-backend t)
         (flymake-mode 0)
         (add-to-list (make-local-variable 'eglot-stay-out-of) 'flymake))
@@ -37,31 +37,31 @@
     ((my/sh-mode) . (lambda () (my/eglot-enable 'bash)))
     :config
     ;;(push `((,(my/get-mode "c") ,(my/get-mode "c++") ,(my/get-mode "python")) . ("cwls")) eglot-server-programs))
-    (pcase (config-wrap "lsp/cpp-backend")
+    (pcase (config-wrap "lsp/cpp/server")
       ("ccls" (push `((,(my/get-mode "c") ,(my/get-mode "c++")) . ("ccls")) eglot-server-programs))
       ("clangd" (push `((,(my/get-mode "c") ,(my/get-mode "c++")) . ("clangd")) eglot-server-programs))
-      (_ (warn "Unknown option for 'lsp/cpp-backend': %s" (config-wrap "lsp/cpp-backend"))))
-    (pcase (config-wrap "lsp/py-backend")
+      (_ (warn "Unknown option for 'lsp/cpp/server': %s" (config-wrap "lsp/cpp/server"))))
+    (pcase (config-wrap "lsp/python/server")
       ("pylsp" (push `((,(my/get-mode "python")) . ("pylsp")) eglot-server-programs))
       ("pyright" (push `((,(my/get-mode "python")) . ("pyright-langserver" "--stdio")) eglot-server-programs))
       ("pylyzer" (push `((,(my/get-mode "python")) . ("pylyzer" "--server" "--verbose" "2")) eglot-server-programs))
-      (_ (warn "Unknown option for 'lsp/py-backend': %s" (config-wrap "lsp/py-backend")))))
+      (_ (warn "Unknown option for 'lsp/python/server': %s" (config-wrap "lsp/python/server")))))
   (use-package eglot-booster
     :straight (:host github :repo "jdtsmith/eglot-booster")
 	:after eglot
 	:config	(eglot-booster-mode))
   )
 
-(when (config-wrap "use-lsp-bridge")
+(when (string= (config-wrap "lsp/package") "lsp-bridge")
   (defun my/lsp-bridge-enable (type)
-    (when (member type (config-wrap "lsp/enable-modes"))
+    (when (member (symbol-name type) (get-enabled-modes "lsp"))
       (hack-local-variables)
       (lsp-bridge-mode)
-      (when (config-wrap "use-which-function")
+      (when (config-wrap "ui/which-function")
         (which-function-mode))
-      (when (config-wrap "use-flycheck")
+      (when (string= (config-wrap "code-diag/package") "flycheck")
         (flycheck-mode 0))
-      (when (config-wrap "use-flymake")
+      (when (string= (config-wrap "code-diag/package") "flymake")
         (flymake-mode 0))))
   (use-package markdown-mode)
   (use-package lsp-bridge
@@ -86,7 +86,7 @@
     (setq lsp-bridge-python-command (string-trim
                                      (shell-command-to-string "pyenv which python3")))
     :custom
-    (lsp-bridge-c-lsp-server (config-wrap "lsp/cpp-backend"))
+    (lsp-bridge-c-lsp-server (config-wrap "lsp/cpp/server"))
     (lsp-bridge-enable-hover-diagnostic t)
     (lsp-bridge-remote-start-automatically t)
     (acm-enable-yas t)
@@ -111,7 +111,7 @@
                  ))
   )
 
-(when (config-wrap "use-lsp-mode")
+(when (string= (config-wrap "lsp/package") "lsp-mode")
   (use-package lsp-mode
     :init
     ;; set prefix for lsp-command-keymap (few alternatives - "C-l", "C-c l")

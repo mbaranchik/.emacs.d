@@ -9,7 +9,7 @@
   :commands (magit magit-status vc-git-log-edit-mode)
   )
 
-(when (config-wrap "use-diff-hl")
+(when (config-wrap "ui/diff-hl")
   (use-package diff-hl
     :custom
     (diff-hl-disable-on-remote t)
