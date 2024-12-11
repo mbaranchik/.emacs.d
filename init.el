@@ -95,14 +95,17 @@
             (load-user-file "ide"))
 
 (bench-wrap "Navigation"
-            (load-user-file "navigation"))
+    (load-user-file "navigation"))
+
+(bench-wrap "TMUX"
+    (load-user-file "tmux"))
 
 (bench-wrap "Custom Hooks"
             (add-hook 'prog-mode-hook #'unshow-ws)
             ;; HACK
             ;; (add-hook 'c-mode-hook (lambda() (define-key c-mode-map (kbd "C-c C-c") nil)))
             ;; (add-hook 'c++-mode-hook (lambda() (define-key c++-mode-map (kbd "C-c C-c") nil)))
-            )
+    )
 
 ;; Load Ligatures ;;
 (use-package ligature
