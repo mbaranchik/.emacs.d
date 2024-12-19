@@ -56,8 +56,8 @@
 ;;    (set item (config-wrap "basic-indent-offset"))))
 
 (if (config-wrap "indent/indent-tabs")
-    (indent-tabs-mode +1)
-    (indent-tabs-mode -1))
+    (setq-default indent-tabs-mode t)
+    (setq-default indent-tabs-mode nil))
 (setq tab-width (config-wrap "indent/basic-offset"))
 
 ;; Treesit
