@@ -27,6 +27,28 @@
     (setq org-outline-path-complete-in-steps nil)
     (setq org-refile-allow-creating-parent-nodes 'confirm)
 
+    ;; Visual enhancements
+    (setq org-hide-emphasis-markers t)           ; Hide formatting markers
+    (setq org-pretty-entities t)                 ; Show entities as UTF8
+    (setq org-ellipsis "⤵")                     ; Custom ellipsis
+    (setq org-catch-invisible-edits 'show)      ; Show invisible edits
+    (setq org-list-allow-alphabetical t)        ; Enable alphabetical lists
+
+    ;; Only interpret subscripts when using curly brackets
+    (setq org-use-sub-superscripts '{})
+    
+    ;; Improve faces
+    (custom-set-faces
+        '(org-document-title ((t (:height 1.5 :weight bold))))
+        '(org-level-1 ((t (:height 1.3 :weight bold))))
+        '(org-level-2 ((t (:height 1.2 :weight bold))))
+        '(org-level-3 ((t (:height 1.1 :weight bold)))))
+
+    ;; Source block configuration
+    (setq org-src-fontify-natively t            ; Native code highlighting
+        org-src-tab-acts-natively t           ; Tab works as in native mode
+        org-src-preserve-indentation t)       ; Preserve source block indentation
+
     ;; Archive configuration
     (setq org-archive-reversed-order t)
     (setq org-archive-location "::* Archived Items")
@@ -45,7 +67,6 @@
     ;; General org settings
     (setq org-startup-folded 'content)           ; Start with content visible
     (setq org-startup-indented t)                ; Enable org-indent-mode by default
-    (setq org-pretty-entities t)                 ; Show entities as UTF8 characters
     (setq org-use-fast-todo-selection 'expert)   ; Fast todo selection
     (setq org-enforce-todo-dependencies t)       ; Block parent TODO if children not done
     (setq org-log-repeat 'time)                  ; Log time when repeating tasks
@@ -89,6 +110,26 @@
                                          "* %? [[%:link][%:description]] \nCaptured On: %U")
                                      ))
     )
+
+(use-package org-modern
+    :after org
+    :hook (org-mode . org-modern-mode)
+    :config
+    ;; (global-org-modern-mode)
+    ;; Customize org-modern style
+    (setq org-modern-star '("◉" "○" "●" "○" "●" "○" "●")
+        org-modern-hide-stars nil              ; Don't hide the leading stars
+        org-modern-timestamp t                 ; Pretty timestamp
+        org-modern-table nil))                 ; Keep default table style
+
+(use-package org-appear
+    :after org
+    :hook (org-mode . org-appear-mode)
+    :config
+    (setq org-appear-autolinks t)               ; Show hidden link parts
+    (setq org-appear-autosubmarkers t)          ; Show subscript/superscript markers
+    (setq org-appear-autoentities t))           ; Show entity markers
+
 (use-package org-roam
     :after org
     :demand t
