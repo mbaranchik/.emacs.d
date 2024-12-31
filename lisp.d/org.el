@@ -3,7 +3,12 @@
 (use-package org
     :straight (:type built-in)
     :demand t
+    :bind
+    (:map org-mode-map
+        ("C-c $" . org-archive-subtree-default-with-confirmation)
+        )
     :config
+    (setq org-directory "~/org-roam")
     (setq org-modules '(org-tempo
                        org-protocol
                        org-habit
@@ -14,6 +19,65 @@
     (setq org-agenda-start-with-log-mode t)
     (setq org-log-done 'time)
     (setq org-log-into-drawer t)
+
+    ;; Refile configuration
+    (setq org-refile-targets '((nil :maxlevel . 3)
+                              (org-agenda-files :maxlevel . 3)))
+    (setq org-refile-use-outline-path 'file)
+    (setq org-outline-path-complete-in-steps nil)
+    (setq org-refile-allow-creating-parent-nodes 'confirm)
+
+    ;; Archive configuration
+    (setq org-archive-reversed-order t)
+    (setq org-archive-location "::* Archived Items")
+    (setq org-archive-sibling-heading "Archived Items")
+    (setq org-archive-mark-done t)
+    (setq org-archive-default-command 'org-archive-to-archive-sibling)
+
+    ;; Make sure ID is included in archived entries
+    (setq org-archive-save-context-info '(time file category todo itags olpath))
+
+    ;; Ensure org-id is loaded
+    (require 'org-id)
+    (setq org-id-link-to-org-use-id t)
+    (setq org-id-method 'uuid)
+
+    ;; General org settings
+    (setq org-startup-folded 'content)           ; Start with content visible
+    (setq org-startup-indented t)                ; Enable org-indent-mode by default
+    (setq org-pretty-entities t)                 ; Show entities as UTF8 characters
+    (setq org-use-fast-todo-selection 'expert)   ; Fast todo selection
+    (setq org-enforce-todo-dependencies t)       ; Block parent TODO if children not done
+    (setq org-log-repeat 'time)                  ; Log time when repeating tasks
+
+    ;; Custom agenda views
+    (setq org-agenda-custom-commands
+        '(("d" "Dashboard"
+              ((agenda "" ((org-deadline-warning-days 7)))
+                  (todo "NEXT"
+                      ((org-agenda-overriding-header "Next Tasks")))
+                  (tags-todo "inbox"
+                      ((org-agenda-overriding-header "Inbox")
+                          (org-agenda-files '("~/org-roam/inbox.org"))))
+                  (tags-todo "PROJECT"
+                      ((org-agenda-overriding-header "Active Projects")))))
+             ("n" "Next Tasks"
+                 ((todo "NEXT"
+                      ((org-agenda-overriding-header "Next Tasks")))))
+             ("w" "Waiting Tasks"
+                 ((todo "WAITING"
+                      ((org-agenda-overriding-header "Waiting Tasks")))))))
+
+    ;; Tag hierarchy
+    (setq org-tag-alist '((:startgroup)
+                         ("@work" . ?w)
+                         ("@home" . ?h)
+                         (:endgroup)
+                         ("project" . ?p)
+                         ("idea" . ?i)
+                         ("meeting" . ?m)
+                         ("reading" . ?r)
+                         ("research" . ?s)))
 
     ;; Default TODO keywords
     (setq org-todo-keywords '((sequence "TODO(t)" "NEXT(n)" "WAITING(w)" "|" "DONE(d)" "CANCELLED(c)")))
@@ -35,6 +99,7 @@
     :config
     (require 'org-roam-dailies)
     (org-roam-db-autosync-mode +1)
+    (setq org-roam-file-extensions '("org" "org_archive"))
 
     ;; Configure org-roam to work with agenda
     (setq org-roam-dailies-capture-templates
@@ -75,7 +140,8 @@
     )
 
 (use-package org-roam-ui
-    :after org-roam)
+    :after org-roam
+    :commands org-roam-ui-mode)
 
 (use-package git-auto-commit-mode)
 
