@@ -20,20 +20,23 @@
                                emacs-llm-cookie-file
                                emacs-llm-cookie-file
                                emacs-llm-api-endpoint
-                               escaped-json)))
+                               escaped-json))
+         (buf (generate-new-buffer " *emacs-llm-curl*")))
     (message "Sending request to LLM...")
     (make-process
      :name "emacs-llm-curl"
-     :buffer " *emacs-llm-curl*"
+     :buffer buf
      :command (list "sh" "-c" curl-command)
      :sentinel (lambda (proc event)
                  (when (string= event "finished\n")
                    (with-current-buffer (process-buffer proc)
-                     (goto-char (point-min))
                      (let ((response (buffer-string)))
                        (if (string-match "\"completion\":\"\\(.*?\\)\"" response)
-                           (funcall callback (replace-regexp-in-string "\\\\" "" (match-string 1 response)))
-                         (funcall callback nil)))))))))
+                           (funcall callback 
+                                    (replace-regexp-in-string "\\\\" "" 
+                                                            (match-string 1 response)))
+                         (funcall callback nil))))
+                   (kill-buffer (process-buffer proc)))))))
 
 (defun emacs-llm-assist ()
   "Interactively ask the LLM for assistance."
@@ -73,6 +76,9 @@
          (context (buffer-substring-no-properties context-start (point))))
     context))
 
+(defvar-local emacs-llm-completion-cache nil
+  "Cache for completion candidates.")
+
 (defun emacs-llm-completion-at-point ()
   "Function to be added to `completion-at-point-functions'."
   (let ((bounds (bounds-of-thing-at-point 'symbol)))
@@ -80,17 +86,15 @@
           (or (cdr bounds) (point))
           (completion-table-dynamic
            (lambda (_)
-             (let* ((context (emacs-llm-get-context))
-                    (prompt (format "Complete the following code:\n\n%s" context))
-                    (completions '()))
+             (let ((context (emacs-llm-get-context)))
+               (setq emacs-llm-completion-cache nil)
                (emacs-llm-query-async
-                prompt
+                (format "Complete the following code:\n\n%s" context)
                 (lambda (response)
                   (when response
-                    (setq completions (split-string response "\n" t "[ \t\n\r]+")))))
-               (while (not completions)
-                 (sleep-for 0.1))
-               completions)))
+                    (setq emacs-llm-completion-cache
+                          (split-string response "\n" t "[ \t\n\r]+")))))
+               (or emacs-llm-completion-cache '()))))
           :exclusive 'no)))
 
 (define-minor-mode emacs-llm-mode
