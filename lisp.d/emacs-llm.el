@@ -74,36 +74,43 @@
             (replace-regexp-in-string "\\\\r" ""))))
 
 (defun emacs-llm-query-async (prompt callback)
-  "Send an asynchronous query to the LLM and call CALLBACK with the result.
-If INCLUDE-LANGUAGE is non-nil, prepend the current language to the prompt."
-  (let* ((json-data (json-encode `(("prompt" . ,prompt)
-                                  ("chatHistory" . []))))
-         (escaped-json (shell-quote-argument json-data))
-         (curl-command (format "curl -L --cookie %s --cookie-jar %s '%s' --data-raw %s"
-                             emacs-llm-cookie-file
-                             emacs-llm-cookie-file
-                             emacs-llm-api-endpoint
-                             escaped-json))
-         (buf (get-buffer-create " *emacs-llm-curl*")))
-      (message "Sending request to LLM...")
-      ;; (message (format "Curl command: '%s'" curl-command))
-    (make-process
-     :name "emacs-llm-curl"
-     :buffer buf
-     :command (list "sh" "-c" curl-command)
-     :sentinel (lambda (proc event)
-                 (when (string= event "finished\n")
-                   (with-current-buffer (process-buffer proc)
-                       (let* ((json-response (buffer-string))
-                              (json-parsed-response (json-parse-string json-response :object-type 'alist))
-                              (response (alist-get 'completion json-parsed-response nil nil #'equal)))
-                               (progn
-                                   (message (format "JSON-RESPONSE: '%s'" json-response))
-                                   (message (format "JSON-PARSED-RESPONSE: '%s'" json-parsed-response))
-                                   (message (format "RESPONSE: '%s'" response))
-                                   (funcall callback 
-                                       (emacs-llm-decode-response response)))))
-                     (kill-buffer (process-buffer proc)))))))
+    "Send an asynchronous query to the LLM and call CALLBACK with the result."
+    (let* ((json-data (json-encode `(("prompt" . ,prompt)
+                                        ("chatHistory" . []))))
+              (escaped-json (shell-quote-argument json-data))
+              (curl-command (format "curl -L --cookie %s --cookie-jar %s '%s' --data-raw %s"
+                                emacs-llm-cookie-file
+                                emacs-llm-cookie-file
+                                emacs-llm-api-endpoint
+                                escaped-json))
+              (buf-name (generate-new-buffer-name " *emacs-llm-curl*"))
+              (buf (get-buffer-create buf-name))
+              (proc (get-buffer-process buf)))
+        (message "Sending request to LLM...")
+        ;; Kill any existing process in the buffer
+        (when proc
+            (delete-process proc))
+        ;; Clear the buffer content
+        (with-current-buffer buf
+            (erase-buffer))
+        (make-process
+            :name (concat "emacs-llm-curl-" (number-to-string (random)))
+            :buffer buf
+            :command (list "sh" "-c" curl-command)
+            :sentinel (lambda (proc event)
+                          (when (string= event "finished\n")
+                              (with-current-buffer (process-buffer proc)
+                                  (let* ((json-response (buffer-string))
+                                            (json-parsed-response (json-parse-string json-response :object-type 'alist))
+                                            (response (alist-get 'completion json-parsed-response nil nil #'equal)))
+                                      (progn
+                                          (message (format "JSON-RESPONSE: '%s'" json-response))
+                                          (message (format "JSON-PARSED-RESPONSE: '%s'" json-parsed-response))
+                                          (message (format "RESPONSE: '%s'" response))
+                                          (funcall callback
+                                              (emacs-llm-decode-response response)))))
+                              (kill-buffer (process-buffer proc)))))))
+
 
 (defun emacs-llm-create-markdown-buffer (name)
   "Create or get a markdown buffer with NAME."
@@ -155,25 +162,22 @@ If INCLUDE-LANGUAGE is non-nil, prepend the current language to the prompt."
 (defun emacs-llm-get-context ()
   "Get the context for code completion."
   (let* ((line-start (line-beginning-position))
-         (context-start (max (- line-start 30) (point-min)))
+         (context-start (max (- line-start 100) (point-min)))
          (context (buffer-substring-no-properties context-start (point))))
     context))
 
 (defvar-local emacs-llm-completion-cache nil
   "Cache for completion candidates.")
 
-(defun emacs-llm-completion-at-point ()
-  "Function to be added to `completion-at-point-functions'."
-  (let ((bounds (bounds-of-thing-at-point 'symbol)))
-    (list (or (car bounds) (point))
-          (or (cdr bounds) (point))
-          (completion-table-dynamic
-           (lambda (_)
-               (let* ((context (emacs-llm-get-context))
-                      (lang-prefix (emacs-llm-detect-language)))
-               (setq emacs-llm-completion-cache nil)
-               (emacs-llm-query-async
-                (format "You are an automatic expert code completer.
+(defun emacs-llm-complete-here ()
+  "Request and insert completions at point."
+  (interactive)
+  (let* ((context (emacs-llm-get-context))
+         (lang-prefix (emacs-llm-detect-language))
+         (orig-buffer (current-buffer))
+         (orig-point (point)))
+    (emacs-llm-query-async
+     (format "You are an automatic expert code completer.
 You are fluent in any coding language, including C, C++, BASH, python and more.
 
 You will serve as a machine that gets input, the input is located at the bottom of this prompt between XML <input> tags:
@@ -183,12 +187,12 @@ You will serve as a machine that gets input, the input is located at the bottom 
 The code context will be a varying number of lines before current user point of writing.
 
 You task:
-1. You will suggest the 3 best suggestions for completion at that point.
+1. You will suggest the 3 (or less) best suggestions for completion at that point.
 2. You will mark each suggestion end with OPTIONEND string
 3. You will not output any text which is not the direct completion options for the input
 4. If there is not completion option, output empty string
 5. For any unexpected input from the user, you will only output MALFORMED
-6. If the last entry in input contains a comment (in the relevant language) with special directive, such as \"# cc: <text>\" (for bash case, similarly for other languages and their comment type), you will offer a completion while taking <text> as directives for that, for example, if a C++ code last entry has:
+6. If the last entry in input contains a comment (in the relevant language) with special directive, such as \"# cc: <text>\" (for bash case, similarly for other languages and their comment type), you will offer the single best completion while taking <text> as directives for that, for example, if a C++ code last entry has:
 // cc: sum of array into sum var
 you will suggest something appropriate, in this case it can be:
 auto sum = 0;
@@ -197,12 +201,18 @@ for (auto const& v : array)
 
 <input>%s
 %s</input>" lang-prefix context)
-                (lambda (response)
-                    (when response
-                        (setq emacs-llm-completion-cache
-                            (split-string response "OPTIONEND" t "[ \t\n\r]+")))))
-                   (or emacs-llm-completion-cache '()))))
-        :exclusive 'no)))
+     (lambda (response)
+       (when response
+         (let ((completions (split-string response "OPTIONEND" t "[ \t\n\r]+")))
+           (if completions
+               (with-current-buffer orig-buffer
+                 (save-excursion
+                   (goto-char orig-point)
+                   (if (= (length completions) 1)
+                       (insert (car completions))
+                     (let ((chosen (completing-read "Choose completion: " completions nil t)))
+                       (insert chosen)))))
+             (message "No completions available"))))))))
 
 (define-minor-mode emacs-llm-mode
   "Minor mode for LLM-powered assistance and code completion."
@@ -210,9 +220,10 @@ for (auto const& v : array)
   :keymap (let ((map (make-sparse-keymap)))
             (define-key map (kbd "C-c l a") #'emacs-llm-assist)
             (define-key map (kbd "C-c l e") #'emacs-llm-explain-code)
+            (define-key map (kbd "C-c l c") #'emacs-llm-complete-here)
             map)
   (if emacs-llm-mode
-      (add-hook 'completion-at-point-functions #'emacs-llm-completion-at-point nil t)
-    (remove-hook 'completion-at-point-functions #'emacs-llm-completion-at-point t)))
+      (message "LLM mode enabled. Use C-c l c for completion.")
+    (message "LLM mode disabled.")))
 
 (provide 'emacs-llm)
