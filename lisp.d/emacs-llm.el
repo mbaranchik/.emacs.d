@@ -2,6 +2,7 @@
 
 (require 'json)
 (require 'shell)
+(require 'markdown-mode)
 
 (defcustom emacs-llm-cookie-file (expand-file-name "~/.midway/cookie")
   "Path to the cookie file for LLM requests."
@@ -62,6 +63,16 @@
        "-mode$" ""
        (replace-regexp-in-string "-ts-mode$" "" (symbol-name major-mode)))))
 
+(defun emacs-llm-decode-response (response)
+    "Decode special characters in the LLM response string."
+    (when response
+        (thread-last response
+            (replace-regexp-in-string "\\\\n" "\n")
+            (replace-regexp-in-string "\\\\t" "\t")
+            (replace-regexp-in-string "\\\\\"" "\"")
+            (replace-regexp-in-string "\\\\\\\\" "\\")
+            (replace-regexp-in-string "\\\\r" ""))))
+
 (defun emacs-llm-query-async (prompt callback)
   "Send an asynchronous query to the LLM and call CALLBACK with the result.
 If INCLUDE-LANGUAGE is non-nil, prepend the current language to the prompt."
@@ -73,8 +84,9 @@ If INCLUDE-LANGUAGE is non-nil, prepend the current language to the prompt."
                              emacs-llm-cookie-file
                              emacs-llm-api-endpoint
                              escaped-json))
-         (buf (generate-new-buffer " *emacs-llm-curl*")))
-    (message "Sending request to LLM...")
+         (buf (get-buffer-create " *emacs-llm-curl*")))
+      (message "Sending request to LLM...")
+      ;; (message (format "Curl command: '%s'" curl-command))
     (make-process
      :name "emacs-llm-curl"
      :buffer buf
@@ -82,13 +94,23 @@ If INCLUDE-LANGUAGE is non-nil, prepend the current language to the prompt."
      :sentinel (lambda (proc event)
                  (when (string= event "finished\n")
                    (with-current-buffer (process-buffer proc)
-                     (let ((response (buffer-string)))
-                       (if (string-match "\"completion\":\"\\(.*?\\)\"" response)
-                           (funcall callback 
-                                  (replace-regexp-in-string "\\\\" "" 
-                                                          (match-string 1 response)))
-                         (funcall callback nil))))
-                   (kill-buffer (process-buffer proc)))))))
+                       (let* ((json-response (buffer-string))
+                              (json-parsed-response (json-parse-string json-response :object-type 'alist))
+                              (response (alist-get 'completion json-parsed-response nil nil #'equal)))
+                               (progn
+                                   (message (format "JSON-RESPONSE: '%s'" json-response))
+                                   (message (format "JSON-PARSED-RESPONSE: '%s'" json-parsed-response))
+                                   (message (format "RESPONSE: '%s'" response))
+                                   (funcall callback 
+                                       (emacs-llm-decode-response response)))))
+                     (kill-buffer (process-buffer proc)))))))
+
+(defun emacs-llm-create-markdown-buffer (name)
+  "Create or get a markdown buffer with NAME."
+  (with-current-buffer (get-buffer-create name)
+    (unless (derived-mode-p 'markdown-mode)
+      (markdown-mode))
+    (current-buffer)))
 
 (defun emacs-llm-assist ()
   "Interactively ask the LLM for assistance."
@@ -98,9 +120,10 @@ If INCLUDE-LANGUAGE is non-nil, prepend the current language to the prompt."
      prompt
      (lambda (response)
        (if response
-           (with-current-buffer (get-buffer-create "*LLM Conversation*")
+           (with-current-buffer (emacs-llm-create-markdown-buffer "*LLM Conversation*")
              (goto-char (point-max))
-             (insert (format "You: %s\n\nLLM: %s\n\n" prompt response))
+             (insert (format "### Question\n\n%s\n\n### Answer\n\n%s\n\n---\n\n" 
+                           prompt response))
              (display-buffer (current-buffer)))
          (message "Error: No valid response received from the LLM."))))))
 
@@ -109,14 +132,22 @@ If INCLUDE-LANGUAGE is non-nil, prepend the current language to the prompt."
   (interactive)
   (let* ((code (if (use-region-p)
                    (buffer-substring-no-properties (region-beginning) (region-end))
-                 (buffer-substring-no-properties (point-min) (point-max))))
+                   (buffer-substring-no-properties (point-min) (point-max))))
+         (lang-name (emacs-llm-detect-language))
          (prompt (format "Explain the following code:\n\n%s" code)))
     (emacs-llm-query-async
      prompt
      (lambda (response)
        (if response
-           (with-current-buffer (get-buffer-create "*Code Explanation*")
+           (with-current-buffer (emacs-llm-create-markdown-buffer "*Code Explanation*")
              (erase-buffer)
+             (insert "# Code Explanation\n\n")
+             (insert "## Original Code\n\n```")
+             (insert lang-name)
+             (insert "\n")
+             (insert code)
+             (insert "\n```\n\n")
+             (insert "## Explanation\n\n")
              (insert response)
              (display-buffer (current-buffer)))
          (message "Error: No valid response received from the LLM."))))))
@@ -124,7 +155,7 @@ If INCLUDE-LANGUAGE is non-nil, prepend the current language to the prompt."
 (defun emacs-llm-get-context ()
   "Get the context for code completion."
   (let* ((line-start (line-beginning-position))
-         (context-start (max (- line-start 500) (point-min)))
+         (context-start (max (- line-start 30) (point-min)))
          (context (buffer-substring-no-properties context-start (point))))
     context))
 
@@ -157,22 +188,21 @@ You task:
 3. You will not output any text which is not the direct completion options for the input
 4. If there is not completion option, output empty string
 5. For any unexpected input from the user, you will only output MALFORMED
-6. If the last entry in input contains a comment (in the relevant language) with special directive, such as 
-# cc: <text>
-(for bash case, similarly for other languages and their comment type), you will offer a completion while taking <text> as directives for that, for example, if a C++ code last entry has:
+6. If the last entry in input contains a comment (in the relevant language) with special directive, such as \"# cc: <text>\" (for bash case, similarly for other languages and their comment type), you will offer a completion while taking <text> as directives for that, for example, if a C++ code last entry has:
 // cc: sum of array into sum var
 you will suggest something appropriate, in this case it can be:
 auto sum = 0;
 for (auto const& v : array)
     sum += v;
 
-<input>%s\n%s</input>" lang-prefix context)
+<input>%s
+%s</input>" lang-prefix context)
                 (lambda (response)
-                  (when response
-                    (setq emacs-llm-completion-cache
-                          (split-string response "OPTIONEND" t "[ \t\n\r]+")))))
-               (or emacs-llm-completion-cache '()))))
-          :exclusive 'no)))
+                    (when response
+                        (setq emacs-llm-completion-cache
+                            (split-string response "OPTIONEND" t "[ \t\n\r]+")))))
+                   (or emacs-llm-completion-cache '()))))
+        :exclusive 'no)))
 
 (define-minor-mode emacs-llm-mode
   "Minor mode for LLM-powered assistance and code completion."
