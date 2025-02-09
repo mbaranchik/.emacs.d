@@ -4,6 +4,93 @@
 (require 'shell)
 (require 'markdown-mode)
 
+(defcustom emacs-llm-saved-contexts nil
+  "Persistent storage for LLM chat contexts and their histories."
+  :type '(alist :key-type string :value-type (repeat alist))
+    :group 'emacs-llm)
+
+(defvar emacs-llm-chat-contexts nil
+    "Hash table storing chat contexts by their names.")
+
+(defun emacs-llm-load-contexts ()
+  "Load saved contexts into the hash table."
+  (setq emacs-llm-chat-contexts (make-hash-table :test 'equal))
+  (dolist (context emacs-llm-saved-contexts)
+    (puthash (car context) (cdr context) emacs-llm-chat-contexts)))
+
+(defun emacs-llm-save-contexts ()
+  "Save contexts from hash table to persistent storage."
+  (setq emacs-llm-saved-contexts
+        (let (contexts)
+          (maphash (lambda (k v) (push (cons k v) contexts))
+                   emacs-llm-chat-contexts)
+          contexts))
+  (customize-save-variable 'emacs-llm-saved-contexts emacs-llm-saved-contexts))
+
+(defvar emacs-llm-current-context nil
+  "Current chat context name being used.")
+
+(defun emacs-llm-create-context (context-name)
+  "Create a new chat context with CONTEXT-NAME."
+  (interactive "sEnter new context name: ")
+  (if (gethash context-name emacs-llm-chat-contexts)
+      (message "Context '%s' already exists" context-name)
+    (puthash context-name '() emacs-llm-chat-contexts)
+    (setq emacs-llm-current-context context-name)
+      (emacs-llm-switch-to-context-buffer context-name)))
+
+(defun emacs-llm-remove-context ()
+  "Remove a chat context."
+  (interactive)
+  (let* ((contexts (hash-table-keys emacs-llm-chat-contexts))
+         (chosen (completing-read "Remove context: " contexts nil t)))
+    (when (equal chosen emacs-llm-current-context)
+      (setq emacs-llm-current-context nil))
+    (remhash chosen emacs-llm-chat-contexts)
+    (emacs-llm-save-contexts)
+    (let ((buf (get-buffer (emacs-llm-get-context-buffer-name chosen))))
+      (when buf
+        (kill-buffer buf)))
+    (message "Context '%s' removed" chosen)))
+
+(defun emacs-llm-list-contexts ()
+  "List all available chat contexts."
+  (interactive)
+  (let ((contexts (hash-table-keys emacs-llm-chat-contexts)))
+    (if contexts
+        (with-current-buffer (get-buffer-create "*LLM Contexts*")
+          (erase-buffer)
+          (markdown-mode)
+          (insert "# Available Chat Contexts\n\n")
+          (dolist (ctx contexts)
+            (insert (format "- %s%s\n"
+                          ctx
+                          (if (equal ctx emacs-llm-current-context)
+                              " (current)"
+                            ""))))
+          (display-buffer (current-buffer)))
+      (message "No chat contexts available"))))
+
+(defun emacs-llm-switch-context ()
+  "Switch to a different chat context."
+  (interactive)
+  (let* ((contexts (hash-table-keys emacs-llm-chat-contexts))
+         (chosen (completing-read "Choose context: " contexts nil t)))
+    (setq emacs-llm-current-context chosen)
+    (emacs-llm-switch-to-context-buffer chosen)))
+
+(defun emacs-llm-get-context-buffer-name (context-name)
+  "Get the buffer name for CONTEXT-NAME."
+  (format "*LLM Chat: %s*" context-name))
+
+(defun emacs-llm-switch-to-context-buffer (context-name)
+  "Switch to the buffer for CONTEXT-NAME."
+  (let ((buf-name (emacs-llm-get-context-buffer-name context-name)))
+    (with-current-buffer (get-buffer-create buf-name)
+      (unless (derived-mode-p 'markdown-mode)
+        (markdown-mode))
+      (display-buffer (current-buffer)))))
+
 (defcustom emacs-llm-cookie-file (expand-file-name "~/.midway/cookie")
   "Path to the cookie file for LLM requests."
   :type 'string
@@ -73,8 +160,52 @@
             (replace-regexp-in-string "\\\\\\\\" "\\")
             (replace-regexp-in-string "\\\\r" ""))))
 
+(defun emacs-llm-chat-query-async (prompt context-name callback)
+    "Send a query with chat history from CONTEXT-NAME to the LLM."
+    (let* ((chat-history (gethash context-name emacs-llm-chat-contexts))
+              (json-data (json-encode `(("prompt" . ,prompt)
+                                           ("chatHistory" . ,chat-history))))
+              (escaped-json (shell-quote-argument json-data))
+              (curl-command (format "curl -L --cookie %s --cookie-jar %s '%s' --data-raw %s"
+                                emacs-llm-cookie-file
+                                emacs-llm-cookie-file
+                                emacs-llm-api-endpoint
+                                escaped-json))
+              (buf-name (generate-new-buffer-name " *emacs-llm-curl*"))
+              (buf (get-buffer-create buf-name))
+              (proc (get-buffer-process buf)))
+        (message "Sending request to LLM...")
+        (message (format "CMD: '%s'" json-data))
+        (when proc
+            (delete-process proc))
+        (with-current-buffer buf
+            (erase-buffer))
+        (make-process
+            :name (concat "emacs-llm-curl-" (number-to-string (random)))
+            :buffer buf
+            :command (list "sh" "-c" curl-command)
+            :sentinel (lambda (proc event)
+                          (when (string= event "finished\n")
+                              (with-current-buffer (process-buffer proc)
+                                  (let* ((json-response (buffer-string))
+                                            (json-parsed-response 
+                                                (json-parse-string json-response :object-type 'alist))
+                                            (response (alist-get 'completion 
+                                                          json-parsed-response nil nil #'equal)))
+                                      (progn
+                                          (message (format "JSON-RESPONSE %s" json-response))
+                                          (when response
+                                              (push `(("role" . "user")
+                                                         ("content" . ,prompt)) chat-history)
+                                              (push `(("role" . "assistant")
+                                                         ("content" . ,response)) chat-history)
+                                              (puthash context-name chat-history emacs-llm-chat-contexts)
+                                              )
+                                          (funcall callback (emacs-llm-decode-response response)))))
+                              (kill-buffer (process-buffer proc)))))))
+
 (defun emacs-llm-query-async (prompt callback)
-    "Send an asynchronous query to the LLM and call CALLBACK with the result."
+    "Send a context-less query to the LLM."
     (let* ((json-data (json-encode `(("prompt" . ,prompt)
                                         ("chatHistory" . []))))
               (escaped-json (shell-quote-argument json-data))
@@ -87,10 +218,8 @@
               (buf (get-buffer-create buf-name))
               (proc (get-buffer-process buf)))
         (message "Sending request to LLM...")
-        ;; Kill any existing process in the buffer
         (when proc
             (delete-process proc))
-        ;; Clear the buffer content
         (with-current-buffer buf
             (erase-buffer))
         (make-process
@@ -101,14 +230,11 @@
                           (when (string= event "finished\n")
                               (with-current-buffer (process-buffer proc)
                                   (let* ((json-response (buffer-string))
-                                            (json-parsed-response (json-parse-string json-response :object-type 'alist))
-                                            (response (alist-get 'completion json-parsed-response nil nil #'equal)))
-                                      (progn
-                                          (message (format "JSON-RESPONSE: '%s'" json-response))
-                                          (message (format "JSON-PARSED-RESPONSE: '%s'" json-parsed-response))
-                                          (message (format "RESPONSE: '%s'" response))
-                                          (funcall callback
-                                              (emacs-llm-decode-response response)))))
+                                            (json-parsed-response 
+                                                (json-parse-string json-response :object-type 'alist))
+                                            (response (alist-get 'completion 
+                                                          json-parsed-response nil nil #'equal)))
+                                      (funcall callback (emacs-llm-decode-response response))))
                               (kill-buffer (process-buffer proc)))))))
 
 
@@ -119,35 +245,45 @@
       (markdown-mode))
     (current-buffer)))
 
-(defun emacs-llm-assist ()
-  "Interactively ask the LLM for assistance."
+(defun emacs-llm-chat ()
+  "Start or continue a chat with the LLM in the current context."
   (interactive)
+  (unless emacs-llm-current-context
+    (call-interactively #'emacs-llm-create-context))
   (let ((prompt (read-string "Ask LLM: ")))
-    (emacs-llm-query-async
+    (emacs-llm-chat-query-async
      prompt
+     emacs-llm-current-context
      (lambda (response)
        (if response
-           (with-current-buffer (emacs-llm-create-markdown-buffer "*LLM Conversation*")
+           (with-current-buffer (get-buffer-create 
+                                (emacs-llm-get-context-buffer-name 
+                                 emacs-llm-current-context))
              (goto-char (point-max))
              (insert (format "### Question\n\n%s\n\n### Answer\n\n%s\n\n---\n\n" 
                            prompt response))
              (display-buffer (current-buffer)))
          (message "Error: No valid response received from the LLM."))))))
 
-(defun emacs-llm-explain-code ()
-  "Ask the LLM to explain the code in the current region or buffer."
+(defun emacs-llm-explain-code-with-context ()
+  "Explain code with context awareness."
   (interactive)
+  (unless emacs-llm-current-context
+    (call-interactively #'emacs-llm-create-context))
   (let* ((code (if (use-region-p)
                    (buffer-substring-no-properties (region-beginning) (region-end))
                    (buffer-substring-no-properties (point-min) (point-max))))
          (lang-name (emacs-llm-detect-language))
          (prompt (format "Explain the following code:\n\n%s" code)))
-    (emacs-llm-query-async
+    (emacs-llm-chat-query-async
      prompt
+     emacs-llm-current-context
      (lambda (response)
        (if response
-           (with-current-buffer (emacs-llm-create-markdown-buffer "*Code Explanation*")
-             (erase-buffer)
+           (with-current-buffer (get-buffer-create 
+                                (emacs-llm-get-context-buffer-name 
+                                 emacs-llm-current-context))
+             (goto-char (point-max))
              (insert "# Code Explanation\n\n")
              (insert "## Original Code\n\n```")
              (insert lang-name)
@@ -156,10 +292,11 @@
              (insert "\n```\n\n")
              (insert "## Explanation\n\n")
              (insert response)
+             (insert "\n\n---\n\n")
              (display-buffer (current-buffer)))
          (message "Error: No valid response received from the LLM."))))))
 
-(defun emacs-llm-get-context ()
+(defun emacs-llm-get-code-context ()
   "Get the context for code completion."
   (let* ((line-start (line-beginning-position))
          (context-start (max (- line-start 100) (point-min)))
@@ -172,7 +309,7 @@
 (defun emacs-llm-complete-here ()
   "Request and insert completions at point."
   (interactive)
-  (let* ((context (emacs-llm-get-context))
+  (let* ((context (emacs-llm-get-code-context))
          (lang-prefix (emacs-llm-detect-language))
          (orig-buffer (current-buffer))
          (orig-point (point)))
@@ -218,12 +355,19 @@ for (auto const& v : array)
   "Minor mode for LLM-powered assistance and code completion."
   :lighter " LLM"
   :keymap (let ((map (make-sparse-keymap)))
-            (define-key map (kbd "C-c l a") #'emacs-llm-assist)
-            (define-key map (kbd "C-c l e") #'emacs-llm-explain-code)
+            (define-key map (kbd "C-c l a") #'emacs-llm-chat)
+            (define-key map (kbd "C-c l e") #'emacs-llm-explain-code-with-context)
             (define-key map (kbd "C-c l c") #'emacs-llm-complete-here)
+            (define-key map (kbd "C-c l n") #'emacs-llm-create-context)
+            (define-key map (kbd "C-c l s") #'emacs-llm-switch-context)
+            (define-key map (kbd "C-c l l") #'emacs-llm-list-contexts)
+            (define-key map (kbd "C-c l r") #'emacs-llm-remove-context)
             map)
   (if emacs-llm-mode
-      (message "LLM mode enabled. Use C-c l c for completion.")
+      (progn
+        (emacs-llm-load-contexts)
+        (message "LLM mode enabled. Use C-c l c for completion, C-c l n for new context."))
+    (emacs-llm-save-contexts)
     (message "LLM mode disabled.")))
 
 (provide 'emacs-llm)
