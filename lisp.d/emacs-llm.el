@@ -160,11 +160,31 @@
             (replace-regexp-in-string "\\\\\\\\" "\\")
             (replace-regexp-in-string "\\\\r" ""))))
 
+(defun hash-table-create (alist)
+  "Create a hash table from ALIST."
+  (let ((table (make-hash-table :test 'equal)))
+    (dolist (pair alist)
+      (puthash (car pair) (cdr pair) table))
+    table))
+
+;;(defun emacs-llm-format-message (role content)
+;;  "Format a chat message according to Bedrock's expected format."
+;;  `(("role" . ,role)
+;;    ("content" . [,(hash-table-create
+;;                    (list (cons "type" "text")
+;;                        (cons "text" content)))])))
+(defun emacs-llm-format-message (sender text)
+  "Format a chat message according to the expected format."
+  `(("sender" . ,sender)
+    ("text" . ,text)))
+
 (defun emacs-llm-chat-query-async (prompt context-name callback)
     "Send a query with chat history from CONTEXT-NAME to the LLM."
     (let* ((chat-history (gethash context-name emacs-llm-chat-contexts))
-              (json-data (json-encode `(("prompt" . ,prompt)
-                                           ("chatHistory" . ,chat-history))))
+              (json-data (json-encode 
+                             `(("prompt" . ,prompt)
+                                  ("chatHistory" . 
+                                      ,(vconcat chat-history)))))
               (escaped-json (shell-quote-argument json-data))
               (curl-command (format "curl -L --cookie %s --cookie-jar %s '%s' --data-raw %s"
                                 emacs-llm-cookie-file
@@ -193,14 +213,12 @@
                                             (response (alist-get 'completion 
                                                           json-parsed-response nil nil #'equal)))
                                       (progn
-                                          (message (format "JSON-RESPONSE %s" json-response))
                                           (when response
-                                              (push `(("role" . "user")
-                                                         ("content" . ,prompt)) chat-history)
-                                              (push `(("role" . "assistant")
-                                                         ("content" . ,response)) chat-history)
-                                              (puthash context-name chat-history emacs-llm-chat-contexts)
-                                              )
+                                              (setq chat-history 
+                                                  (append chat-history
+                                                      (list (emacs-llm-format-message "Human" prompt)
+                                                          (emacs-llm-format-message "Assistant" response))))
+                                              (puthash context-name chat-history emacs-llm-chat-contexts))
                                           (funcall callback (emacs-llm-decode-response response)))))
                               (kill-buffer (process-buffer proc)))))))
 
@@ -370,4 +388,4 @@ for (auto const& v : array)
     (emacs-llm-save-contexts)
     (message "LLM mode disabled.")))
 
-(provide 'emacs-llm)
+(provide 'my/emacs-llm)

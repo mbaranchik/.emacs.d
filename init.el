@@ -100,6 +100,9 @@
 (bench-wrap "TMUX"
     (load-user-file "tmux"))
 
+(bench-wrap "EMACS-LLM"
+    (load-user-file "emacs-llm"))
+
 (bench-wrap "Custom Hooks"
             (add-hook 'prog-mode-hook #'unshow-ws)
             ;; HACK
