@@ -104,10 +104,12 @@
     (setq org-todo-keywords '((sequence "TODO(t)" "NEXT(n)" "WAITING(w)" "|" "DONE(d)" "CANCELLED(c)")))
 
     (setq org-capture-templates `(
-	                                 ("p" "Protocol" entry (file+headline ,(concat org-directory "notes.org") "Inbox")
+	                             ("p" "Protocol" entry (file+headline ,(concat org-directory "/notes.org") "Inbox")
                                          "* %^{Title}\nSource: %u, %c\n #+BEGIN_QUOTE\n%i\n#+END_QUOTE\n\n\n%?")
-	                                 ("L" "Protocol Link" entry (file+headline ,(concat org-directory "notes.org") "Inbox")
+	                             ("L" "Protocol Link" entry (file+headline ,(concat org-directory "/notes.org") "Inbox")
                                          "* %? [[%:link][%:description]] \nCaptured On: %U")
+                                     ("i" "Inbox" entry (file+headline ,(concat org-directory "/inbox.org") "Inbox")
+                                         "* %^{Title}\n:PROPERTIES:\n:FROM: %^{From}\n:END:\n\n%^{Message}\n\nCaptured: %U\n")
                                      ))
     )
 
