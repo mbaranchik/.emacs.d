@@ -4,6 +4,83 @@
 (require 'shell)
 (require 'markdown-mode)
 
+(defgroup emacs-llm nil
+  "Customization group for emacs-llm."
+  :group 'applications)
+
+(defcustom emacs-llm-models
+  '(("AmazonNovaPro" . "amazon.nova-pro-v1:0")
+    ("Sonnet3.5v2" . "anthropic.claude-3-5-sonnet-20241022-v2:0")
+    ("Haiku3.5" . "anthropic.claude-3-5-haiku-20241022-v1:0"))
+  "Available LLM models and their IDs."
+  :type '(alist :key-type string :value-type string)
+  :group 'emacs-llm)
+
+(defcustom emacs-llm-chat-default-model "Sonnet3.5v2"
+  "Default model for chat and explanation."
+  :type `(choice ,@(mapcar (lambda (m) `(const ,(car m))) emacs-llm-models))
+  :group 'emacs-llm)
+
+(defcustom emacs-llm-completion-default-model "Haiku3.5"
+  "Default model for code completion."
+  :type `(choice ,@(mapcar (lambda (m) `(const ,(car m))) emacs-llm-models))
+  :group 'emacs-llm)
+
+(defcustom emacs-llm-temperature 1.0
+  "Temperature for model inference."
+  :type 'number
+  :group 'emacs-llm)
+
+(defcustom emacs-llm-top-p 1.0
+  "Top-P value for model inference."
+  :type 'number
+  :group 'emacs-llm)
+
+(defcustom emacs-llm-top-k 250
+  "Top-K value for model inference."
+  :type 'integer
+  :group 'emacs-llm)
+
+(defvar-local emacs-llm-current-chat-model nil
+  "Currently selected model for chat/explanation in this buffer.")
+
+(defvar-local emacs-llm-current-completion-model nil
+  "Currently selected model for completion in this buffer.")
+
+(defun emacs-llm-get-model-id (model-name)
+  "Get the model ID for MODEL-NAME."
+  (cdr (assoc model-name emacs-llm-models)))
+
+(defun emacs-llm-switch-chat-model ()
+  "Switch the model used for chat and explanation."
+  (interactive)
+  (let ((chosen (completing-read "Choose model for chat/explanation: "
+                               (mapcar #'car emacs-llm-models)
+                               nil t)))
+    (setq emacs-llm-current-chat-model chosen)
+    (message "Chat model switched to %s" chosen)))
+
+(defun emacs-llm-switch-completion-model ()
+  "Switch the model used for code completion."
+  (interactive)
+  (let ((chosen (completing-read "Choose model for completion: "
+                               (mapcar #'car emacs-llm-models)
+                               nil t)))
+    (setq emacs-llm-current-completion-model chosen)
+    (message "Completion model switched to %s" chosen)))
+
+(defun emacs-llm-get-inference-params (model-name)
+  "Get the model inference parameters as a JSON object, formatted for MODEL-NAME."
+  (if (string= model-name "AmazonNovaPro")
+      ;; Nova Pro format
+      `(("temperature" . ,emacs-llm-temperature)
+        ("topP" . ,emacs-llm-top-p)
+        ("topK" . ,emacs-llm-top-k))
+      ;; Claude format
+      `(("temperature" . ,emacs-llm-temperature)
+         ("top_p" . ,emacs-llm-top-p)
+         ("top_k" . ,emacs-llm-top-k))))
+
 (defcustom emacs-llm-saved-contexts nil
   "Persistent storage for LLM chat contexts and their histories."
   :type '(alist :key-type string :value-type (repeat alist))
@@ -150,15 +227,64 @@
        "-mode$" ""
        (replace-regexp-in-string "-ts-mode$" "" (symbol-name major-mode)))))
 
+;; (defun emacs-llm-decode-response (response)
+;;     "Decode special characters in the LLM response string."
+;;     (when response
+;;         (thread-last response
+;;             (replace-regexp-in-string "\\\\n" "\n")
+;;             (replace-regexp-in-string "\\\\t" "\t")
+;;             (replace-regexp-in-string "\\\\\"" "\"")
+;;             (replace-regexp-in-string "\\\\\\\\" "\\")
+;;             (replace-regexp-in-string "\\\\r" ""))))
+
+;; (defun emacs-llm-decode-response (response)
+;;   "Decode special characters in the LLM response string."
+;;   (when response
+;;     (let ((result response))
+;;       ;; First, handle escaped JSON sequences
+;;       (setq result (json-parse-string (json-encode result)))
+;;       ;; Then handle special characters
+;;       (setq result
+;;             (replace-regexp-in-string
+;;              (rx (or "\\n" "\\t" "\\\"" "\\\\" "\\r"))
+;;              (lambda (match)
+;;                (pcase match
+;;                  ("\\n" "\n")
+;;                  ("\\t" "\t")
+;;                  ("\\\"" "\"")
+;;                  ("\\\\" "\\")
+;;                  ("\\r" "")))
+;;              result))
+;;         result)))
+
 (defun emacs-llm-decode-response (response)
-    "Decode special characters in the LLM response string."
-    (when response
-        (thread-last response
-            (replace-regexp-in-string "\\\\n" "\n")
-            (replace-regexp-in-string "\\\\t" "\t")
-            (replace-regexp-in-string "\\\\\"" "\"")
-            (replace-regexp-in-string "\\\\\\\\" "\\")
-            (replace-regexp-in-string "\\\\r" ""))))
+  "Decode special characters in the LLM response string."
+  (when response
+    (condition-case nil
+        (with-temp-buffer
+          (insert response)
+          (goto-char (point-min))
+          ;; Handle newlines
+          (while (search-forward "\\n" nil t)
+            (replace-match "\n" nil t))
+          ;; Handle tabs
+          (goto-char (point-min))
+          (while (search-forward "\\t" nil t)
+            (replace-match "\t" nil t))
+          ;; Handle quotes
+          (goto-char (point-min))
+          (while (search-forward "\\\"" nil t)
+            (replace-match "\"" nil t))
+          ;; Handle backslashes
+          (goto-char (point-min))
+          (while (search-forward "\\\\" nil t)
+            (replace-match "\\" nil t))
+          ;; Handle carriage returns
+          (goto-char (point-min))
+          (while (search-forward "\\r" nil t)
+            (replace-match "" nil t))
+          (buffer-string))
+      (error response))))
 
 (defun hash-table-create (alist)
   "Create a hash table from ALIST."
@@ -181,10 +307,13 @@
 (defun emacs-llm-chat-query-async (prompt context-name callback)
     "Send a query with chat history from CONTEXT-NAME to the LLM."
     (let* ((chat-history (gethash context-name emacs-llm-chat-contexts))
-              (json-data (json-encode 
+              (model-name (or emacs-llm-current-chat-model
+                              emacs-llm-chat-default-model))
+              (json-data (json-encode
                              `(("prompt" . ,prompt)
-                                  ("chatHistory" . 
-                                      ,(vconcat chat-history)))))
+                               ("chatHistory" . ,(vconcat chat-history))
+                               ("model" . ,(emacs-llm-get-model-id model-name))
+                               ("modelInferenceParams" . ,(emacs-llm-get-inference-params model-name)))))
               (escaped-json (shell-quote-argument json-data))
               (curl-command (format "curl -L --cookie %s --cookie-jar %s '%s' --data-raw %s"
                                 emacs-llm-cookie-file
@@ -195,7 +324,7 @@
               (buf (get-buffer-create buf-name))
               (proc (get-buffer-process buf)))
         (message "Sending request to LLM...")
-        (message (format "CMD: '%s'" json-data))
+        ;; (message (format "CMD: '%S'" json-data))
         (when proc
             (delete-process proc))
         (with-current-buffer buf
@@ -224,8 +353,13 @@
 
 (defun emacs-llm-query-async (prompt callback)
     "Send a context-less query to the LLM."
-    (let* ((json-data (json-encode `(("prompt" . ,prompt)
-                                        ("chatHistory" . []))))
+    (let* ((model-name (or emacs-llm-current-completion-model
+                           emacs-llm-completion-default-model))
+              (json-data (json-encode
+                             `(("prompt" . ,prompt)
+                               ("chatHistory" . [])
+                               ("model" . ,(emacs-llm-get-model-id model-name))
+                               ("modelInferenceParams" . ,(emacs-llm-get-inference-params model-name)))))
               (escaped-json (shell-quote-argument json-data))
               (curl-command (format "curl -L --cookie %s --cookie-jar %s '%s' --data-raw %s"
                                 emacs-llm-cookie-file
@@ -236,6 +370,7 @@
               (buf (get-buffer-create buf-name))
               (proc (get-buffer-process buf)))
         (message "Sending request to LLM...")
+        ;; (message (format "CMD: '%S'" json-data))
         (when proc
             (delete-process proc))
         (with-current-buffer buf
@@ -380,6 +515,8 @@ for (auto const& v : array)
             (define-key map (kbd "C-c l s") #'emacs-llm-switch-context)
             (define-key map (kbd "C-c l l") #'emacs-llm-list-contexts)
             (define-key map (kbd "C-c l r") #'emacs-llm-remove-context)
+            (define-key map (kbd "C-c l m") #'emacs-llm-switch-chat-model)
+            (define-key map (kbd "C-c l M") #'emacs-llm-switch-completion-model)
             map)
   (if emacs-llm-mode
       (progn
