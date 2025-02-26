@@ -698,7 +698,54 @@
   "Cancel completion if the next command isn't a completion-related command."
   (unless (memq this-command '(emacs-llm-smart-tab
                               emacs-llm-accept-completion))
-      (emacs-llm-cancel-completion)))
+    (setq emacs-llm-completion-cancelled t)
+    (emacs-llm-cancel-completion)
+    (emacs-llm-stop-loading-animation)))
+
+(defvar-local emacs-llm-loading-overlay nil
+  "Overlay for the loading animation.")
+
+(defvar-local emacs-llm-loading-timer nil
+  "Timer for the loading animation.")
+
+(defvar-local emacs-llm-completion-cancelled nil
+  "Flag to indicate if completion was cancelled while waiting.")
+
+(defvar emacs-llm-loading-frames '("." ".." "...")
+  "Frames for the loading animation.")
+
+(defun emacs-llm-update-loading-animation ()
+  "Update the loading animation frame."
+  (when (and emacs-llm-loading-overlay
+             (overlay-buffer emacs-llm-loading-overlay))
+    (let* ((frames emacs-llm-loading-frames)
+           (current (overlay-get emacs-llm-loading-overlay 'frame-index))
+           (next (if (>= current (1- (length frames))) 0 (1+ current)))
+           (frame (nth next frames)))
+      (overlay-put emacs-llm-loading-overlay 'frame-index next)
+      (overlay-put emacs-llm-loading-overlay 'after-string
+                   (propertize frame 'face '(:foreground "gray50"))))))
+
+(defun emacs-llm-start-loading-animation ()
+  "Start the loading animation at point."
+  (emacs-llm-stop-loading-animation) ; Clean up any existing animation
+  (setq emacs-llm-completion-cancelled nil)
+  (let ((ov (make-overlay (point) (point))))
+    (setq emacs-llm-loading-overlay ov)
+    (overlay-put ov 'frame-index 0)
+    (overlay-put ov 'after-string
+                 (propertize "." 'face '(:foreground "gray50")))
+    (setq emacs-llm-loading-timer
+          (run-with-timer 0 0.3 #'emacs-llm-update-loading-animation))))
+
+(defun emacs-llm-stop-loading-animation ()
+  "Stop the loading animation and clean up."
+  (when emacs-llm-loading-timer
+    (cancel-timer emacs-llm-loading-timer)
+    (setq emacs-llm-loading-timer nil))
+  (when emacs-llm-loading-overlay
+    (delete-overlay emacs-llm-loading-overlay)
+    (setq emacs-llm-loading-overlay nil)))
 
 (defun emacs-llm-complete-here ()
   "Request and insert completions at point."
@@ -707,6 +754,7 @@
          (lang-prefix (emacs-llm-detect-language))
          (orig-buffer (current-buffer))
          (orig-point (point)))
+    (emacs-llm-start-loading-animation)
     (emacs-llm-query-async
 ;;      (format "You are an automatic expert code completer.
 ;; You are fluent in any coding language, including C, C++, BASH, python and more.
@@ -779,19 +827,13 @@ return total * 0.85"
         (format "<input>%s
 %s</input>" lang-prefix context)
      (lambda (response)
-       (when response
-         (let ((completions (split-string response "OPTIONEND" t "[ \t\n\r]+")))
-           (if completions
-               (with-current-buffer orig-buffer
-                 (save-excursion
-                     (goto-char orig-point)
-                     (emacs-llm-show-inline-completion response)
-                   ;; (if (= (length completions) 1)
-                   ;;     (insert (car completions))
-                   ;;   (let ((chosen (completing-read "Choose completion: " completions nil t)))
-                   ;;       (insert chosen)))
-                     ))
-               (message "No completions available"))))))))
+       (with-current-buffer orig-buffer
+         (emacs-llm-stop-loading-animation)
+         (unless emacs-llm-completion-cancelled
+           (when response
+             (save-excursion
+               (goto-char orig-point)
+               (emacs-llm-show-inline-completion response)))))))))
 
 ;;;;;;;;;;;;;;;;;;;;;
 ;; Mode Definition ;;
@@ -821,6 +863,8 @@ return total * 0.85"
         (add-hook 'pre-command-hook #'emacs-llm-maybe-cancel-completion nil t)
         (message "LLM mode enabled. Use C-c l c for completion, C-c l n for new context."))
     (remove-hook 'pre-command-hook #'emacs-llm-maybe-cancel-completion t)
+    (emacs-llm-cancel-completion)
+    (emacs-llm-stop-loading-animation)
     (when emacs-llm-current-overlay
       (delete-overlay emacs-llm-current-overlay))
       (message "LLM mode disabled.")))
