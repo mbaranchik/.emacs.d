@@ -464,7 +464,7 @@
               (buf (get-buffer-create buf-name))
               (proc (get-buffer-process buf)))
         (message "Sending request to LLM...")
-        (message (format "CMD:'%S'" prompt))
+        ;; (message (format "CMD:'%S'" prompt))
         (when proc
             (delete-process proc))
         (with-current-buffer buf
@@ -645,8 +645,60 @@
          (context (buffer-substring-no-properties context-start (point))))
     context))
 
-(defvar-local emacs-llm-completion-cache nil
-  "Cache for completion candidates.")
+(defvar-local emacs-llm-current-overlay nil
+  "Overlay for the current completion suggestion.")
+
+(defun emacs-llm-show-inline-completion (completion)
+  "Show COMPLETION inline at point as a greyed-out suggestion."
+  (when emacs-llm-current-overlay
+    (delete-overlay emacs-llm-current-overlay))
+  (when completion
+    (let ((ov (make-overlay (point) (point))))
+      (setq emacs-llm-current-overlay ov)
+      (overlay-put ov 'after-string
+                  (propertize completion
+                             'face '(:foreground "gray50")
+                             'completion-text completion))
+      ;; Store the point position
+      (overlay-put ov 'completion-point (point)))))
+
+(defun emacs-llm-accept-completion ()
+  "Accept the current completion suggestion."
+  (interactive)
+  (when emacs-llm-current-overlay
+    (let* ((completion (get-text-property 
+                       0 'completion-text
+                       (overlay-get emacs-llm-current-overlay 'after-string)))
+           (pos (overlay-get emacs-llm-current-overlay 'completion-point)))
+      ;; Remove the overlay first
+      (delete-overlay emacs-llm-current-overlay)
+      (setq emacs-llm-current-overlay nil)
+      ;; Then insert the completion at the stored position
+      (save-excursion
+        (goto-char pos)
+        (insert completion))
+      ;; Move point to end of inserted completion
+      (goto-char (+ pos (length completion))))
+    t))
+
+(defun emacs-llm-cancel-completion ()
+  "Cancel the current completion suggestion."
+  (interactive)
+  (when emacs-llm-current-overlay
+    (delete-overlay emacs-llm-current-overlay)
+    (setq emacs-llm-current-overlay nil)))
+
+(defun emacs-llm-smart-tab ()
+  "Accept completion if available, otherwise do normal TAB action."
+  (interactive)
+  (unless (emacs-llm-accept-completion)
+    (indent-for-tab-command)))
+
+(defun emacs-llm-maybe-cancel-completion ()
+  "Cancel completion if the next command isn't a completion-related command."
+  (unless (memq this-command '(emacs-llm-smart-tab
+                              emacs-llm-accept-completion))
+      (emacs-llm-cancel-completion)))
 
 (defun emacs-llm-complete-here ()
   "Request and insert completions at point."
@@ -707,7 +759,6 @@ Output Requirements
     Do NOT repeat any code that was already in the input
     Do NOT provide multiple alternatives or suggestions
     Output only code that would be valid at the cursor position
-    Provide 2 possible completions, You will mark each completion end with OPTIONEND string
 
 Example
 
@@ -733,12 +784,14 @@ return total * 0.85"
            (if completions
                (with-current-buffer orig-buffer
                  (save-excursion
-                   (goto-char orig-point)
-                   (if (= (length completions) 1)
-                       (insert (car completions))
-                     (let ((chosen (completing-read "Choose completion: " completions nil t)))
-                       (insert chosen)))))
-             (message "No completions available"))))))))
+                     (goto-char orig-point)
+                     (emacs-llm-show-inline-completion response)
+                   ;; (if (= (length completions) 1)
+                   ;;     (insert (car completions))
+                   ;;   (let ((chosen (completing-read "Choose completion: " completions nil t)))
+                   ;;       (insert chosen)))
+                     ))
+               (message "No completions available"))))))))
 
 ;;;;;;;;;;;;;;;;;;;;;
 ;; Mode Definition ;;
@@ -750,18 +803,32 @@ return total * 0.85"
             (define-key map (kbd "C-c l a") #'emacs-llm-chat)
             (define-key map (kbd "C-c l e") #'emacs-llm-explain-code-with-context)
             (define-key map (kbd "C-c l c") #'emacs-llm-complete-here)
+            (define-key map (kbd "C-c <tab>") #'emacs-llm-complete-here)
             (define-key map (kbd "C-c l n") #'emacs-llm-create-context)
             (define-key map (kbd "C-c l s") #'emacs-llm-switch-context)
             (define-key map (kbd "C-c l l") #'emacs-llm-list-contexts)
             (define-key map (kbd "C-c l r") #'emacs-llm-remove-context)
             (define-key map (kbd "C-c l m") #'emacs-llm-switch-chat-model)
             (define-key map (kbd "C-c l M") #'emacs-llm-switch-completion-model)
+            (define-key map [tab] #'emacs-llm-smart-tab)
+            (define-key map (kbd "TAB") #'emacs-llm-smart-tab)
             map)
   (if emacs-llm-mode
       (progn
         (unless emacs-llm-chat-contexts
-          (setq emacs-llm-chat-contexts (make-hash-table :test 'equal)))
+            (setq emacs-llm-chat-contexts (make-hash-table :test 'equal)))
+        ;; Set up completion cancellation for any command except TAB
+        (add-hook 'pre-command-hook #'emacs-llm-maybe-cancel-completion nil t)
         (message "LLM mode enabled. Use C-c l c for completion, C-c l n for new context."))
-    (message "LLM mode disabled.")))
+    (remove-hook 'pre-command-hook #'emacs-llm-maybe-cancel-completion t)
+    (when emacs-llm-current-overlay
+      (delete-overlay emacs-llm-current-overlay))
+      (message "LLM mode disabled.")))
+
+(define-globalized-minor-mode global-emacs-llm-mode
+  emacs-llm-mode
+  (lambda ()
+    (when (not (minibufferp))
+      (emacs-llm-mode 1))))
 
 (provide 'my/emacs-llm)

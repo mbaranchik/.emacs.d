@@ -101,7 +101,8 @@
     (load-user-file "tmux"))
 
 (bench-wrap "EMACS-LLM"
-    (load-user-file "emacs-llm"))
+    (load-user-file "emacs-llm")
+    (global-emacs-llm-mode +1))
 
 (bench-wrap "Custom Hooks"
             (add-hook 'prog-mode-hook #'unshow-ws)
