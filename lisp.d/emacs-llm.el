@@ -838,6 +838,7 @@ return total * 0.85"
 ;;;;;;;;;;;;;;;;;;;;;
 ;; Mode Definition ;;
 ;;;;;;;;;;;;;;;;;;;;;
+;;;###autoload
 (define-minor-mode emacs-llm-mode
   "Minor mode for LLM-powered assistance and code completion."
   :lighter " LLM"
@@ -855,6 +856,7 @@ return total * 0.85"
             (define-key map [tab] #'emacs-llm-smart-tab)
             (define-key map (kbd "TAB") #'emacs-llm-smart-tab)
             map)
+  :global nil  ; Make it buffer-local by default
   (if emacs-llm-mode
       (progn
         (unless emacs-llm-chat-contexts
@@ -869,10 +871,34 @@ return total * 0.85"
       (delete-overlay emacs-llm-current-overlay))
       (message "LLM mode disabled.")))
 
+(defcustom emacs-llm-ignored-modes
+  '(fundamental-mode special-mode dired-mode)
+  "Major modes where emacs-llm should not be enabled automatically."
+  :type '(repeat symbol)
+  :group 'emacs-llm)
+
+(defcustom emacs-llm-enabled-modes nil
+  "If non-nil, only enable emacs-llm in these major modes.
+If nil, enable in all modes except those in `emacs-llm-ignored-modes'."
+  :type '(choice (const :tag "All modes except ignored" nil)
+                (repeat symbol))
+  :group 'emacs-llm)
+
+(defun emacs-llm-maybe-enable ()
+  "Enable emacs-llm-mode if appropriate for current buffer."
+  (when (and (not (minibufferp))
+             (not (derived-mode-p 'special-mode))
+             (not (string-prefix-p " " (buffer-name)))
+             (not (member major-mode emacs-llm-ignored-modes))
+             (or (null emacs-llm-enabled-modes)
+                 (member major-mode emacs-llm-enabled-modes)))
+    (emacs-llm-mode 1)))
+
+;;;###autoload
 (define-globalized-minor-mode global-emacs-llm-mode
   emacs-llm-mode
   (lambda ()
-    (when (not (minibufferp))
-      (emacs-llm-mode 1))))
+    (emacs-llm-maybe-enable))
+  :group 'emacs-llm)
 
 (provide 'my/emacs-llm)
