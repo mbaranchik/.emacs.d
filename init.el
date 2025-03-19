@@ -102,7 +102,7 @@
 
 (bench-wrap "Elevate"
     (load-user-file "elevate")
-    (global-elevate-mode 1))
+    (load-user-file "elevate-setup"))
 
 (bench-wrap "Custom Hooks"
             (add-hook 'prog-mode-hook #'unshow-ws)
