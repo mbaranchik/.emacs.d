@@ -15,10 +15,10 @@
 ;; Model Definitions ;;
 ;;;;;;;;;;;;;;;;;;;;;;;
 (defcustom elevate-models
-  '(("AmazonNovaPro" . "amazon.nova-pro-v1:0")
-    ("Sonnet3.5v2" . "anthropic.claude-3-5-sonnet-20241022-v2:0")
-    ("Haiku3.5" . "anthropic.claude-3-5-haiku-20241022-v1:0")
-    ("Sonnet3.7Think" . "anthropic.claude-3-7-sonnet-20250219-v1:0"))
+  '(("AmazonNovaPro" . "us.amazon.nova-pro-v1:0")
+    ("Sonnet3.5v2" . "us.anthropic.claude-3-5-sonnet-20241022-v2:0")
+    ("Haiku3.5" . "us.anthropic.claude-3-5-haiku-20241022-v1:0")
+    ("Sonnet3.7Think" . "us.anthropic.claude-3-7-sonnet-20250219-v1:0"))
   "Available LLM models and their IDs."
   :type '(alist :key-type string :value-type string)
   :group 'elevate)
@@ -100,14 +100,14 @@ Higher values allow more creativity."
   "Get the model inference parameters as a JSON object, formatted for MODEL-NAME.
 If IS-COMPLETION is non-nil, use completion-specific parameters."
   (let ((temp (if is-completion
-                  emacs-llm-completion-temperature
-                emacs-llm-chat-temperature))
+                  elevate-completion-temperature
+                elevate-chat-temperature))
         (top-p (if is-completion
-                   emacs-llm-completion-top-p
-                 emacs-llm-chat-top-p))
+                   elevate-completion-top-p
+                 elevate-chat-top-p))
         (top-k (if is-completion
-                   emacs-llm-completion-top-k
-                 emacs-llm-chat-top-k)))
+                   elevate-completion-top-k
+                 elevate-chat-top-k)))
       (if (string= model-name "AmazonNovaPro")
           ;; Nova Pro format
           `(("temperature" . ,temp)
@@ -408,10 +408,13 @@ If IS-COMPLETION is non-nil, use completion-specific parameters."
                                   )
                               (kill-buffer (process-buffer proc)))))))
 
-(defun elevate-query-async (prompt callback &optional system)
+(defun elevate-query-async (prompt callback complete &optional system)
     "Send a context-less query to the LLM."
-    (let* ((model-name (or elevate-current-completion-model
-                           elevate-completion-default-model))
+    (let* ((model-name (if complete
+                           (or elevate-current-completion-model
+                               elevate-completion-default-model)
+                           (or elevate-current-chat-model
+                               elevate-completion-default-model)))
               (chat-history (list (elevate-format-message "Human" (or system ""))))
               (json-data (json-encode
                              `(("prompt" . ,prompt)
@@ -430,6 +433,7 @@ If IS-COMPLETION is non-nil, use completion-specific parameters."
               (buf (get-buffer-create buf-name))
               (proc (get-buffer-process buf)))
         (message "Sending request to LLM...")
+        ;; (message "CMD: '%S'" json-data)
         (when proc
             (delete-process proc))
         (with-current-buffer buf
@@ -536,22 +540,19 @@ If IS-COMPLETION is non-nil, use completion-specific parameters."
 (defun elevate-chat-no-context ()
   "Send single LLM query without context"
   (interactive)
-  (unless elevate-current-context
-    (call-interactively #'elevate-create-context))
   (let ((prompt (read-string "Ask LLM: ")))
-    (elevate-chat-query-async
+    (elevate-query-async
      prompt
-     elevate-current-context
      (lambda (response)
        (if response
            (with-current-buffer (get-buffer-create
-                                (elevate-get-context-buffer-name
-                                 elevate-current-context))
+                                (elevate-get-context-buffer-name "Elevate"))
              (goto-char (point-max))
              (insert (format "### Question\n\n%s\n\n### Answer\n\n%s\n\n---\n\n"
                            prompt response))
              (display-buffer (current-buffer)))
-         (message "Error: No valid response received from the LLM."))))))
+           (message "Error: No valid response received from the LLM.")))
+        nil)))
 
 (defun elevate-explain-code-with-context ()
   "Explain code with context awareness."
@@ -573,12 +574,12 @@ If IS-COMPLETION is non-nil, use completion-specific parameters."
                                  elevate-current-context))
              (goto-char (point-max))
              (insert "# Code Explanation\n\n")
-             (insert "## Original Code\n\n```")
-             (insert lang-name)
-             (insert "\n")
-             (insert code)
-             (insert "\n```\n\n")
-             (insert "## Explanation\n\n")
+             ;; (insert "## Original Code\n\n```")
+             ;; (insert lang-name)
+             ;; (insert "\n")
+             ;; (insert code)
+             ;; (insert "\n```\n\n")
+             ;; (insert "## Explanation\n\n")
              (insert response)
              (insert "\n\n---\n\n")
              (display-buffer (current-buffer)))
@@ -605,12 +606,12 @@ If IS-COMPLETION is non-nil, use completion-specific parameters."
                                  elevate-current-context))
              (goto-char (point-max))
              (insert "# Code Explanation\n\n")
-             (insert "## Original Code\n\n```")
-             (insert lang-name)
-             (insert "\n")
-             (insert code)
-             (insert "\n```\n\n")
-             (insert "## Explanation\n\n")
+             ;; (insert "## Original Code\n\n```")
+             ;; (insert lang-name)
+             ;; (insert "\n")
+             ;; (insert code)
+             ;; (insert "\n```\n\n")
+             ;; (insert "## Explanation\n\n")
              (insert response)
              (insert "\n\n---\n\n")
              (display-buffer (current-buffer)))
@@ -797,6 +798,7 @@ return total * 0.85"
                         (save-excursion
                             (goto-char orig-point)
                             (elevate-show-inline-completion response))))))
+        t
         elevate-complete-system-prompt)))
 
 ;;;;;;;;;;;;;;;;;;;;;
