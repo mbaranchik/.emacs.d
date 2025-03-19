@@ -12,7 +12,8 @@
              elevate-create-context
              elevate-switch-context
              elevate-list-contexts
-             elevate-remove-context)
+             elevate-remove-context
+             elevate-refactor-region)
   :hook ((prog-mode . elevate-mode))
   :bind (:map elevate-mode-map
          ("C-c l a" . elevate-chat)
@@ -24,7 +25,8 @@
          ("C-c l l" . elevate-list-contexts)
          ("C-c l r" . elevate-remove-context)
          ("C-c l m" . elevate-switch-chat-model)
-         ("C-c l M" . elevate-switch-completion-model))
+         ("C-c l M" . elevate-switch-completion-model)
+         ("C-c l f" . elevate-refactor-region))
   :custom
   ;; Define modes to skip (non-programming modes where we don't want elevate)
   (elevate-ignored-modes

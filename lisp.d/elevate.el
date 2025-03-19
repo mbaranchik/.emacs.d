@@ -810,9 +810,136 @@ return total * 0.85"
         t
         elevate-complete-system-prompt)))
 
+
+;;;;;;;;;;;;;;;;;;;;;;;;;
+;; Refactoring Support ;;
+;;;;;;;;;;;;;;;;;;;;;;;;;
+
+(defcustom elevate-refactor-system-prompt "You are an advanced code refactoring assistant embedded in an IDE.
+Your task is to refactor the provided code according to the user's instructions.
+
+The code region will be enclosed in <input> tags with the following structure:
+- First line: Name of the programming language
+- All subsequent lines: Existing code up to the cursor position where completion is needed
+
+The refactoring instructions will be enclosed in <instruct> tags
+
+Your Task:
+Refactor the code according to the user's instructions. Your refactoring should:
+- Maintain the exact same functionality
+- Follow the user's specific instructions precisely
+- Preserve the original code's style, indentation, and naming conventions
+- Maintain the same whitespace patterns at the beginning and end of the code
+
+Output Requirements:
+- Provide ONLY the refactored code - no explanations, notes, or markdown
+- Do NOT include any text like 'Here's the refactored code:' or similar
+- Do NOT include code fence markers like ```
+- Return ONLY the refactored code that will directly replace the original
+
+Example:
+
+Input:
+
+<input>
+Python
+result = []
+for i in range(10):
+    if i % 2 == 0:
+        result.append(i * 2)
+</input>
+<instruct>
+Convert the for loop to a list comprehension
+</instruct>
+
+Output:
+result = [i * 2 for i in range(10) if i % 2 == 0]"
+  "System prompt for code refactoring"
+  :type 'string
+  :group 'elevate)
+
+
+
+(defcustom elevate-refactor-input-pattern "<input>%s\n%s</input>\n<instruct>%s</instruct>"
+  "System prompt for code refactoring"
+  :type 'string
+  :group 'elevate)
+
+(defun elevate-refactor-region ()
+  "Refactor the selected region according to user instructions."
+  (interactive)
+  (if (not (use-region-p))
+      (message "No region selected. Please select a region first.")
+    (let* ((region-start (region-beginning))
+           (region-end (region-end))
+           (code (buffer-substring-no-properties region-start region-end))
+           (lang-prefix (elevate-detect-language))
+           (instructions (read-string "Refactoring instructions: "))
+           (prompt (format elevate-refactor-input-pattern lang-prefix code instructions))
+           (refactor-overlay nil))
+
+      ;; Show loading indicator
+      (elevate-start-loading-animation)
+
+      ;; Query the LLM for refactoring
+      (elevate-query-async
+       prompt
+       (lambda (response)
+         ;; Stop loading animation
+         (elevate-stop-loading-animation)
+
+         (if (not response)
+             (message "Error: No valid response received from the LLM.")
+           ;; Create overlay to preview the changes
+           (setq refactor-overlay (make-overlay region-start region-end))
+           (overlay-put refactor-overlay 'face '(:background "gray20"))
+           (overlay-put refactor-overlay 'after-string
+                       (propertize (concat "\n\n--- Proposed Refactoring ---\n"
+                                         response
+                                         "\n\n[y] to accept, [n] or any other key to cancel")
+                                  'face '(:background "gray15" :foreground "green")))
+
+           ;; Store the refactored code in the overlay for later use
+           (overlay-put refactor-overlay 'refactored-code response)
+
+           ;; Set up a one-time keypress handler
+           (let ((map (make-sparse-keymap)))
+             (define-key map (kbd "y")
+                        (lambda ()
+                          (interactive)
+                          (when refactor-overlay
+                            (let ((new-code (overlay-get refactor-overlay 'refactored-code)))
+                              (delete-overlay refactor-overlay)
+                              (delete-region region-start region-end)
+                              (goto-char region-start)
+                              (insert new-code)
+                              (message "Refactoring applied.")))))
+
+             (define-key map (kbd "n")
+                        (lambda ()
+                          (interactive)
+                          (when refactor-overlay
+                            (delete-overlay refactor-overlay)
+                            (message "Refactoring cancelled."))))
+
+             ;; Set a transient keymap that will be active just for the next key
+             (set-transient-map
+              map
+              (lambda ()
+                ;; This function is called after the next key is pressed
+                ;; Return nil to remove the transient map
+                ;; Also clean up the overlay if it wasn't accepted
+                (when refactor-overlay
+                  (delete-overlay refactor-overlay)
+                  (message "Refactoring cancelled."))
+                  nil)))))
+          nil
+          elevate-refactor-system-prompt))))
+
 ;;;;;;;;;;;;;;;;;;;;;
 ;; Mode Definition ;;
 ;;;;;;;;;;;;;;;;;;;;;
+
 ;;;###autoload
 (define-minor-mode elevate-mode
   "Minor mode for LLM-powered assistance and code completion."
