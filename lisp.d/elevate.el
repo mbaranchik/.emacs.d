@@ -237,14 +237,23 @@ If IS-COMPLETION is non-nil, use completion-specific parameters."
   (let* ((available-contexts (delete-dups
                              (append (hash-table-keys elevate-chat-contexts)
                                    (elevate-list-saved-contexts))))
-         (chosen (completing-read "Choose context: " available-contexts nil t)))
-    ;; Load the context if needed
-    (unless (gethash chosen elevate-chat-contexts)
-      (elevate-load-context chosen))
-    ;; Debug output
-    (message "Context loaded")
-    (setq elevate-current-context chosen)
-    (elevate-switch-to-context-buffer chosen)))
+         (chosen (completing-read "Choose context: " available-contexts nil t))
+         (current-context-buffer (and elevate-current-context
+                                     (get-buffer (elevate-get-context-buffer-name elevate-current-context)))))
+
+    ;; If switching to the same context, just display the buffer without reloading
+    (if (and elevate-current-context (string= chosen elevate-current-context))
+        (when current-context-buffer
+          (display-buffer current-context-buffer)
+          (message "Already in context '%s'" chosen))
+
+      ;; Otherwise, load the new context
+      (unless (gethash chosen elevate-chat-contexts)
+        (elevate-load-context chosen))
+
+      (setq elevate-current-context chosen)
+      (elevate-switch-to-context-buffer chosen)
+      (message "Switched to context '%s'" chosen))))
 
 (defun elevate-remove-context ()
   "Remove a chat context."
@@ -645,7 +654,7 @@ If IS-COMPLETION is non-nil, use completion-specific parameters."
   "Accept the current completion suggestion."
   (interactive)
   (when elevate-current-overlay
-    (let* ((completion (get-text-property 
+    (let* ((completion (get-text-property
                        0 'completion-text
                        (overlay-get elevate-current-overlay 'after-string)))
            (pos (overlay-get elevate-current-overlay 'completion-point)))
