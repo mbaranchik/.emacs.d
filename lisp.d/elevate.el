@@ -19,18 +19,28 @@
     ("Sonnet3.5v2" . "us.anthropic.claude-3-5-sonnet-20241022-v2:0")
     ("Haiku3.5" . "us.anthropic.claude-3-5-haiku-20241022-v1:0")
     ("Sonnet3.7Think" . "us.anthropic.claude-3-7-sonnet-20250219-v1:0"))
-  "Available LLM models and their IDs."
+  "Available Amazon LLM models and their IDs."
+  :type '(alist :key-type string :value-type string)
+  :group 'elevate)
+
+(defcustom elevate-openai-models
+  '(("GPT-4o" . "gpt-4o")
+    ("GPT-4-Turbo" . "gpt-4-turbo")
+    ("GPT-3.5-Turbo" . "gpt-3.5-turbo"))
+  "Available OpenAI models and their IDs."
   :type '(alist :key-type string :value-type string)
   :group 'elevate)
 
 (defcustom elevate-chat-default-model "Sonnet3.5v2"
   "Default model for chat and explanation."
-  :type `(choice ,@(mapcar (lambda (m) `(const ,(car m))) elevate-models))
+  :type `(choice ,@(mapcar (lambda (m) `(const ,(car m)))
+                          (append elevate-models elevate-openai-models)))
   :group 'elevate)
 
 (defcustom elevate-completion-default-model "Haiku3.5"
   "Default model for code completion."
-  :type `(choice ,@(mapcar (lambda (m) `(const ,(car m))) elevate-models))
+  :type `(choice ,@(mapcar (lambda (m) `(const ,(car m)))
+                          (append elevate-models elevate-openai-models)))
   :group 'elevate)
 
 ;; For code completion
@@ -83,25 +93,44 @@ Can be either 'markdown or 'org-mode."
 
 (defun elevate-get-model-id (model-name)
   "Get the model ID for MODEL-NAME."
-  (cdr (assoc model-name elevate-models)))
+  (or (cdr (assoc model-name elevate-models))
+      (cdr (assoc model-name elevate-openai-models))))
 
 (defun elevate-switch-chat-model ()
   "Switch the model used for chat and explanation."
   (interactive)
-  (let ((chosen (completing-read "Choose model for chat/explanation: "
-                               (mapcar #'car elevate-models)
-                               nil t)))
+  (let* ((models-list (append (mapcar #'car elevate-models)
+                             (mapcar #'car elevate-openai-models)))
+         (chosen (completing-read "Choose model for chat/explanation: "
+                                models-list nil t)))
     (setq elevate-current-chat-model chosen)
     (message "Chat model switched to %s" chosen)))
 
 (defun elevate-switch-completion-model ()
   "Switch the model used for code completion."
   (interactive)
-  (let ((chosen (completing-read "Choose model for completion: "
-                               (mapcar #'car elevate-models)
-                               nil t)))
+  (let* ((models-list (append (mapcar #'car elevate-models)
+                             (mapcar #'car elevate-openai-models)))
+         (chosen (completing-read "Choose model for completion: "
+                                models-list nil t)))
     (setq elevate-current-completion-model chosen)
     (message "Completion model switched to %s" chosen)))
+
+(defun elevate-switch-api-provider ()
+  "Switch between API providers (Amazon or OpenAI)."
+  (interactive)
+  (let ((provider (completing-read "Choose API provider: "
+                                 '("amazon" "openai")
+                                 nil t)))
+    (setq elevate-api-provider (intern provider))
+    (message "API provider switched to %s" provider)
+
+    ;; If switching to OpenAI and API key is not set, prompt for it
+    (when (and (eq elevate-api-provider 'openai)
+              (string= elevate-openai-api-key ""))
+      (let ((api-key (read-string "Enter OpenAI API key: ")))
+        (setq elevate-openai-api-key api-key)
+        (message "OpenAI API key set")))))
 
 (defun elevate-get-inference-params (model-name &optional is-completion)
   "Get the model inference parameters as a JSON object, formatted for MODEL-NAME.
@@ -115,15 +144,22 @@ If IS-COMPLETION is non-nil, use completion-specific parameters."
         (top-k (if is-completion
                    elevate-completion-top-k
                  elevate-chat-top-k)))
-      (if (string= model-name "AmazonNovaPro")
-          ;; Nova Pro format
-          `(("temperature" . ,temp)
-               ("topP" . ,top-p)
-               ("topK" . ,top-k))
-          ;; Claude format
-          `(("temperature" . ,temp)
-               ("top_p" . ,top-p)
-               ("top_k" . ,top-k)))))
+    (cond
+     ;; OpenAI model format
+     ((assoc model-name elevate-openai-models)
+      `(("temperature" . ,temp)
+        ("top_p" . ,top-p)
+        ("max_tokens" . 2048)))
+     ;; Amazon Nova Pro format
+     ((string= model-name "AmazonNovaPro")
+      `(("temperature" . ,temp)
+        ("topP" . ,top-p)
+        ("topK" . ,top-k)))
+     ;; Claude format (default)
+     (t
+      `(("temperature" . ,temp)
+        ("top_p" . ,top-p)
+        ("top_k" . ,top-k))))))
 
 ;;;;;;;;;;;;;;;;;;;;;
 ;; Context Support ;;
@@ -227,9 +263,9 @@ If IS-COMPLETION is non-nil, use completion-specific parameters."
           (let ((human-msg (alist-get 'text (car entry)))
                 (assistant-msg (alist-get 'text (cadr entry))))
             (if (eq elevate-output-format 'markdown)
-                (insert (format "## Question\n\n%s\n\n## Answer\n\n%s\n\n---\n\n"
+                (insert (format "## Question\n\n%s\n\n## Answer\n\n%s\n\n"
                               human-msg assistant-msg))
-              (insert (format "* Question\n\n%s\n\n* Answer\n\n%s\n\n---\n\n"
+              (insert (format "* Question\n\n%s\n\n* Answer\n\n%s\n\n"
                             human-msg assistant-msg)))))))))
 
 (defun elevate-debug-context (context-name)
@@ -318,14 +354,40 @@ If IS-COMPLETION is non-nil, use completion-specific parameters."
 ;;;;;;;;;;;;;;;;;;;;;
 ;; Connection Info ;;
 ;;;;;;;;;;;;;;;;;;;;;
+(defcustom elevate-api-provider 'amazon
+  "API provider for LLM requests.
+Can be 'amazon for internal Amazon API or 'openai for OpenAI API."
+  :type '(choice (const amazon)
+                 (const openai))
+  :group 'elevate)
+
 (defcustom elevate-cookie-file (expand-file-name "~/.midway/cookie")
-  "Path to the cookie file for LLM requests."
+  "Path to the cookie file for Amazon LLM requests."
   :type 'string
   :group 'elevate)
 
 (defcustom elevate-api-endpoint "https://api.chat.com.amazon.dev"
-  "API endpoint for the LLM service."
+  "API endpoint for the Amazon LLM service."
   :type 'string
+  :group 'elevate)
+
+(defcustom elevate-openai-api-key "dummy-key"
+  "API key for OpenAI API access.
+This is required when using the OpenAI API provider."
+  :type 'string
+  :group 'elevate)
+
+(defcustom elevate-openai-api-endpoint "http://localhost:8000/v1/chat/completions"
+  "API endpoint for OpenAI API."
+  :type 'string
+  :group 'elevate)
+
+(defcustom elevate-openai-models
+  '(("GPT-4o" . "gpt-4o")
+    ("GPT-4-Turbo" . "gpt-4-turbo")
+    ("GPT-3.5-Turbo" . "gpt-3.5-turbo"))
+  "Available OpenAI models and their IDs."
+  :type '(alist :key-type string :value-type string)
   :group 'elevate)
 
 
@@ -364,7 +426,12 @@ If IS-COMPLETION is non-nil, use completion-specific parameters."
 (defun elevate-format-message (sender text)
   "Format a chat message according to the expected format."
   `(("sender" . ,sender)
-       ("text" . ,text)))
+    ("text" . ,text)))
+
+(defun elevate-format-openai-message (role content)
+  "Format a message for OpenAI API."
+  `(("role" . ,role)
+    ("content" . ,content)))
 
 (defun elevate-with-temp-file (prefix content)
   "Create a temporary file with PREFIX and CONTENT, return path."
@@ -373,114 +440,276 @@ If IS-COMPLETION is non-nil, use completion-specific parameters."
       (insert content))
     temp-file))
 
+(defun elevate-is-openai-model (model-name)
+  "Return t if MODEL-NAME is an OpenAI model."
+  (assoc model-name elevate-openai-models))
+
 (defun elevate-chat-query-async (prompt context-name callback)
-    "Send a query with chat history from CONTEXT-NAME to the LLM."
-    ;; Ensure context is loaded
-    (unless (gethash context-name elevate-chat-contexts)
-        (elevate-load-context context-name))
-    (let* ((chat-history (or (gethash context-name elevate-chat-contexts) '()))
-              (model-name (or elevate-current-chat-model
-                              elevate-chat-default-model))
-              (json-data (json-encode
-                             `(("prompt" . ,prompt)
-                               ("chatHistory" . ,(vconcat chat-history))
-                               ("model" . ,(elevate-get-model-id model-name))
-                               ("modelInferenceParams" . ,(elevate-get-inference-params model-name nil)))))
-              (request-file (elevate-with-temp-file "llm-request-" json-data))
-              (response-file (make-temp-file "llm-response-"))
-              (curl-command (format "curl -L --cookie %s --cookie-jar %s '%s' --data-binary @%s -o %s"
-                                elevate-cookie-file
-                                elevate-cookie-file
-                                elevate-api-endpoint
-                                request-file
-                                response-file))
-              (buf-name (generate-new-buffer-name " *elevate-curl*"))
-              (buf (get-buffer-create buf-name))
-              (proc (get-buffer-process buf)))
+  "Send a query with chat history from CONTEXT-NAME to the LLM."
+  ;; Ensure context is loaded
+  (unless (gethash context-name elevate-chat-contexts)
+    (elevate-load-context context-name))
+
+  (let* ((chat-history (or (gethash context-name elevate-chat-contexts) '()))
+         (model-name (or elevate-current-chat-model
+                        elevate-chat-default-model)))
+
+    (if (elevate-is-openai-model model-name)
+        ;; Use OpenAI API
+        (elevate-openai-chat-query-async prompt chat-history model-name
+                                        (lambda (response)
+                                          (when response
+                                            (setq chat-history
+                                                 (append chat-history
+                                                        (list (elevate-format-message "Human" prompt)
+                                                             (elevate-format-message "Assistant" response))))
+                                            (puthash context-name chat-history elevate-chat-contexts)
+                                            ;; Save context after updating
+                                            (elevate-save-context context-name))
+                                          (funcall callback response)))
+
+      ;; Use Amazon API
+      (let* ((json-data (json-encode
+                        `(("prompt" . ,prompt)
+                          ("chatHistory" . ,(vconcat chat-history))
+                          ("model" . ,(elevate-get-model-id model-name))
+                          ("modelInferenceParams" . ,(elevate-get-inference-params model-name nil)))))
+             (request-file (elevate-with-temp-file "llm-request-" json-data))
+             (response-file (make-temp-file "llm-response-"))
+             (curl-command (format "curl -L --cookie %s --cookie-jar %s '%s' --data-binary @%s -o %s"
+                                 elevate-cookie-file
+                                 elevate-cookie-file
+                                 elevate-api-endpoint
+                                 request-file
+                                 response-file))
+             (buf-name (generate-new-buffer-name " *elevate-curl*"))
+             (buf (get-buffer-create buf-name))
+             (proc (get-buffer-process buf)))
+
         (message "Sending request to LLM...")
         (when proc
-            (delete-process proc))
+          (delete-process proc))
         (with-current-buffer buf
-            (erase-buffer))
+          (erase-buffer))
+
         (make-process
-            :name (concat "elevate-curl-" (number-to-string (random)))
-            :buffer buf
-            :command (list "sh" "-c" curl-command)
-            :sentinel (lambda (proc event)
-                          (when (string= event "finished\n")
-                                      (let ((json-response (with-temp-buffer
-                                                               (insert-file-contents response-file)
-                                                               (buffer-string))))
-                                          (let* ((json-parsed-response
-                                                     (json-parse-string json-response :object-type 'alist))
-                                                    (response (alist-get 'completion
-                                                                  json-parsed-response nil nil #'equal)))
-                                      (progn
-                                          (when response
-                                              (setq chat-history
-                                                  (append chat-history
-                                                      (list (elevate-format-message "Human" prompt)
-                                                          (elevate-format-message "Assistant" response))))
-                                              (puthash context-name chat-history elevate-chat-contexts)
-                                              ;; Save context after updating
-                                              (elevate-save-context context-name))
-                                          (funcall callback (elevate-decode-response response)))))
-                              ;; Clean up
-                              (ignore-errors
-                                  (delete-file request-file)
-                                  (delete-file response-file)
-                                  )
-                              (kill-buffer (process-buffer proc)))))))
+         :name (concat "elevate-curl-" (number-to-string (random)))
+         :buffer buf
+         :command (list "sh" "-c" curl-command)
+         :sentinel (lambda (proc event)
+                     (when (string= event "finished\n")
+                       (let ((json-response (with-temp-buffer
+                                             (insert-file-contents response-file)
+                                             (buffer-string))))
+                         (let* ((json-parsed-response
+                                (json-parse-string json-response :object-type 'alist))
+                                (response (alist-get 'completion
+                                                   json-parsed-response nil nil #'equal)))
+                           (progn
+                             (when response
+                               (setq chat-history
+                                     (append chat-history
+                                            (list (elevate-format-message "Human" prompt)
+                                                 (elevate-format-message "Assistant" response))))
+                               (puthash context-name chat-history elevate-chat-contexts)
+                               ;; Save context after updating
+                               (elevate-save-context context-name))
+                             (funcall callback (elevate-decode-response response)))))
+                       ;; Clean up
+                       (ignore-errors
+                         (delete-file request-file)
+                         (delete-file response-file))
+                       (kill-buffer (process-buffer proc)))))))))
+
+(defun elevate-openai-chat-query-async (prompt chat-history model-name callback)
+  "Send a query to OpenAI API with PROMPT and CHAT-HISTORY using MODEL-NAME.
+Call CALLBACK with the response."
+  (if (string= elevate-openai-api-key "")
+      (progn
+        (message "Error: OpenAI API key not set. Please set elevate-openai-api-key.")
+        (funcall callback nil))
+
+    (let* ((openai-messages
+            (append
+             ;; Convert chat history to OpenAI format
+             (cl-loop for msg in chat-history by #'cddr
+                     for human-msg = msg
+                     for ai-msg = (cadr (member msg chat-history))
+                     when human-msg
+                     collect (elevate-format-openai-message
+                             "user"
+                             (alist-get 'text human-msg))
+                     when ai-msg
+                     collect (elevate-format-openai-message
+                             "assistant"
+                             (alist-get 'text ai-msg)))
+             ;; Add the current prompt
+             (list (elevate-format-openai-message "user" prompt))))
+
+           (json-data (json-encode
+                      `(("model" . ,(elevate-get-model-id model-name))
+                        ("messages" . ,openai-messages)
+                        ("temperature" . ,(alist-get 'temperature (elevate-get-inference-params model-name)))
+                        ("max_tokens" . 2048))))
+
+           (request-file (elevate-with-temp-file "openai-request-" json-data))
+           (response-file (make-temp-file "openai-response-"))
+           (curl-command (format "curl -s -X POST %s -H \"Content-Type: application/json\" -H \"Authorization: Bearer %s\" --data-binary @%s -o %s"
+                               elevate-openai-api-endpoint
+                               elevate-openai-api-key
+                               request-file
+                               response-file))
+           (buf-name (generate-new-buffer-name " *elevate-openai*"))
+           (buf (get-buffer-create buf-name))
+           (proc (get-buffer-process buf)))
+
+      (message "Sending request to OpenAI...")
+      (when proc
+        (delete-process proc))
+      (with-current-buffer buf
+        (erase-buffer))
+
+      (make-process
+       :name (concat "elevate-openai-" (number-to-string (random)))
+       :buffer buf
+       :command (list "sh" "-c" curl-command)
+       :sentinel (lambda (proc event)
+                   (when (string= event "finished\n")
+                     (let ((json-response (with-temp-buffer
+                                           (insert-file-contents response-file)
+                                           (buffer-string))))
+                       (condition-case err
+                           (let* ((json-parsed-response
+                                  (json-parse-string json-response :object-type 'alist))
+                                  (choices (alist-get 'choices json-parsed-response nil nil #'equal))
+                                  (first-choice (aref choices 0))
+                                  (message-obj (alist-get 'message first-choice nil nil #'equal))
+                                  (response (alist-get 'content message-obj nil nil #'equal)))
+                             (funcall callback response))
+                         (error
+                          (message "Error parsing OpenAI response: %s" (error-message-string err))
+                          (funcall callback nil)))
+                       ;; Clean up
+                       (ignore-errors
+                         (delete-file request-file)
+                         (delete-file response-file))
+                       (kill-buffer (process-buffer proc)))))))))
 
 (defun elevate-query-async (prompt callback complete &optional system)
-    "Send a context-less query to the LLM."
-    (let* ((model-name (if complete
-                           (or elevate-current-completion-model
-                               elevate-completion-default-model)
-                           (or elevate-current-chat-model
-                               elevate-completion-default-model)))
-              (chat-history (list (elevate-format-message "Human" (or system ""))))
-              (json-data (json-encode
-                             `(("prompt" . ,prompt)
-                               ("chatHistory" . ,chat-history)
-                               ("model" . ,(elevate-get-model-id model-name))
-                               ("modelInferenceParams" . ,(elevate-get-inference-params model-name t)))))
-              (request-file (elevate-with-temp-file "llm-request-" json-data))
-              (response-file (make-temp-file "llm-response-"))
-              (curl-command (format "curl -L --cookie %s --cookie-jar %s '%s' --data-binary @%s -o %s"
-                                elevate-cookie-file
-                                elevate-cookie-file
-                                elevate-api-endpoint
-                                request-file
-                                response-file))
-              (buf-name (generate-new-buffer-name " *elevate-curl*"))
-              (buf (get-buffer-create buf-name))
-              (proc (get-buffer-process buf)))
+  "Send a context-less query to the LLM."
+  (let* ((model-name (if complete
+                        (or elevate-current-completion-model
+                            elevate-completion-default-model)
+                        (or elevate-current-chat-model
+                            elevate-chat-default-model))))
+
+    (if (elevate-is-openai-model model-name)
+        ;; Use OpenAI API
+        (let ((messages (list (elevate-format-openai-message "system" (or system "You are a helpful assistant."))
+                             (elevate-format-openai-message "user" prompt))))
+          (elevate-openai-query-async messages model-name callback))
+
+      ;; Use Amazon API
+      (let* ((chat-history (list (elevate-format-message "Human" (or system ""))))
+             (json-data (json-encode
+                        `(("prompt" . ,prompt)
+                          ("chatHistory" . ,chat-history)
+                          ("model" . ,(elevate-get-model-id model-name))
+                          ("modelInferenceParams" . ,(elevate-get-inference-params model-name t)))))
+             (request-file (elevate-with-temp-file "llm-request-" json-data))
+             (response-file (make-temp-file "llm-response-"))
+             (curl-command (format "curl -L --cookie %s --cookie-jar %s '%s' --data-binary @%s -o %s"
+                                 elevate-cookie-file
+                                 elevate-cookie-file
+                                 elevate-api-endpoint
+                                 request-file
+                                 response-file))
+             (buf-name (generate-new-buffer-name " *elevate-curl*"))
+             (buf (get-buffer-create buf-name))
+             (proc (get-buffer-process buf)))
+
         (message "Sending request to LLM...")
-        ;; (message "CMD: '%S'" json-data)
         (when proc
-            (delete-process proc))
+          (delete-process proc))
         (with-current-buffer buf
-            (erase-buffer))
+          (erase-buffer))
+
         (make-process
-            :name (concat "elevate-curl-" (number-to-string (random)))
-            :buffer buf
-            :command (list "sh" "-c" curl-command)
-            :sentinel (lambda (proc event)
-                          (when (string= event "finished\n")
-                                  (let ((json-response (with-temp-buffer
-                                                           (insert-file-contents response-file)
-                                                           (buffer-string))))
-                                      (let* ((json-parsed-response
-                                                 (json-parse-string json-response :object-type 'alist))
-                                                (response (alist-get 'completion
-                                                              json-parsed-response nil nil #'equal)))
-                                          (funcall callback (elevate-decode-response response))))
-                              ;; Clean up
-                              (ignore-errors
-                                  (delete-file request-file)
-                                  (delete-file response-file))
-                              (kill-buffer (process-buffer proc)))))))
+         :name (concat "elevate-curl-" (number-to-string (random)))
+         :buffer buf
+         :command (list "sh" "-c" curl-command)
+         :sentinel (lambda (proc event)
+                     (when (string= event "finished\n")
+                       (let ((json-response (with-temp-buffer
+                                             (insert-file-contents response-file)
+                                             (buffer-string))))
+                         (let* ((json-parsed-response
+                                (json-parse-string json-response :object-type 'alist))
+                                (response (alist-get 'completion
+                                                   json-parsed-response nil nil #'equal)))
+                           (funcall callback (elevate-decode-response response))))
+                       ;; Clean up
+                       (ignore-errors
+                         (delete-file request-file)
+                         (delete-file response-file))
+                       (kill-buffer (process-buffer proc)))))))))
+
+(defun elevate-openai-query-async (messages model-name callback)
+  "Send a query to OpenAI API with MESSAGES using MODEL-NAME.
+Call CALLBACK with the response."
+  (if (string= elevate-openai-api-key "")
+      (progn
+        (message "Error: OpenAI API key not set. Please set elevate-openai-api-key.")
+        (funcall callback nil))
+
+    (let* ((json-data (json-encode
+                      `(("model" . ,(elevate-get-model-id model-name))
+                        ("messages" . ,messages)
+                        ("temperature" . ,(alist-get 'temperature (elevate-get-inference-params model-name)))
+                        ("max_tokens" . 2048))))
+
+           (request-file (elevate-with-temp-file "openai-request-" json-data))
+           (response-file (make-temp-file "openai-response-"))
+           (curl-command (format "curl -s -X POST %s -H \"Content-Type: application/json\" -H \"Authorization: Bearer %s\" --data-binary @%s -o %s"
+                               elevate-openai-api-endpoint
+                               elevate-openai-api-key
+                               request-file
+                               response-file))
+           (buf-name (generate-new-buffer-name " *elevate-openai*"))
+           (buf (get-buffer-create buf-name))
+           (proc (get-buffer-process buf)))
+
+      (message "Sending request to OpenAI...")
+      (when proc
+        (delete-process proc))
+      (with-current-buffer buf
+        (erase-buffer))
+
+      (make-process
+       :name (concat "elevate-openai-" (number-to-string (random)))
+       :buffer buf
+       :command (list "sh" "-c" curl-command)
+       :sentinel (lambda (proc event)
+                   (when (string= event "finished\n")
+                     (let ((json-response (with-temp-buffer
+                                           (insert-file-contents response-file)
+                                           (buffer-string))))
+                       (condition-case err
+                           (let* ((json-parsed-response
+                                  (json-parse-string json-response :object-type 'alist))
+                                  (choices (alist-get 'choices json-parsed-response nil nil #'equal))
+                                  (first-choice (aref choices 0))
+                                  (message-obj (alist-get 'message first-choice nil nil #'equal))
+                                  (response (alist-get 'content message-obj nil nil #'equal)))
+                             (funcall callback response))
+                         (error
+                          (message "Error parsing OpenAI response: %s" (error-message-string err))
+                          (funcall callback nil)))
+                       ;; Clean up
+                       (ignore-errors
+                         (delete-file request-file)
+                         (delete-file response-file))
+                       (kill-buffer (process-buffer proc)))))))))
 
 ;;;;;;;;;;;;;;;;;;;;;
 ;; UX/UI Utilities ;;
@@ -567,9 +796,9 @@ If IS-COMPLETION is non-nil, use completion-specific parameters."
                                  elevate-current-context))
              (goto-char (point-max))
              (if (eq elevate-output-format 'markdown)
-                 (insert (format "## Question\n\n%s\n\n## Answer\n\n%s\n\n---\n\n"
+                 (insert (format "## Question\n\n%s\n\n## Answer\n\n%s\n\n"
                                prompt response))
-               (insert (format "* Question\n\n%s\n\n* Answer\n\n%s\n\n---\n\n"
+               (insert (format "* Question\n\n%s\n\n* Answer\n\n%s\n\n"
                              prompt response)))
              (display-buffer (current-buffer)))
          (message "Error: No valid response received from the LLM."))))))
@@ -589,10 +818,16 @@ If IS-COMPLETION is non-nil, use completion-specific parameters."
                                 (elevate-get-context-buffer-name "Elevate"))
              (goto-char (point-max))
              (if (eq elevate-output-format 'markdown)
-                 (insert (format "## Question\n\n%s\n\n## Answer\n\n%s\n\n---\n\n"
+                 (insert (format "## Question\n\n%s\n\n## Answer\n\n%s\n\n"
                                prompt response))
-               (insert (format "* Question\n\n%s\n\n* Answer\n\n%s\n\n---\n\n"
-                             prompt response)))
+               (insert (format "* Question\n\n%s\n\n* Answer\n\n%s\n\n"
+                           prompt response)))
+             ;; Set the appropriate mode based on output format preference
+             (if (eq elevate-output-format 'markdown)
+                 (unless (derived-mode-p 'markdown-mode)
+                     (markdown-mode))
+                 (unless (derived-mode-p 'org-mode)
+                     (org-mode)))
              (display-buffer (current-buffer)))
            (message "Error: No valid response received from the LLM.")))
         nil)))
@@ -640,7 +875,7 @@ If IS-COMPLETION is non-nil, use completion-specific parameters."
          (format-instruction (if (eq elevate-output-format 'markdown)
                                 "Always use markdown format for answers."
                               "Always use org-mode format for answers, start with second-level headings."))
-         (prompt (format "%s Answer the following while using content in CODE XML tag as context:\n\n%s\n\n<CODE>%s</CODE>" 
+         (prompt (format "%s Answer the following while using content in CODE XML tag as context:\n\n%s\n\n<CODE>%s</CODE>"
                         format-instruction user-prompt code)))
     (elevate-chat-query-async
      prompt
@@ -988,6 +1223,7 @@ result = [i * 2 for i in range(10) if i % 2 == 0]"
             (define-key map (kbd "C-c l r") #'elevate-remove-context)
             (define-key map (kbd "C-c l m") #'elevate-switch-chat-model)
             (define-key map (kbd "C-c l M") #'elevate-switch-completion-model)
+            (define-key map (kbd "C-c l p") #'elevate-switch-api-provider)
             (define-key map [tab] #'elevate-smart-tab)
             (define-key map (kbd "TAB") #'elevate-smart-tab)
             map)
