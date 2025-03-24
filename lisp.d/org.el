@@ -113,6 +113,11 @@
                                      ))
     )
 
+(use-package ob-mermaid
+    :config
+    (setq ob-mermaid-cli-path "/opt/homebrew/bin/mmdc")
+    :after org)
+
 (use-package org-modern
     :after org
     :hook (org-mode . org-modern-mode)
