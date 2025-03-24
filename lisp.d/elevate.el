@@ -394,6 +394,98 @@ This is required when using the OpenAI API provider."
 ;;;;;;;;;;;;;;;;;;;;;
 ;; Query Functions ;;
 ;;;;;;;;;;;;;;;;;;;;;
+(defun elevate-amazon-chat-query-async (prompt chat-history model-name callback)
+  "Send a query to Amazon API with PROMPT and CHAT-HISTORY using MODEL-NAME.
+Call CALLBACK with the response."
+  (let* ((json-data (json-encode
+                    `(("prompt" . ,prompt)
+                      ("chatHistory" . ,(vconcat chat-history))
+                      ("model" . ,(elevate-get-model-id model-name))
+                      ("modelInferenceParams" . ,(elevate-get-inference-params model-name nil)))))
+         (request-file (elevate-with-temp-file "llm-request-" json-data))
+         (response-file (make-temp-file "llm-response-"))
+         (curl-command (format "curl -L --cookie %s --cookie-jar %s '%s' --data-binary @%s -o %s"
+                             elevate-cookie-file
+                             elevate-cookie-file
+                             elevate-api-endpoint
+                             request-file
+                             response-file))
+         (buf-name (generate-new-buffer-name " *elevate-curl*"))
+         (buf (get-buffer-create buf-name))
+         (proc (get-buffer-process buf)))
+
+    (message "Sending request to Amazon LLM...")
+    (when proc
+      (delete-process proc))
+    (with-current-buffer buf
+      (erase-buffer))
+
+    (make-process
+     :name (concat "elevate-curl-" (number-to-string (random)))
+     :buffer buf
+     :command (list "sh" "-c" curl-command)
+     :sentinel (lambda (proc event)
+                 (when (string= event "finished\n")
+                   (let ((json-response (with-temp-buffer
+                                         (insert-file-contents response-file)
+                                         (buffer-string))))
+                     (let* ((json-parsed-response
+                            (json-parse-string json-response :object-type 'alist))
+                            (response (alist-get 'completion
+                                               json-parsed-response nil nil #'equal)))
+                       (funcall callback (elevate-decode-response response))))
+                   ;; Clean up
+                   (ignore-errors
+                     (delete-file request-file)
+                     (delete-file response-file))
+                   (kill-buffer (process-buffer proc)))))))
+
+(defun elevate-amazon-query-async (prompt chat-history model-name callback)
+  "Send a context-less query to Amazon API with PROMPT and CHAT-HISTORY using MODEL-NAME.
+Call CALLBACK with the response."
+  (let* ((json-data (json-encode
+                    `(("prompt" . ,prompt)
+                      ("chatHistory" . ,chat-history)
+                      ("model" . ,(elevate-get-model-id model-name))
+                      ("modelInferenceParams" . ,(elevate-get-inference-params model-name t)))))
+         (request-file (elevate-with-temp-file "llm-request-" json-data))
+         (response-file (make-temp-file "llm-response-"))
+         (curl-command (format "curl -L --cookie %s --cookie-jar %s '%s' --data-binary @%s -o %s"
+                             elevate-cookie-file
+                             elevate-cookie-file
+                             elevate-api-endpoint
+                             request-file
+                             response-file))
+         (buf-name (generate-new-buffer-name " *elevate-curl*"))
+         (buf (get-buffer-create buf-name))
+         (proc (get-buffer-process buf)))
+
+    (message "Sending request to Amazon LLM...")
+    (when proc
+      (delete-process proc))
+    (with-current-buffer buf
+      (erase-buffer))
+
+    (make-process
+     :name (concat "elevate-curl-" (number-to-string (random)))
+     :buffer buf
+     :command (list "sh" "-c" curl-command)
+     :sentinel (lambda (proc event)
+                 (when (string= event "finished\n")
+                   (let ((json-response (with-temp-buffer
+                                         (insert-file-contents response-file)
+                                         (buffer-string))))
+                     (let* ((json-parsed-response
+                            (json-parse-string json-response :object-type 'alist))
+                            (response (alist-get 'completion
+                                               json-parsed-response nil nil #'equal)))
+                       (funcall callback (elevate-decode-response response))))
+                   ;; Clean up
+                   (ignore-errors
+                     (delete-file request-file)
+                     (delete-file response-file))
+                   (kill-buffer (process-buffer proc)))))))
+
 (defun elevate-decode-response (response)
   "Decode special characters in the LLM response string."
   (when response
@@ -469,57 +561,22 @@ This is required when using the OpenAI API provider."
                                           (funcall callback response)))
 
       ;; Use Amazon API
-      (let* ((json-data (json-encode
-                        `(("prompt" . ,prompt)
-                          ("chatHistory" . ,(vconcat chat-history))
-                          ("model" . ,(elevate-get-model-id model-name))
-                          ("modelInferenceParams" . ,(elevate-get-inference-params model-name nil)))))
-             (request-file (elevate-with-temp-file "llm-request-" json-data))
-             (response-file (make-temp-file "llm-response-"))
-             (curl-command (format "curl -L --cookie %s --cookie-jar %s '%s' --data-binary @%s -o %s"
-                                 elevate-cookie-file
-                                 elevate-cookie-file
-                                 elevate-api-endpoint
-                                 request-file
-                                 response-file))
-             (buf-name (generate-new-buffer-name " *elevate-curl*"))
-             (buf (get-buffer-create buf-name))
-             (proc (get-buffer-process buf)))
-
-        (message "Sending request to LLM...")
-        (when proc
-          (delete-process proc))
-        (with-current-buffer buf
-          (erase-buffer))
-
-        (make-process
-         :name (concat "elevate-curl-" (number-to-string (random)))
-         :buffer buf
-         :command (list "sh" "-c" curl-command)
-         :sentinel (lambda (proc event)
-                     (when (string= event "finished\n")
-                       (let ((json-response (with-temp-buffer
-                                             (insert-file-contents response-file)
-                                             (buffer-string))))
-                         (let* ((json-parsed-response
-                                (json-parse-string json-response :object-type 'alist))
-                                (response (alist-get 'completion
-                                                   json-parsed-response nil nil #'equal)))
-                           (progn
-                             (when response
-                               (setq chat-history
-                                     (append chat-history
-                                            (list (elevate-format-message "Human" prompt)
-                                                 (elevate-format-message "Assistant" response))))
-                               (puthash context-name chat-history elevate-chat-contexts)
-                               ;; Save context after updating
-                               (elevate-save-context context-name))
-                             (funcall callback (elevate-decode-response response)))))
+      (elevate-amazon-chat-query-async prompt chat-history model-name
+                                     (lambda (response)
+                                       (when response
+                                         (setq chat-history
+                                              (append chat-history
+                                                     (list (elevate-format-message "Human" prompt)
+                                                          (elevate-format-message "Assistant" response))))
+                                         (puthash context-name chat-history elevate-chat-contexts)
+                                         ;; Save context after updating
+                                         (elevate-save-context context-name))
+                                       (funcall callback response))))
                        ;; Clean up
                        (ignore-errors
                          (delete-file request-file)
                          (delete-file response-file))
-                       (kill-buffer (process-buffer proc)))))))))
+                       (kill-buffer (process-buffer proc))))
 
 (defun elevate-openai-chat-query-async (prompt chat-history model-name callback)
   "Send a query to OpenAI API with PROMPT and CHAT-HISTORY using MODEL-NAME.
@@ -610,49 +667,8 @@ Call CALLBACK with the response."
           (elevate-openai-query-async messages model-name callback))
 
       ;; Use Amazon API
-      (let* ((chat-history (list (elevate-format-message "Human" (or system ""))))
-             (json-data (json-encode
-                        `(("prompt" . ,prompt)
-                          ("chatHistory" . ,chat-history)
-                          ("model" . ,(elevate-get-model-id model-name))
-                          ("modelInferenceParams" . ,(elevate-get-inference-params model-name t)))))
-             (request-file (elevate-with-temp-file "llm-request-" json-data))
-             (response-file (make-temp-file "llm-response-"))
-             (curl-command (format "curl -L --cookie %s --cookie-jar %s '%s' --data-binary @%s -o %s"
-                                 elevate-cookie-file
-                                 elevate-cookie-file
-                                 elevate-api-endpoint
-                                 request-file
-                                 response-file))
-             (buf-name (generate-new-buffer-name " *elevate-curl*"))
-             (buf (get-buffer-create buf-name))
-             (proc (get-buffer-process buf)))
-
-        (message "Sending request to LLM...")
-        (when proc
-          (delete-process proc))
-        (with-current-buffer buf
-          (erase-buffer))
-
-        (make-process
-         :name (concat "elevate-curl-" (number-to-string (random)))
-         :buffer buf
-         :command (list "sh" "-c" curl-command)
-         :sentinel (lambda (proc event)
-                     (when (string= event "finished\n")
-                       (let ((json-response (with-temp-buffer
-                                             (insert-file-contents response-file)
-                                             (buffer-string))))
-                         (let* ((json-parsed-response
-                                (json-parse-string json-response :object-type 'alist))
-                                (response (alist-get 'completion
-                                                   json-parsed-response nil nil #'equal)))
-                           (funcall callback (elevate-decode-response response))))
-                       ;; Clean up
-                       (ignore-errors
-                         (delete-file request-file)
-                         (delete-file response-file))
-                       (kill-buffer (process-buffer proc)))))))))
+      (let* ((chat-history (list (elevate-format-message "Human" (or system "")))))
+        (elevate-amazon-query-async prompt chat-history model-name callback)))))
 
 (defun elevate-openai-query-async (messages model-name callback)
   "Send a query to OpenAI API with MESSAGES using MODEL-NAME.
