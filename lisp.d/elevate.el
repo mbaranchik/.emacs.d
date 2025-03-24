@@ -68,6 +68,13 @@ Higher values allow more creativity."
   :type 'integer
   :group 'elevate)
 
+(defcustom elevate-output-format 'org-mode
+  "Preferred output format for explanations and chat.
+Can be either 'markdown or 'org-mode."
+  :type '(choice (const markdown)
+                 (const org-mode))
+  :group 'elevate)
+
 (defvar-local elevate-current-chat-model nil
   "Currently selected model for chat/explanation in this buffer.")
 
@@ -135,9 +142,15 @@ If IS-COMPLETION is non-nil, use completion-specific parameters."
   "Switch to the buffer for CONTEXT-NAME."
   (let ((buf-name (elevate-get-context-buffer-name context-name)))
     (with-current-buffer (get-buffer-create buf-name)
-      (unless (derived-mode-p 'markdown-mode)
-        (markdown-mode))
-        (display-buffer (current-buffer)))))
+      ;; Set the appropriate mode based on output format preference
+      (if (eq elevate-output-format 'markdown)
+          (unless (derived-mode-p 'markdown-mode)
+            (markdown-mode))
+        (unless (derived-mode-p 'org-mode)
+          (org-mode)))
+      ;; Display existing history
+      (elevate-display-context-history context-name)
+      (display-buffer (current-buffer)))))
 
 (defcustom elevate-contexts-directory
   (expand-file-name ".llm_contexts" user-emacs-directory)
@@ -206,22 +219,18 @@ If IS-COMPLETION is non-nil, use completion-specific parameters."
     (with-current-buffer (get-buffer-create (elevate-get-context-buffer-name context-name))
       (let ((inhibit-read-only t))
         (erase-buffer)
-        (markdown-mode)
+        ;; Set the appropriate mode based on output format preference
+        (if (eq elevate-output-format 'markdown)
+            (markdown-mode)
+          (org-mode))
         (dolist (entry (seq-partition history 2))
           (let ((human-msg (alist-get 'text (car entry)))
                 (assistant-msg (alist-get 'text (cadr entry))))
-            (insert (format "### Question\n\n%s\n\n### Answer\n\n%s\n\n---\n\n"
-                          human-msg assistant-msg))))))))
-
-(defun elevate-switch-to-context-buffer (context-name)
-  "Switch to the buffer for CONTEXT-NAME."
-  (let ((buf-name (elevate-get-context-buffer-name context-name)))
-    (with-current-buffer (get-buffer-create buf-name)
-      (unless (derived-mode-p 'markdown-mode)
-        (markdown-mode))
-      ;; Display existing history
-      (elevate-display-context-history context-name)
-      (display-buffer (current-buffer)))))
+            (if (eq elevate-output-format 'markdown)
+                (insert (format "## Question\n\n%s\n\n## Answer\n\n%s\n\n---\n\n"
+                              human-msg assistant-msg))
+              (insert (format "* Question\n\n%s\n\n* Answer\n\n%s\n\n---\n\n"
+                            human-msg assistant-msg)))))))))
 
 (defun elevate-debug-context (context-name)
   "Print debug information about a context's history."
@@ -286,17 +295,23 @@ If IS-COMPLETION is non-nil, use completion-specific parameters."
     (if contexts
         (with-current-buffer (get-buffer-create "*LLM Contexts*")
           (erase-buffer)
-          (markdown-mode)
-          (insert "# Available Chat Contexts\n\n")
+          (if (eq elevate-output-format 'markdown)
+              (markdown-mode)
+            (org-mode))
+          (if (eq elevate-output-format 'markdown)
+              (insert "# Available Chat Contexts\n\n")
+            (insert "* Available Chat Contexts\n\n"))
           (dolist (ctx contexts)
-            (insert (format "- %s%s%s\n"
+            (insert (format "%s%s%s\n"
+                          (if (eq elevate-output-format 'markdown) "- " "- ")
                           ctx
-                          (if (equal ctx elevate-current-context)
-                              " (current)"
-                            "")
-                          (if (gethash ctx elevate-chat-contexts)
-                              " (loaded)"
-                            " (on disk)"))))
+                          (concat
+                           (if (equal ctx elevate-current-context)
+                               " (current)"
+                             "")
+                           (if (gethash ctx elevate-chat-contexts)
+                               " (loaded)"
+                             " (on disk)")))))
           (display-buffer (current-buffer)))
       (message "No chat contexts available"))))
 
@@ -526,14 +541,24 @@ If IS-COMPLETION is non-nil, use completion-specific parameters."
       (markdown-mode))
     (current-buffer)))
 
+(defun elevate-create-org-buffer (name)
+  "Create or get an org buffer with NAME."
+  (with-current-buffer (get-buffer-create name)
+    (unless (derived-mode-p 'org-mode)
+      (org-mode))
+    (current-buffer)))
+
 (defun elevate-chat ()
   "Start or continue a chat with the LLM in the current context."
   (interactive)
   (unless elevate-current-context
     (call-interactively #'elevate-create-context))
-  (let ((prompt (read-string "Ask LLM: ")))
+  (let ((prompt (read-string "Ask LLM: "))
+        (format-instruction (if (eq elevate-output-format 'markdown)
+                               "Always use markdown format for answers."
+                             "Always use org-mode format for answers, start with second-level headings.")))
     (elevate-chat-query-async
-     prompt
+     (format "%s %s" format-instruction prompt)
      elevate-current-context
      (lambda (response)
        (if response
@@ -541,24 +566,33 @@ If IS-COMPLETION is non-nil, use completion-specific parameters."
                                 (elevate-get-context-buffer-name
                                  elevate-current-context))
              (goto-char (point-max))
-             (insert (format "### Question\n\n%s\n\n### Answer\n\n%s\n\n---\n\n"
-                           prompt response))
+             (if (eq elevate-output-format 'markdown)
+                 (insert (format "## Question\n\n%s\n\n## Answer\n\n%s\n\n---\n\n"
+                               prompt response))
+               (insert (format "* Question\n\n%s\n\n* Answer\n\n%s\n\n---\n\n"
+                             prompt response)))
              (display-buffer (current-buffer)))
          (message "Error: No valid response received from the LLM."))))))
 
 (defun elevate-chat-no-context ()
   "Send single LLM query without context"
   (interactive)
-  (let ((prompt (read-string "Ask LLM: ")))
+  (let ((prompt (read-string "Ask LLM: "))
+        (format-instruction (if (eq elevate-output-format 'markdown)
+                               "Always use markdown format for answers."
+                             "Always use org-mode format for answers, start with second-level headings.")))
     (elevate-query-async
-     prompt
+     (format "%s %s" format-instruction prompt)
      (lambda (response)
        (if response
            (with-current-buffer (get-buffer-create
                                 (elevate-get-context-buffer-name "Elevate"))
              (goto-char (point-max))
-             (insert (format "### Question\n\n%s\n\n### Answer\n\n%s\n\n---\n\n"
-                           prompt response))
+             (if (eq elevate-output-format 'markdown)
+                 (insert (format "## Question\n\n%s\n\n## Answer\n\n%s\n\n---\n\n"
+                               prompt response))
+               (insert (format "* Question\n\n%s\n\n* Answer\n\n%s\n\n---\n\n"
+                             prompt response)))
              (display-buffer (current-buffer)))
            (message "Error: No valid response received from the LLM.")))
         nil)))
@@ -572,7 +606,10 @@ If IS-COMPLETION is non-nil, use completion-specific parameters."
                    (buffer-substring-no-properties (region-beginning) (region-end))
                    (buffer-substring-no-properties (point-min) (point-max))))
          (lang-name (elevate-detect-language))
-         (prompt (format "Explain the following code:\n\n%s" code)))
+         (format-instruction (if (eq elevate-output-format 'markdown)
+                                "Always use markdown format for answers."
+                              "Always use org-mode format for answers, start with second-level headings."))
+         (prompt (format "%s Explain the following code:\n\n%s" format-instruction code)))
     (elevate-chat-query-async
      prompt
      elevate-current-context
@@ -582,15 +619,11 @@ If IS-COMPLETION is non-nil, use completion-specific parameters."
                                 (elevate-get-context-buffer-name
                                  elevate-current-context))
              (goto-char (point-max))
-             (insert "# Code Explanation\n\n")
-             ;; (insert "## Original Code\n\n```")
-             ;; (insert lang-name)
-             ;; (insert "\n")
-             ;; (insert code)
-             ;; (insert "\n```\n\n")
-             ;; (insert "## Explanation\n\n")
+             (if (eq elevate-output-format 'markdown)
+                 (insert "# Code Explanation\n\n")
+               (insert "* Code Explanation\n\n"))
              (insert response)
-             (insert "\n\n---\n\n")
+             (insert "\n\n")
              (display-buffer (current-buffer)))
          (message "Error: No valid response received from the LLM."))))))
 
@@ -604,7 +637,11 @@ If IS-COMPLETION is non-nil, use completion-specific parameters."
                    (buffer-substring-no-properties (region-beginning) (region-end))
                    (buffer-substring-no-properties (point-min) (point-max))))
          (lang-name (elevate-detect-language))
-         (prompt (format "Answer the following while using content in CODE XML tag as context:\n\n%s\n\n<CODE>%s</CODE>" user-prompt code)))
+         (format-instruction (if (eq elevate-output-format 'markdown)
+                                "Always use markdown format for answers."
+                              "Always use org-mode format for answers, start with second-level headings."))
+         (prompt (format "%s Answer the following while using content in CODE XML tag as context:\n\n%s\n\n<CODE>%s</CODE>" 
+                        format-instruction user-prompt code)))
     (elevate-chat-query-async
      prompt
      elevate-current-context
@@ -614,15 +651,11 @@ If IS-COMPLETION is non-nil, use completion-specific parameters."
                                 (elevate-get-context-buffer-name
                                  elevate-current-context))
              (goto-char (point-max))
-             (insert "# Code Explanation\n\n")
-             ;; (insert "## Original Code\n\n```")
-             ;; (insert lang-name)
-             ;; (insert "\n")
-             ;; (insert code)
-             ;; (insert "\n```\n\n")
-             ;; (insert "## Explanation\n\n")
+             (if (eq elevate-output-format 'markdown)
+                 (insert "# Code Explanation\n\n")
+               (insert "* Code Explanation\n\n"))
              (insert response)
-             (insert "\n\n---\n\n")
+             (insert "\n\n")
              (display-buffer (current-buffer)))
          (message "Error: No valid response received from the LLM."))))))
 
