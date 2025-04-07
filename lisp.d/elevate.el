@@ -546,7 +546,7 @@ Call CALLBACK with the response."
          (model-name (or elevate-current-chat-model
                         elevate-chat-default-model)))
 
-    (if (elevate-is-openai-model model-name)
+    (if (or (elevate-is-openai-model model-name) (eq elevate-api-provider 'openai))
         ;; Use OpenAI API
         (elevate-openai-chat-query-async prompt chat-history model-name
                                         (lambda (response)
@@ -660,7 +660,7 @@ Call CALLBACK with the response."
                         (or elevate-current-chat-model
                             elevate-chat-default-model))))
 
-    (if (elevate-is-openai-model model-name)
+    (if (or (elevate-is-openai-model model-name) (eq elevate-api-provider 'openai))
         ;; Use OpenAI API
         (let ((messages (list (elevate-format-openai-message "system" (or system "You are a helpful assistant."))
                              (elevate-format-openai-message "user" prompt))))
