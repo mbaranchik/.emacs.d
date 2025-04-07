@@ -571,12 +571,7 @@ Call CALLBACK with the response."
                                          (puthash context-name chat-history elevate-chat-contexts)
                                          ;; Save context after updating
                                          (elevate-save-context context-name))
-                                       (funcall callback response))))
-                       ;; Clean up
-                       (ignore-errors
-                         (delete-file request-file)
-                         (delete-file response-file))
-                       (kill-buffer (process-buffer proc))))
+                                       (funcall callback response))))))
 
 (defun elevate-openai-chat-query-async (prompt chat-history model-name callback)
   "Send a query to OpenAI API with PROMPT and CHAT-HISTORY using MODEL-NAME.
