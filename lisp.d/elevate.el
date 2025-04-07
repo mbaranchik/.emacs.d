@@ -377,7 +377,7 @@ This is required when using the OpenAI API provider."
   :type 'string
   :group 'elevate)
 
-(defcustom elevate-openai-api-endpoint "http://localhost:8000/v1/chat/completions"
+(defcustom elevate-openai-api-endpoint "http://localhost:5962/v1/chat/completions"
   "API endpoint for OpenAI API."
   :type 'string
   :group 'elevate)
