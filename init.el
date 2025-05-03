@@ -76,6 +76,9 @@
 (bench-wrap "LSP"
             (load-user-file "lsp"))
 
+(bench-wrap "amazon"
+	    (load-user-file "amazon"))
+
 (bench-wrap "Keybindings"
             (load-user-file "keybindings"))
 
