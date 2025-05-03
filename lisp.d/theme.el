@@ -63,6 +63,9 @@
        (use-package nerd-icons-dired)
        (use-package nerd-icons-ibuffer))
 
+(daemon-wrap my/load-all-the-icons
+       (use-package all-the-icons))
+
 (when (string= (config-wrap "ui/modeline") "doom")
   (bench-wrap "Doom-Modeline"
          (use-package doom-modeline
@@ -85,93 +88,99 @@
               )
   )
 
+(daemon-wrap my/load-awesome-tab
+    (use-package awesome-tab
+        :config
+        (awesome-tab-mode +1)))
+
 ;; Enable Tab-Line Mode (Emacs >= 27)
-(daemon-wrap my/load-tab-line
-             (use-package s)
-             (use-package powerline)
-
-             (defun my/tab-line-buffer-group (buffer)
-               "Use the project.el name for the buffer group"
-               (with-current-buffer buffer
-                 (if (project-current)
-                     (s-chop-suffix "/" (project-root (project-current)))
-                   "+++")))
-
-             (defun my/buffer-sort (a b) (string< (buffer-name a) (buffer-name b)))
-
-             (defvar my/tab-height 25)
-             (defvar my/tab-left (powerline-wave-right 'tab-line nil my/tab-height))
-             (defvar my/tab-right (powerline-wave-left nil 'tab-line my/tab-height))
-
-             (defun my/tab-line-tab-name-buffer (buffer &optional _buffers)
-               (powerline-render (list my/tab-left
-                                       (nerd-icons-icon-for-file (buffer-name buffer))
-                                       (format " %s" (buffer-name buffer))
-                                       my/tab-right)))
-             ;;(defun my/tab-line-tab-name-buffer (buffer &optional _buffers)
-             ;;  (concat ;;(nerd-icons-powerline "nf-ple-ice_waveform_mirrored")
-             ;;   ;;"  "
-             ;;   "["
-             ;;   (nerd-icons-icon-for-file (buffer-name buffer))
-             ;;   " ]"
-             ;;   (format " %s " (buffer-name buffer))
-             ;;   ;;(nerd-icons-powerline "nf-ple-ice_waveform")
-             ;;   ))
-
-             (defun my/tab-line-tabs-buffer-list ()
-               (seq-filter (lambda (b) (and (buffer-live-p b)
-                                            (/= (aref (buffer-name b) 0) ?\s)
-                                            (with-current-buffer b
-                                              (not (or (minibufferp)
-                                                       (string-match-p "\\` " (buffer-name))
-                                                       (string-match-p "\\*" (buffer-name))
-                                                       (memq major-mode tab-line-exclude-modes)
-                                                       (get major-mode 'tab-line-exclude)
-                                                       (buffer-local-value 'tab-line-exclude (current-buffer)))))))
-                           (seq-uniq (append (list (current-buffer))
-                                             (mapcar #'car (window-prev-buffers))
-                                             (buffer-list)))))
-             (use-package tab-line
-               :straight nil
-               :demand
-               :custom
-               (tab-line-switch-cycling t)
-               :custom-face
-               (tab-line ((t (:inherit modus-themes-ui-variable-pitch :background "#2c3045" :height 1.0))))
-               (tab-line-highlight ((t (:background "#45605e" :foreground "#FFFFFF" :box nil))))
-               (tab-line-tab ((t (:background "#0d0e1c"))))
-               (tab-line-tab-current ((t (:inherit bold :background "#0d0e1c" :foreground "gray93" :box nil))))
-               (tab-line-tab-group ((t (:inherit tab-line :box nil))))
-               (tab-line-tab-inactive ((t (:background "#4a4f6a" :foreground "gray93" :box nil))))
-               :custom
-               (tab-line-new-button-show nil)  ;; do not show add-new button
-               (tab-line-close-button-show nil)  ;; do not show close button
-               (tab-line-tabs-function #'tab-line-tabs-buffer-groups)
-               (tab-line-tab-name-function #'my/tab-line-tab-name-buffer)
-               (tab-line-exclude-modes '(completion-list-mode
-                                         special-mode
-                                         lisp-interaction-mode
-                                         messages-buffer-mode))
-               :bind
-               ("M-<left>" . tab-line-switch-to-prev-tab)
-               ("M-<right>" . tab-line-switch-to-next-tab)
-               :config
-               (global-tab-line-mode 1)
-               (setq
-                tab-line-tabs-buffer-group-sort-function #'my/buffer-sort
-                tab-line-tabs-buffer-group-function #'my/tab-line-buffer-group
-                tab-line-tabs-function #'tab-line-tabs-buffer-groups
-                tab-line-tabs-buffer-list-function #'my/tab-line-tabs-buffer-list)
-               (add-to-list 'tab-line-tab-face-functions 'tab-line-tab-face-group)))
+;;  (daemon-wrap my/load-tab-line
+;;               (use-package s)
+;;               (use-package powerline)
+;;  
+;;               (defun my/tab-line-buffer-group (buffer)
+;;                 "Use the project.el name for the buffer group"
+;;                 (with-current-buffer buffer
+;;                   (if (project-current)
+;;                       (s-chop-suffix "/" (project-root (project-current)))
+;;                     "+++")))
+;;  
+;;               (defun my/buffer-sort (a b) (string< (buffer-name a) (buffer-name b)))
+;;  
+;;               (defvar my/tab-height 25)
+;;               (defvar my/tab-left (powerline-wave-right 'tab-line nil my/tab-height))
+;;               (defvar my/tab-right (powerline-wave-left nil 'tab-line my/tab-height))
+;;  
+;;               (defun my/tab-line-tab-name-buffer (buffer &optional _buffers)
+;;                 (powerline-render (list my/tab-left
+;;                                         (nerd-icons-icon-for-file (buffer-name buffer))
+;;                                         (format " %s" (buffer-name buffer))
+;;                                         my/tab-right)))
+;;               ;;(defun my/tab-line-tab-name-buffer (buffer &optional _buffers)
+;;               ;;  (concat ;;(nerd-icons-powerline "nf-ple-ice_waveform_mirrored")
+;;               ;;   ;;"  "
+;;               ;;   "["
+;;               ;;   (nerd-icons-icon-for-file (buffer-name buffer))
+;;               ;;   " ]"
+;;               ;;   (format " %s " (buffer-name buffer))
+;;               ;;   ;;(nerd-icons-powerline "nf-ple-ice_waveform")
+;;               ;;   ))
+;;  
+;;               (defun my/tab-line-tabs-buffer-list ()
+;;                 (seq-filter (lambda (b) (and (buffer-live-p b)
+;;                                              (/= (aref (buffer-name b) 0) ?\s)
+;;                                              (with-current-buffer b
+;;                                                (not (or (minibufferp)
+;;                                                         (string-match-p "\\` " (buffer-name))
+;;                                                         (string-match-p "\\*" (buffer-name))
+;;                                                         (memq major-mode tab-line-exclude-modes)
+;;                                                         (get major-mode 'tab-line-exclude)
+;;                                                         (buffer-local-value 'tab-line-exclude (current-buffer)))))))
+;;                             (seq-uniq (append (list (current-buffer))
+;;                                               (mapcar #'car (window-prev-buffers))
+;;                                               (buffer-list)))))
+;;               (use-package tab-line
+;;                 :straight nil
+;;                 :demand
+;;                 :custom
+;;                 (tab-line-switch-cycling t)
+;;                 :custom-face
+;;                 (tab-line ((t (:inherit modus-themes-ui-variable-pitch :background "#2c3045" :height 1.0))))
+;;                 (tab-line-highlight ((t (:background "#45605e" :foreground "#FFFFFF" :box nil))))
+;;                 (tab-line-tab ((t (:background "#0d0e1c"))))
+;;                 (tab-line-tab-current ((t (:inherit bold :background "#0d0e1c" :foreground "gray93" :box nil))))
+;;                 (tab-line-tab-group ((t (:inherit tab-line :box nil))))
+;;                 (tab-line-tab-inactive ((t (:background "#4a4f6a" :foreground "gray93" :box nil))))
+;;                 :custom
+;;                 (tab-line-new-button-show nil)  ;; do not show add-new button
+;;                 (tab-line-close-button-show nil)  ;; do not show close button
+;;                 (tab-line-tabs-function #'tab-line-tabs-buffer-groups)
+;;                 (tab-line-tab-name-function #'my/tab-line-tab-name-buffer)
+;;                 (tab-line-exclude-modes '(completion-list-mode
+;;                                           special-mode
+;;                                           lisp-interaction-mode
+;;                                           messages-buffer-mode))
+;;                 :bind
+;;                 ("M-<left>" . tab-line-switch-to-prev-tab)
+;;                 ("M-<right>" . tab-line-switch-to-next-tab)
+;;                 :config
+;;                 (global-tab-line-mode 1)
+;;                 (setq
+;;                  tab-line-tabs-buffer-group-sort-function #'my/buffer-sort
+;;                  tab-line-tabs-buffer-group-function #'my/tab-line-buffer-group
+;;                  tab-line-tabs-function #'tab-line-tabs-buffer-groups
+;;                  tab-line-tabs-buffer-list-function #'my/tab-line-tabs-buffer-list)
+;;                 (add-to-list 'tab-line-tab-face-functions 'tab-line-tab-face-group)))
+;;  
 
 (daemon-wrap my/load-pixel-precision
-             (when (and (window-system) (fboundp 'pixel-scroll-precision-mode))
-               (pixel-scroll-precision-mode 1)
-               (setq window-resize-pixelwise t)
-               (setq frame-resize-pixelwise t)
-               (when (vertico-mode) ;; TODO: Fix properly
-                 (keymap-set vertico-map "<remap> <pixel-scroll-interpolate-down>" 'vertico-scroll-up)
-                 (keymap-set vertico-map "<remap> <pixel-scroll-interpolate-up>" 'vertico-scroll-down))))
+    (when (and (window-system) (fboundp 'pixel-scroll-precision-mode))
+        (pixel-scroll-precision-mode 1)
+        (setq window-resize-pixelwise t)
+        (setq frame-resize-pixelwise t)
+        (when (vertico-mode) ;; TODO: Fix properly
+            (keymap-set vertico-map "<remap> <pixel-scroll-interpolate-down>" 'vertico-scroll-up)
+            (keymap-set vertico-map "<remap> <pixel-scroll-interpolate-up>" 'vertico-scroll-down))))
 
 (show-paren-mode 1)
 (display-time-mode 1)
