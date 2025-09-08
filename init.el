@@ -106,10 +106,6 @@
 (bench-wrap "TMUX"
     (load-user-file "tmux"))
 
-(bench-wrap "Elevate"
-    (load-user-file "elevate")
-    (load-user-file "elevate-setup"))
-
 (bench-wrap "Custom Hooks"
             (add-hook 'prog-mode-hook #'unshow-ws)
             ;; HACK
