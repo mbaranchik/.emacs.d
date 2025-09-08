@@ -52,3 +52,5 @@
     :config
     (amz-q-lsp-setup)
 ))
+
+(provide 'my/q)
