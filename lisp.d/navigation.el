@@ -5,7 +5,12 @@
 (require 'my/basic (concat (expand-file-name (file-name-directory (or load-file-name (buffer-file-name) my/this))) "basic"))
 
 (use-package multiple-cursors
-  :commands multiple-cursors-mode)
+    :commands multiple-cursors-mode
+    :config
+    (global-set-key (kbd "C-S-c C-S-c") 'mc/edit-lines)
+    (global-set-key (kbd "C->") 'mc/mark-next-like-this)
+    (global-set-key (kbd "C-<") 'mc/mark-previous-like-this)
+    (global-set-key (kbd "C-c C-<") 'mc/mark-all-like-this))
 
 (use-package symbol-overlay
   :bind (("<C-f3>" . symbol-overlay-put)
