@@ -92,6 +92,9 @@
     ((my/c++-mode) . (lambda () (my/eglot-enable 'cpp)))
     ((my/python-mode) . (lambda () (my/eglot-enable 'python)))
     ((my/sh-mode) . (lambda () (my/eglot-enable 'bash)))
+    :custom
+    ;; Don't block UI until LSP connection is accomplished
+    (eglot-sync-connect nil)
     :config
     (setq-default amz-q-lsp-supported-modes '())
     (dolist (mode '("c" "cpp" "python" "bash"))
