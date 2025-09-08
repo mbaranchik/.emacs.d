@@ -9,16 +9,12 @@
 
 ;; Define server command mapping
 (defvar my/lsp-server-commands
-  '(("clangd" . "clangd")
-    ("ccls" . "ccls")
-    ("pyright" . "pyright-langserver --stdio")
-    ("pylsp" . "pylsp")
-    ("pylyzer" . "pylyzer --server --verbose 2")
-    ("bash-language-server" . "bash-language-server start")
-    ("amz-q" . "node /Users/mbaranch/AmazonQNVim/language-server/build/aws-lsp-codewhisperer-token-binary.js --stdio")
-    ("typescript-language-server" . "typescript-language-server --stdio")
-    ("tailwindcss-language-server" . "tailwindcss-language-server --stdio")
-    ("eslint-lsp" . "eslint-lsp --stdio"))
+  `(("clangd" . ("clangd"))
+    ("ccls" . ("ccls"))
+    ("pyright" . ("pyright-langserver" "--stdio"))
+    ("pylsp" . ("pylsp"))
+    ("pylyzer" . ("pylyzer" "--server" "--verbose" "2"))
+    ("bash-language-server" . ("bash-language-server" "start")))
   "Mapping of server names to their command strings.")
 
 (defun my/get-server-command (server)
@@ -48,28 +44,6 @@
      (t
       (my/debug-print "No config found for %s" mode)
       nil))))
-
-(defun my/build-lsp-multi-command (mode)
-  "Build the lsp-multi command for MODE with all enabled servers."
-  (let ((servers (my/get-lsp-servers-for-mode mode))
-        (lsp-multi-args '()))
-    (my/debug-print "Building lsp-multi command for %s with servers: %S" mode servers)
-    (dolist (server-config servers)
-      (my/debug-print "Processing server config: %S" server-config)
-      (when (my/convert-json-bool (alist-get 'enable server-config))
-        (let* ((server-name (alist-get 'server server-config))
-               (custom-command (alist-get 'command server-config))
-               (server-command (if custom-command
-                                  custom-command
-                                (my/get-server-command server-name))))
-          (my/debug-print "Server %s enabled with command: %s" server-name server-command)
-          (when server-command
-            (push (list "--lsp" server-command) lsp-multi-args)))))
-
-    (when lsp-multi-args
-      (let ((cmd (apply #'append (list "lsp-multi") (nreverse lsp-multi-args))))
-        (my/debug-print "Final lsp-multi command list: %S" cmd)
-        cmd))))
 
 (defun my/should-enable-lsp-for-mode (mode)
   "Check if LSP should be enabled for MODE."
@@ -103,6 +77,13 @@
     (defun project-root (project)
       (car (project-roots project))))
 
+  (defun my/map-mode-to-eglot-mode (mode)
+    (pcase mode
+      ("bash"
+        `(,(my/get-mode mode) :language-id "shell"))
+      (_
+        (my/get-mode mode))))
+
   (use-package eglot
     :straight nil
     :demand t
@@ -112,40 +93,52 @@
     ((my/python-mode) . (lambda () (my/eglot-enable 'python)))
     ((my/sh-mode) . (lambda () (my/eglot-enable 'bash)))
     :config
-    ;; Configure lsp-multi for C/C++
-    (let ((c-lsp-multi-cmd (my/build-lsp-multi-command "c")))
-      (when c-lsp-multi-cmd
-        (my/debug-print "Setting up eglot for C with command: %S" c-lsp-multi-cmd)
-        (push `((,(my/get-mode "c")) . ,c-lsp-multi-cmd) eglot-server-programs)))
+    (setq-default amz-q-lsp-supported-modes '())
+    (dolist (mode '("c" "cpp" "python" "bash"))
+      (let ((servers (my/get-lsp-servers-for-mode mode)))
+        (dolist (server-config servers)
+          (when (my/convert-json-bool (alist-get 'enable server-config))
+            (let* ((server-name (alist-get 'server server-config))
+                    (custom-command (alist-get 'command server-config))
+                    (server-command (if custom-command
+                                      custom-command
+                                      (my/get-server-command server-name))))
+              (my/debug-print "Server %s enabled with command: %s" server-name server-command)
+              (if server-command
+                (if (string= server-name "amz-q")
+                  (push (my/map-mode-to-eglot-mode mode) amz-q-lsp-supported-modes)
+                 (push `((,(my/map-mode-to-eglot-mode mode)) . ,server-command) eglot-server-programs))
+                (error "No matching command found for server %s and no custom command supplied" server-name)))))))
+      ;; ;; Enable EGLOT debug logging
+      ;; (eglot-events-buffer-config
+      ;;   '(:size 2000000 :format lisp))
+      )
 
-    ;; Configure lsp-multi for C++
-    (let ((cpp-lsp-multi-cmd (my/build-lsp-multi-command "cpp")))
-      (when cpp-lsp-multi-cmd
-        (my/debug-print "Setting up eglot for C++ with command: %S" cpp-lsp-multi-cmd)
-        (push `((,(my/get-mode "c++")) . ,cpp-lsp-multi-cmd) eglot-server-programs)))
-
-    ;; Configure lsp-multi for Python
-    (let ((python-lsp-multi-cmd (my/build-lsp-multi-command "python")))
-      (when python-lsp-multi-cmd
-        (my/debug-print "Setting up eglot for Python with command: %S" python-lsp-multi-cmd)
-        (push `((,(my/get-mode "python")) . ,python-lsp-multi-cmd) eglot-server-programs)))
-
-    ;; Configure lsp-multi for Bash
-    (let ((bash-lsp-multi-cmd (my/build-lsp-multi-command "bash")))
-      (when bash-lsp-multi-cmd
-        (my/debug-print "Setting up eglot for Bash with command: %S" bash-lsp-multi-cmd)
-        (push `((,(my/get-mode "sh")) . ,bash-lsp-multi-cmd) eglot-server-programs))))
+  (use-package lsp-multi
+      :straight '(lsp-multi
+                  :type git
+                  :host github
+                  :repo "mbaranchik/lsp-multi"
+                  :files ("*"))
+      :after eglot
+      :custom
+      (lsp-multi-executable nil)     ; Auto-detect (default)
+      (lsp-multi-debug nil)            ; Enable debugging
+      (lsp-multi-error-timeout 0)    ; Wait indefinitely
+      :config
+      ;; Install if needed
+      (unless (executable-find "lsp-multi")
+        (lsp-multi-install))
+      ;; ;; Enable integration
+      ;; (lsp-multi-enable)
+    )
 
   (use-package eglot-booster
     :straight (:host github :repo "jdtsmith/eglot-booster")
     :after eglot
-    :config (eglot-booster-mode))
-  )
+    :config (eglot-booster-mode)))
 
-;; Keep lsp-bridge and lsp-mode configurations for backward compatibility
-;; but mark them as legacy with comments
-
-;; Legacy lsp-bridge support
+;; lsp-bridge support
 (when (string= (config-wrap "lsp/package") "lsp-bridge")
   (message "Warning: lsp-bridge is not supported with lsp-multi multiplexer")
   (defun my/lsp-bridge-enable (type)
@@ -206,7 +199,7 @@
                  ))
   )
 
-;; Legacy lsp-mode support
+;; lsp-mode support
 (when (string= (config-wrap "lsp/package") "lsp-mode")
   (message "Warning: lsp-mode is not supported with lsp-multi multiplexer")
   (use-package lsp-mode
@@ -220,7 +213,16 @@
            ((my/sh-mode) . lsp)
            ;; if you want which-key integration
            (lsp-mode . lsp-enable-which-key-integration))
-    :commands lsp)
+    :commands lsp
+    :config
+    ;; ;; Enable LSP-mode debug logging
+    ;; (setq lsp-log-io t)                    ; Log all JSON-RPC communication
+    ;; (setq lsp-print-performance t)         ; Log performance metrics
+    ;; (setq lsp-trace t)                     ; Enable tracing
+    ;; (setq lsp-print-io t)                  ; Print IO to messages buffer
+    ;; (setq lsp-log-max 10000)              ; Increase log buffer size
+    ;; (setq lsp-enable-file-watchers nil)    ; Disable file watchers to reduce noise
+    )
   )
 
 ;; Turn off debug prints after initialization

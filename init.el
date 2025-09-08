@@ -73,11 +73,14 @@
 (bench-wrap "Custom"
             (load-user-file "custom"))
 
+(bench-wrap "amazon"
+	    (load-user-file "amazon"))
+
 (bench-wrap "LSP"
             (load-user-file "lsp"))
 
-(bench-wrap "amazon"
-	    (load-user-file "amazon"))
+(bench-wrap "AmazonQ"
+            (load-user-file "q"))
 
 (bench-wrap "Keybindings"
             (load-user-file "keybindings"))
