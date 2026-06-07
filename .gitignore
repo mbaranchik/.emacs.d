@@ -31,3 +31,22 @@ config.el
 tree-sitter/
 projects
 nohup.out
+
+# macOS metadata
+.DS_Store
+
+# Emacs runtime / package state
+bookmarks
+.org-id-locations
+.mc-lists.el
+org-roam.db
+request/
+tramp-rpc/
+
+# AI tool caches and local clones
+.amazonq/
+.amz-q-macs/
+.new-amz-q-macs/
+.llm_contexts/
+ANALYSIS.md
+lisp.d/--help.json
