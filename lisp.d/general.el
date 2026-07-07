@@ -246,6 +246,9 @@
 
 (setq echo-keystrokes 0.01)
 
+;; Set delete selection mode
+(delete-selection-mode 1)
+
 ;; (use-package emacs-everywhere)
 
 (provide 'my/general)
