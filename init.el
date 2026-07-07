@@ -1,184 +1,140 @@
-;;; -*- lexical-binding: t -*-
+;;; init.el --- Emacs configuration -*- lexical-binding: t -*-
 
+;; Copyright (C) 2020-2025 Michael Baranchik
+;; Author: Michael Baranchik <mbaranch@amazon.com>
+
+;;; Commentary:
+;; Modular Emacs configuration with straight.el package management.
+
+;;; Code:
+
+;;;; Constants and Paths
 (defconst user-init-dir (concat user-emacs-directory "lisp.d/"))
 
+;;;; Core Functions
 (defun load-user-file (file)
+  "Load FILE from `user-init-dir' and require its feature."
   (interactive "f")
-  "Load a file in current user's configuration directory"
   (load (expand-file-name file user-init-dir))
   (require (intern (concat "my/" file))))
 
-;; Basic stuff
+;;;; Bootstrap
 (load-user-file "basic")
-
-;; Bootstrap Straight
 (load-user-file "straight-bootstrap")
 
-;;(add-to-list 'load-path (concat user-emacs-directory "lisp.d/"))
+;;;; Performance Settings
+(add-hook 'after-init-hook
+          (lambda ()
+            (setq gc-cons-threshold (* 200 1024 1024)
+                  read-process-output-max (* 1024 1024))))
 
-;; This is now done with GCMH - Testing
-(add-hook 'after-init-hook (lambda ()
-                             (setq gc-cons-threshold (* 200 1024 1024)) ;; 100mb
-                             (setq read-process-output-max (* 1024 1024)) ;; 1mb
-                             ))
+(setq byte-compile-warnings '(cl-functions)
+      load-prefer-newer t)
 
-;; Suppress cl warning
-(setq byte-compile-warnings '(cl-functions))
-
-(use-package benchmark-init)
-;; To disable collection of benchmark data after init is done.
-(add-hook 'after-init-hook 'benchmark-init/deactivate)
-
-;;(straight-use-package `(bench
-;;                        :local-repo ,(concat user-emacs-directory "lisp")))
+;;;; Core Packages
+(use-package benchmark-init
+  :hook (after-init . benchmark-init/deactivate))
 
 (use-package bind-key)
 
-;; Avoid loading older byte-compiled
-(setq load-prefer-newer t)
-
-;; Auto compile lisp
 (use-package auto-compile
   :config
   (auto-compile-on-load-mode)
   (auto-compile-on-save-mode))
 
-;; Load GCMH
 (use-package gcmh
   :commands gcmh-mode)
 
-;;(load-user-file "packages.el")
+(require 'compat)
 
-;;(load-user-file "filelock.el")
+;; Compat-31 skips `set-local' on Emacs >= 31.0.50, but the function
+;; isn't actually in the emacs-31 branch yet. Provide it ourselves.
+(unless (fboundp 'set-local)
+  (defun set-local (variable value)
+    "Make VARIABLE buffer local and set it to VALUE."
+    (set (make-local-variable variable) value)))
+
 (use-package filelock)
 
-(bench-wrap "Prog"
-            (load-user-file "prog"))
+;;;; Module Loading
+(dolist (module '(("Prog" . "prog")
+                  ("General" . "general")
+                  ("Whitespace" . "whitespace")
+                  ("Highlight-Global" . "highlight-global")
+                  ("Git" . "git")
+                  ("Completion-Next-Gen" . "completion-next-gen")
+                  ("Custom" . "custom")
+                  ("Amazon" . "amazon")
+                  ("LSP" . "lsp")
+                  ("AmazonQ" . "q")
+                  ("Keybindings" . "keybindings")
+                  ("IDE" . "ide")
+                  ("Navigation" . "navigation")
+                  ("TMUX" . "tmux")
+                  ("Org" . "org")
+                  ("Theme" . "theme")))
+  (bench-wrap (car module) (load-user-file (cdr module))))
 
-(bench-wrap "General"
-            (load-user-file "general"))
-
-(bench-wrap "Whitespace"
-            (load-user-file "whitespace"))
-
-(bench-wrap "Higlight-Global"
-            (load-user-file "highlight-global"))
-
-(bench-wrap "Git"
-            (load-user-file "git"))
-
-(bench-wrap "Completion-Next-Gen"
-            (load-user-file "completion-next-gen"))
-
-(bench-wrap "Custom"
-            (load-user-file "custom"))
-
-(bench-wrap "amazon"
-	    (load-user-file "amazon"))
-
-(bench-wrap "LSP"
-            (load-user-file "lsp"))
-
-(bench-wrap "AmazonQ"
-            (load-user-file "q"))
-
-(bench-wrap "Keybindings"
-            (load-user-file "keybindings"))
-
-(bench-wrap "Compile"
-            (use-package compile))
+;;;; Additional Packages
+(bench-wrap "Compile" (use-package compile))
 
 (bench-wrap "Exec-Path"
-            (use-package exec-path-from-shell
-              :if (memq window-system '(mac ns))
-              :config
-              (setq exec-path-from-shell-arguments nil)
-              (exec-path-from-shell-initialize)))
+  (use-package exec-path-from-shell
+    :if (memq window-system '(mac ns))
+    :config
+    (setq exec-path-from-shell-arguments nil)
+    (exec-path-from-shell-initialize)))
 
-(put 'upcase-region 'disabled nil)
-
-(bench-wrap "IDE"
-            (load-user-file "ide"))
-
-(bench-wrap "Navigation"
-    (load-user-file "navigation"))
-
-(bench-wrap "TMUX"
-    (load-user-file "tmux"))
-
-(bench-wrap "Custom Hooks"
-            (add-hook 'prog-mode-hook #'unshow-ws)
-            ;; HACK
-            ;; (add-hook 'c-mode-hook (lambda() (define-key c-mode-map (kbd "C-c C-c") nil)))
-            ;; (add-hook 'c++-mode-hook (lambda() (define-key c++-mode-map (kbd "C-c C-c") nil)))
-    )
-
-(bench-wrap "Org"
-    (load-user-file "org"))
-
-;; Load Ligatures ;;
 (use-package ligature
   :straight (:host github :repo "mickeynp/ligature.el")
   :config
-  ;; Enable all Cascadia Code ligatures in programming modes
-  ;; (ligature-set-ligatures 'prog-mode '("|||>" "<|||" "<==>" "<!--" "####" "~~>" "***" "||=" "||>"
-  ;;                                      ":::" "::=" "=:=" "===" "==>" "=!=" "=>>" "=<<" "=/=" "!=="
-  ;;                                      "!!." ">=>" ">>=" ">>>" ">>-" ">->" "->>" "-->" "---" "-<<"
-  ;;                                      "<~~" "<~>" "<*>" "<||" "<|>" "<$>" "<==" "<=>" "<=<" "<->"
-  ;;                                      "<--" "<-<" "<<=" "<<-" "<<<" "<+>" "</>" "###" "#_(" "..<"
-  ;;                                      "..." "+++" "/==" "///" "_|_" "www" "&&" "^=" "~~" "~@" "~="
-  ;;                                      "~>" "~-" "**" "*>" "*/" "||" "|}" "|]" "|=" "|>" "|-" "{|"
-  ;;                                      "[|" "]#" "::" ":=" ":>" ":<" "$>" "==" "=>" "!=" "!!" ">:"
-  ;;                                      ">=" ">>" ">-" "-~" "-|" "->" "--" "-<" "<~" "<*" "<|" "<:"
-  ;;                                      "<$" "<=" "<>" "<-" "<<" "<+" "</" "#{" "#[" "#:" "#=" "#!"
-  ;;                                      "##" "#(" "#?" "#_" "%%" ".=" ".-" ".." ".?" "+>" "++" "?:"
-  ;;                                      "?=" "?." "??" ";;" "/*" "/=" "/>" "//" "__" "~~" "(*" "*)"
-  ;;                                      "\\\\" "://"))
   (ligature-set-ligatures 'prog-mode '("!=" "==" "->" "<-" ">=" "<=" ">>" "<<" ">>=" "<<="))
-  ;; Enables ligature checks globally in all buffers. You can also do it
-  ;; per mode with `ligature-mode'.
   :custom
-  (global-ligature-mode t)
-  )
+  (global-ligature-mode t))
 
-;; LOAD THEME ;;
-(bench-wrap "Theme"
-            (load-user-file "theme"))
 
+;;;; Custom Hooks
+(bench-wrap "Custom Hooks"
+  (add-hook 'prog-mode-hook #'unshow-ws))
+
+;;;; Customization File
 (filelock-with-lock
     (setq custom-file (expand-file-name "local_customized.el" user-emacs-directory))
   (when (file-exists-p custom-file)
-    (load custom-file))
-  )
+    (load custom-file)))
 
-;; Avoid locks on recentf
+;;;; Miscellaneous Settings
+(put 'upcase-region 'disabled nil)
+
 (when (boundp 'server-name)
   (setq recentf-save-file (format "/tmp/recentf.%s" server-name)))
 
-;;(byte-recompile-directory user-init-dir 0)
-;;(when (fboundp 'native-compile-async)
-;;  (native-compile-async user-init-dir))
-
-;; Disable TRAMP ssh options
+;;;; TRAMP Configuration
 (customize-set-variable 'tramp-use-ssh-controlmaster-options nil)
-;; Disable VC when in TRAMP buffer
 (setq vc-ignore-dir-regexp
       (format "\\(%s\\)\\|\\(%s\\)"
               vc-ignore-dir-regexp
               tramp-file-name-regexp))
 
-;; Touch hook after save - Trigger unison better
+;;;; Utility Functions
 (defun touch-buffer-file ()
-  "updates mtime on the file for the current buffer"
+  "Update mtime on the file for the current buffer."
   (interactive)
   (shell-command (concat "touch " (shell-quote-argument (expand-file-name (buffer-file-name)))))
   (clear-visited-file-modtime))
-;;(add-hook 'after-save-hook 'touch-buffer-file)
 
-;; Server Start
+;;;; Server
 (message "Sockets Dir: %s" server-socket-dir)
 (when (config-wrap "server")
   (server-start))
 
-;;(gcmh-mode 1)
+;;;; Dotfiles Overlay Fragments
+;; Keep .emacs.d generic while allowing dotfiles layers to add numbered overlay
+;; fragments in ~/.emacs.d-overlays/*.el.
+(let ((overlay-dir (expand-file-name "~/.emacs.d-overlays/")))
+  (when (file-directory-p overlay-dir)
+    (dolist (file (directory-files overlay-dir t "^[^.].*\\.el$" t))
+      (load file))))
 
+(provide 'init)
+;;; init.el ends here
