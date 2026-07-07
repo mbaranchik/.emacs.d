@@ -77,13 +77,14 @@
   )
 
 (when (string= (config-wrap "autocomplete") "corfu")
-  (use-package corfu-terminal
-  :straight (:type git
-                   :repo "https://codeberg.org/akib/emacs-corfu-terminal.git")
-  :config
-  (daemon-wrap my/load-corfu-terminal
-               (unless (display-graphic-p)
-                 (corfu-terminal-mode +1))))
+  (when (< emacs-major-version 31)
+    (use-package corfu-terminal
+      :straight (:type git
+                       :repo "https://codeberg.org/akib/emacs-corfu-terminal.git")
+      :config
+      (daemon-wrap my/load-corfu-terminal
+                   (unless (display-graphic-p)
+                     (corfu-terminal-mode +1)))))
 
   (use-package corfu
     ;; Optional customizations
