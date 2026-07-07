@@ -12,6 +12,7 @@
   `(("clangd" . ("clangd"))
     ("ccls" . ("ccls"))
     ("pyright" . ("pyright-langserver" "--stdio"))
+    ("basedpyright" . ("basedpyright-langserver" "--stdio"))
     ("pylsp" . ("pylsp"))
     ("pylyzer" . ("pylyzer" "--server" "--verbose" "2"))
     ("bash-language-server" . ("bash-language-server" "start")))
@@ -218,6 +219,9 @@
            (lsp-mode . lsp-enable-which-key-integration))
     :commands lsp
     :config
+    (use-package lsp-pyright
+      :config
+      (setq lsp-pyright-langserver-command "basedpyright"))
     ;; ;; Enable LSP-mode debug logging
     ;; (setq lsp-log-io t)                    ; Log all JSON-RPC communication
     ;; (setq lsp-print-performance t)         ; Log performance metrics
