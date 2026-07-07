@@ -53,4 +53,9 @@
     (amz-q-lsp-setup)
 ))
 
+(use-package agent-shell
+    :straight '(agent-shell
+                 :host github
+                 :repo "xenodium/agent-shell"))
+
 (provide 'my/q)
