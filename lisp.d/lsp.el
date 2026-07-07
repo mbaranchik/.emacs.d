@@ -85,6 +85,10 @@
       (_
         (my/get-mode mode))))
 
+  (use-package eldoc-box
+    :bind
+    (("M-h" . 'eldoc-box-help-at-point)))
+
   (use-package eglot
     :straight nil
     :demand t
