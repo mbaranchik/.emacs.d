@@ -1,4 +1,4 @@
-;; handle tmux's xterm-keys
+;; handle tmux's xterm-keys  -*- lexical-binding: t; -*-
 ;; put the following line in your ~/.tmux.conf:
 ;;   setw -g xterm-keys on
 (if (getenv "TMUX")
