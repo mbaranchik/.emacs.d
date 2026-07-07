@@ -45,11 +45,14 @@
     (defvaralias 'my/bash-mode-hook 'sh-mode-hook)
     (defvaralias 'my/bash-mode-map 'sh-mode-map)))
 
-(defun my/get-mode (mode)
-  (car (function-alias-p (intern (concat "my/" mode "-mode")))))
-
 (defun my/get-mode-str (mode)
   (concat "my/" mode "-mode"))
+
+(defun my/get-mode (mode)
+  (car (function-alias-p (intern (my/get-mode-str mode)))))
+
+(defun my/get-mode-hook (mode)
+  (indirect-variable (intern (concat (my/get-mode-str mode) "-hook"))))
 
 ;;(dolist (item (mapcar (lambda (sym) (cons sym sym))
 ;;                       '(c-basic-offset
