@@ -172,6 +172,14 @@
     '(vundo-highlight ((t (:foreground "#FFFF00")))))
   )
 
+;; Tramp-RPC
+(use-package tramp
+  :straight nil)
+;; (use-package tramp-rpc
+;;   :straight (:host github
+;;              :repo "ArthurHeymans/emacs-tramp-rpc"
+;;              :build (:not compile)))
+
 ;; Transpose
 (use-package transpose-frame
   :commands transpose-frame)
