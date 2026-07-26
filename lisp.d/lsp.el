@@ -101,7 +101,6 @@
     ;; Don't block UI until LSP connection is accomplished
     (eglot-sync-connect nil)
     :config
-    (setq-default amz-q-lsp-supported-modes '())
     (dolist (mode '("c" "cpp" "python" "bash"))
       (let ((servers (my/get-lsp-servers-for-mode mode)))
         (dolist (server-config servers)
@@ -113,11 +112,7 @@
                                       (my/get-server-command server-name))))
               (my/debug-print "Server %s enabled with command: %s" server-name server-command)
               (if server-command
-                (if (string= server-name "amz-q")
-                  (progn
-                    (push (my/map-mode-to-eglot-mode mode) amz-q-lsp-supported-modes)
-                    (add-hook (my/get-mode-hook mode) #'amz-q-macs-mode -90))
-                 (push `((,(my/map-mode-to-eglot-mode mode)) . ,server-command) eglot-server-programs))
+                (push `((,(my/map-mode-to-eglot-mode mode)) . ,server-command) eglot-server-programs)
                 (error "No matching command found for server %s and no custom command supplied" server-name)))))))
       ;; ;; Enable EGLOT debug logging
       ;; (eglot-events-buffer-config
@@ -235,13 +230,7 @@
     ;; (setq lsp-print-io t)                  ; Print IO to messages buffer
     ;; (setq lsp-log-max 10000)              ; Increase log buffer size
     ;; (setq lsp-enable-file-watchers nil)    ; Disable file watchers to reduce noise
-    (dolist (mode '("c" "cpp" "python" "bash"))
-      (let ((servers (my/get-lsp-servers-for-mode mode)))
-        (dolist (server-config servers)
-          (when (my/convert-json-bool (alist-get 'enable server-config))
-            (let* ((server-name (alist-get 'server server-config)))
-              (when (string= server-name "amz-q")
-                (add-hook (my/get-mode-hook mode) #'amz-q-macs-mode -90)))))))))
+    ))
 
 ;; Turn off debug prints after initialization
 (add-hook 'after-init-hook (lambda () (setq my/enable-debug-prints nil)))
