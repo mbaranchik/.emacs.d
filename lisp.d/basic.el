@@ -49,17 +49,25 @@
     "Load configuration from JSON file"
     (my/debug-print "Loading config from: %s" my/config-file)
     (unless my/config-cache
-        (if (file-exists-p my/config-file)
-            (with-temp-buffer
-                (insert-file-contents my/config-file)
-                (let ((json-contents (buffer-string)))
-                  (my/debug-print "Config file contents: %s" json-contents)
-                  ;; Validate JSON structure
-                  (unless (string-match-p "\"ui\"\\s-*:" json-contents)
-                    (error "Config file missing required 'ui' section"))
-                  )
-                (setq my/config-cache (json-parse-buffer :object-type 'alist)))
-            (error "Configuration file %s not found" my/config-file)))
+        (let ((config-file my/config-file)
+              (example-file (expand-file-name "config.json.example" user-emacs-directory)))
+          ;; Fall back to the bundled example config when no user config exists.
+          (unless (file-exists-p config-file)
+            (if (file-exists-p example-file)
+                (progn
+                  (warn "Configuration file %s not found; using defaults from %s. Copy it to config.json to customize."
+                        config-file example-file)
+                  (setq config-file example-file))
+              (error "Configuration file %s not found (and no config.json.example fallback)" config-file)))
+          (with-temp-buffer
+              (insert-file-contents config-file)
+              (let ((json-contents (buffer-string)))
+                (my/debug-print "Config file contents: %s" json-contents)
+                ;; Validate JSON structure
+                (unless (string-match-p "\"ui\"\\s-*:" json-contents)
+                  (error "Config file missing required 'ui' section"))
+                )
+              (setq my/config-cache (json-parse-buffer :object-type 'alist)))))
     my/config-cache)
 
 (defun my/get-config-value (path &optional default)

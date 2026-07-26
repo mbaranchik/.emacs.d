@@ -1,0 +1,79 @@
+{
+    "server": false,
+    "lsp": {
+        "package": "eglot",
+        "c": [
+            {
+                "server": "clangd",
+                "enable": true
+            }
+        ],
+        "cpp": [
+            {
+                "server": "clangd",
+                "enable": true
+            }
+        ],
+        "python": [
+            {
+                "server": "basedpyright",
+                "enable": true
+            }
+        ],
+        "bash": [
+            {
+                "server": "bash-language-server",
+                "enable": true
+            }
+        ]
+    },
+    "code-diag": {
+        "package": "flymake",
+        "c": {
+            "enable": true
+        },
+        "cpp": {
+            "enable": true
+        },
+        "python": {
+            "enable": false
+        },
+        "bash": {
+            "enable": true
+        }
+    },
+    "autoformat": {
+        "package": "apheleia",
+        "c": {
+            "enable": true
+        },
+        "cpp": {
+            "enable": true
+        },
+        "python": {
+            "enable": false
+        },
+        "bash": {
+            "enable": true
+        }
+    },
+    "autocomplete": "corfu",
+    "treesit": true,
+    "ui": {
+        "theme": "ef-night",
+        "modeline": "mood",
+        "idle-highlight": false,
+        "visual-line-mode": false,
+        "indent-guide": false,
+        "which-function": false,
+        "diff-hl": true
+    },
+    "indent": {
+        "basic-offset": 4,
+        "indent-tabs": false
+    },
+    "copyright": {
+        "header": "Copyright (c) — all rights reserved",
+        "name": "Your Name"
+    }
+}
