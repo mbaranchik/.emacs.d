@@ -123,10 +123,45 @@
   (add-to-list 'auto-mode-alist '("\\.cshrc\\'" . sh-mode))
   (add-to-list 'auto-mode-alist '("\\.csh\\'" . sh-mode)))
 
+;; Rendered in-buffer view: headings, emphasis, links, tables, images and code
+;; blocks are prettified with overlays that hide the markup. Shipped inside
+;; xenodium's shell-maker repo.
+(use-package markdown-overlays
+  :straight (markdown-overlays :type git :host github :repo "xenodium/shell-maker"
+                               :files ("markdown-overlays*.el"))
+  :commands (markdown-overlays-put markdown-overlays-remove))
+
+(defvar-local my/markdown-view--was-read-only nil
+  "Value of `buffer-read-only' before `my/markdown-view-mode' was enabled.")
+
+(define-minor-mode my/markdown-view-mode
+  "Read-only rendered view of the current Markdown buffer.
+Overlays are a snapshot, so the buffer is read-only while this is on;
+toggle it off to edit."
+  :lighter " MdView"
+  (if my/markdown-view-mode
+      (progn
+        (setq my/markdown-view--was-read-only buffer-read-only)
+        (markdown-overlays-put)
+        (read-only-mode 1))
+    (markdown-overlays-remove)
+    (unless my/markdown-view--was-read-only
+      (read-only-mode -1))))
+
+;; GitHub-styled live preview in the browser (xwidget webkit when available).
+;; `auto' picks the first of mdopen, go-grip, grip found on PATH.
+(use-package grip-mode
+  :commands grip-mode
+  :custom
+  (grip-command 'auto)
+  (grip-theme 'auto))
+
 (use-package markdown-mode
   :mode ("README\\.md\\'" . gfm-mode)
   :bind (:map markdown-mode-map
-              ("C-c C-e" . markdown-do))
+              ("C-c C-e" . markdown-do)
+              ("C-c C-x C-v" . my/markdown-view-mode)
+              ("C-c C-x C-g" . grip-mode))
   :config
   (use-package edit-indirect)
   (setopt markdown-fontify-code-blocks-natively t))
