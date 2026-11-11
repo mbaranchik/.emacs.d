@@ -30,4 +30,21 @@
 ;; when gccemacs is installed.
 (setq native-comp-deferred-compilation nil)
 
+;; macOS: libgccjit links against libSystem from the SDK, which is not on the
+;; default linker path ("ld: library 'System' not found"). Put the active SDK's
+;; usr/lib on LIBRARY_PATH so native compilation (packages, trampolines) works
+;; however Emacs is launched (Dock, daemon, terminal).
+(when (and (eq system-type 'darwin)
+           (fboundp 'native-comp-available-p)
+           (native-comp-available-p))
+  (let* ((sdk (car (ignore-errors (process-lines "xcrun" "--show-sdk-path"))))
+         (lib (and sdk (expand-file-name "usr/lib" sdk)))
+         (cur (getenv "LIBRARY_PATH")))
+    (when (and lib
+               (file-exists-p (expand-file-name "libSystem.tbd" lib))
+               (not (member lib (and cur (split-string cur ":" t)))))
+      (setenv "LIBRARY_PATH" (if (and cur (> (length cur) 0))
+                                 (concat lib ":" cur)
+                               lib)))))
+
 (modify-all-frames-parameters '((background-mode . "dark")))
