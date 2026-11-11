@@ -188,7 +188,9 @@
 (line-number-mode 1)
 (column-number-mode 1)
 (tool-bar-mode -1)
-(scroll-bar-mode 1)
+(daemon-wrap my/scroll-bar-mode
+    (when (fboundp 'scroll-bar-mode)
+        (scroll-bar-mode 1)))
 (menu-bar-mode 1)
 
 ;; Set Title Bar
